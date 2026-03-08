@@ -1,0 +1,16 @@
+/node_modules/
+/frontend/dist/
+/frontend/node_modules/
+/backend/dist/
+/backend/node_modules/
+/backend/backend/
+/backend/backend/logs/
+/pdfdocs/
+/sql/*.log
+/tmp/
+*.log
+.env
+.env.*
+.DS_Store
+.vscode/
+.idea/
