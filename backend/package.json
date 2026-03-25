@@ -5,6 +5,9 @@
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
     "build": "tsc",
+    "check": "tsc --noEmit",
+    "seed:demo-user": "ts-node src/scripts/seedDemoUser.ts",
+    "test": "npm run check",
     "start": "node dist/server.js"
   },
   "dependencies": {

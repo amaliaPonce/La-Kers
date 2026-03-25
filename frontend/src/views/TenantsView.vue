@@ -527,8 +527,25 @@ const handleModalClose = () => {
   tenantModalState.tenant = null;
 };
 
+const buildTenantSubmitErrorMessage = (error: unknown, mode: 'create' | 'edit') => {
+  const responseData = (error as AxiosError<{ errors?: string[]; message?: string }>)?.response?.data;
+  if (Array.isArray(responseData?.errors) && responseData.errors.length) {
+    return responseData.errors.join('\n');
+  }
+  if (responseData?.message) {
+    return responseData.message;
+  }
+  return mode === 'edit' ? 'No se pudo actualizar el inquilino.' : 'No se pudo crear el inquilino.';
+};
+
 const handleTenantSubmit = async (payload: TenantFormValues) => {
+  if (new Date(payload.contract_end) < new Date(payload.contract_start)) {
+    window.alert('La fecha de fin no puede ser anterior a la fecha de inicio.');
+    return;
+  }
+
   saving.value = true;
+  let requestSucceeded = false;
   try {
     if (tenantModalState.mode === 'edit' && payload.id) {
       await apiClient.put(`/tenants/${payload.id}`, payload);
@@ -538,12 +555,16 @@ const handleTenantSubmit = async (payload: TenantFormValues) => {
       highlightNewTenant(`${payload.full_name}-${payload.contract_end}-${payload.unit_id}`);
     }
     await refreshData();
+    requestSucceeded = true;
   } catch (error) {
     console.error(error);
+    window.alert(buildTenantSubmitErrorMessage(error, tenantModalState.mode));
   } finally {
     saving.value = false;
-    tenantModalState.visible = false;
-    tenantModalState.tenant = null;
+    if (requestSucceeded) {
+      tenantModalState.visible = false;
+      tenantModalState.tenant = null;
+    }
   }
 };
 

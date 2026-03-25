@@ -6,6 +6,7 @@ export interface AuthenticatedRequest extends Request {
     id: string;
     email?: string | null;
     role?: string;
+    plan?: string | null;
   };
 }
 
@@ -30,7 +31,8 @@ export async function authMiddleware(req: AuthenticatedRequest, res: Response, n
     req.supabaseUser = {
       id: user.id,
       email: user.email,
-      role: user.role
+      role: user.role,
+      plan: typeof user.user_metadata?.plan === 'string' ? user.user_metadata.plan : null
     };
 
     next();

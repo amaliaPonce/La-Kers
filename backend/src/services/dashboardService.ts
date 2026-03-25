@@ -1,20 +1,43 @@
 import { supabaseAdmin } from '../config/supabaseClient';
 import { countApartmentsByStatus } from './apartmentsService';
 
-export async function getDashboardSummary() {
+export async function getDashboardSummary(ownerId: string) {
   const today = new Date();
   const month = today.getMonth() + 1;
   const year = today.getFullYear();
 
-  const { data, error } = await supabaseAdmin
-    .from('payments')
-    .select('amount, status')
-    .eq('month', month)
-    .eq('year', year);
+  const { data: unitsData, error: unitsError } = await supabaseAdmin
+    .from('units')
+    .select('id, monthly_rent')
+    .eq('owner_id', ownerId);
 
-  if (error) throw error;
+  if (unitsError) throw unitsError;
 
-  const paymentTotals = (data ?? []).reduce(
+  const unitIds = (unitsData ?? [])
+    .map((unit) => String((unit as { id?: string }).id ?? ''))
+    .filter(Boolean);
+
+  const baseContractValue = (unitsData ?? []).reduce((sum, unit) => {
+    const rent = Number((unit as { monthly_rent?: number }).monthly_rent ?? 0);
+    return sum + rent;
+  }, 0);
+
+  const unitCounts = await countApartmentsByStatus(ownerId);
+
+  let currentMonthPayments: { amount?: number; status?: string }[] = [];
+  if (unitIds.length) {
+    const { data: paymentsData, error } = await supabaseAdmin
+      .from('payments')
+      .select('amount, status')
+      .in('unit_id', unitIds)
+      .eq('month', month)
+      .eq('year', year);
+
+    if (error) throw error;
+    currentMonthPayments = paymentsData ?? [];
+  }
+
+  const paymentTotals = (currentMonthPayments ?? []).reduce(
     (acc, payment) => {
       const amount = Number(payment.amount ?? 0);
       if (payment.status === 'PAID') acc.totalPaidMes += amount;
@@ -29,23 +52,18 @@ export async function getDashboardSummary() {
     }
   );
 
-  const { data: unitsData, error: unitsError } = await supabaseAdmin
-    .from('units')
-    .select('monthly_rent');
+  let tenantCount = 0;
+  if (unitIds.length) {
+    const { count, error: tenantError } = await supabaseAdmin
+      .from('tenant_persons')
+      .select('id', { count: 'exact', head: true })
+      .in('unit_id', unitIds);
 
-  if (unitsError) throw unitsError;
+    if (tenantError) {
+      throw tenantError;
+    }
 
-  const baseContractValue = (unitsData ?? []).reduce((sum, unit) => {
-    const rent = Number((unit as { monthly_rent?: number }).monthly_rent ?? 0);
-    return sum + rent;
-  }, 0);
-
-  const unitCounts = await countApartmentsByStatus();
-  const { count: tenantCount, error: tenantError } = await supabaseAdmin
-    .from('tenant_persons')
-    .select('*', { count: 'exact', head: true });
-  if (tenantError) {
-    throw tenantError;
+    tenantCount = count ?? 0;
   }
 
   const monthFormatter = new Intl.DateTimeFormat('es-ES', { month: 'short' });
@@ -62,12 +80,17 @@ export async function getDashboardSummary() {
   const latestTrendYear = trendMonths[trendMonths.length - 1].year;
   const trendKeys = new Set(trendMonths.map((item) => `${item.year}-${item.month}`));
 
-  const { data: historyData, error: historyError } = await supabaseAdmin
-    .from('payments')
-    .select('month, year, amount, status')
-    .gte('year', earliestTrendYear)
-    .lte('year', latestTrendYear);
-  if (historyError) throw historyError;
+  let historyData: { month?: number; year?: number; amount?: number; status?: string }[] = [];
+  if (unitIds.length) {
+    const { data, error: historyError } = await supabaseAdmin
+      .from('payments')
+      .select('month, year, amount, status')
+      .in('unit_id', unitIds)
+      .gte('year', earliestTrendYear)
+      .lte('year', latestTrendYear);
+    if (historyError) throw historyError;
+    historyData = data ?? [];
+  }
 
   const monthlyCollections = (historyData ?? []).reduce<Map<string, number>>((acc, payment) => {
     const paymentMonth = Number(payment.month ?? 0);

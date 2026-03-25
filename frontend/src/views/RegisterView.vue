@@ -3,7 +3,7 @@
     <div class="bg-white shadow rounded-lg p-6 w-full max-w-md space-y-4">
       <div>
         <h2 class="text-2xl font-semibold mb-2 text-center">Crear cuenta</h2>
-        <p class="text-sm text-slate-500 text-center">Registra al propietario con el email y contraseña deseados.</p>
+        <p class="text-sm text-slate-500 text-center">Regístrate con el identificador que uses (CIF de empresa o DNI/NIE personal).</p>
       </div>
       <form class="space-y-4" @submit.prevent="handleSubmit">
         <div>
@@ -24,6 +24,27 @@
             required
           />
         </div>
+        <div>
+          <label class="block text-sm text-slate-600">Tipo de identificación</label>
+          <select
+            v-model="form.id_type"
+            class="w-full rounded-md border border-slate-200 px-3 py-2"
+          >
+            <option value="cif">CIF de la empresa</option>
+            <option value="dni">DNI/NIE personal</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm text-slate-600">{{ identifierLabel }}</label>
+          <input
+            v-model="form.identifier"
+            :placeholder="identifierPlaceholder"
+            type="text"
+            class="w-full rounded-md border border-slate-200 px-3 py-2"
+            maxlength="12"
+            required
+          />
+        </div>
         <button class="w-full bg-primary text-white py-2 rounded-md hover:bg-blue-600" :disabled="loading">
           {{ loading ? 'Registrando...' : 'Crear cuenta' }}
         </button>
@@ -39,7 +60,7 @@
 
 <script setup lang="ts">
 import axios from 'axios';
-import { reactive, ref } from 'vue';
+import { computed, reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import apiClient from '../services/apiClient';
 import { useAuthStore } from '../stores/auth';
@@ -49,8 +70,12 @@ const auth = useAuthStore();
 const form = reactive({
   full_name: '',
   email: '',
-  password: ''
+  password: '',
+  id_type: 'cif',
+  identifier: ''
 });
+const identifierLabel = computed(() => (form.id_type === 'dni' ? 'DNI/NIE del responsable' : 'CIF de la empresa'));
+const identifierPlaceholder = computed(() => (form.id_type === 'dni' ? 'Ej. 12345678Z' : 'Ej. A12345678'));
 const loading = ref(false);
 const error = ref('');
 
@@ -58,7 +83,14 @@ const handleSubmit = async () => {
   loading.value = true;
   error.value = '';
   try {
-    const { data } = await apiClient.post('/auth/register', form);
+    const payload = {
+      full_name: form.full_name,
+      email: form.email,
+      password: form.password,
+      company_cif: form.id_type === 'cif' ? form.identifier : undefined,
+      personal_dni: form.id_type === 'dni' ? form.identifier : undefined
+    };
+    const { data } = await apiClient.post('/auth/register', payload);
     if (!data?.session) {
       throw new Error('No se pudo iniciar sesión');
     }

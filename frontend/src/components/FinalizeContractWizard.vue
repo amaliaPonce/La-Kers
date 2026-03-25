@@ -146,6 +146,7 @@
                     <input
                       v-model="form.finalizationDate"
                       type="date"
+                      :min="finalizationDateMin"
                       class="mt-1 w-full rounded-2xl border border-slate-200 px-3 py-2 text-sm focus:border-slate-900 focus:outline-none"
                     />
                   </label>
@@ -240,6 +241,7 @@
 
 <script setup lang="ts">
 import { computed, reactive, ref, watch } from 'vue';
+import type { AxiosError } from 'axios';
 import PaymentStatusBadge from './PaymentStatusBadge.vue';
 import apiClient from '../services/apiClient';
 import type { Payment } from '../types/payment';
@@ -278,8 +280,29 @@ const activeStep = ref(0);
 const isFinalizing = ref(false);
 const errorMessage = ref('');
 
+const padDatePart = (value: number) => String(value).padStart(2, '0');
+
+const getTodayDateKey = () => {
+  const today = new Date();
+  return `${today.getFullYear()}-${padDatePart(today.getMonth() + 1)}-${padDatePart(today.getDate())}`;
+};
+
+const sanitizeDateKey = (value?: string | null) => {
+  const normalized = String(value ?? '').trim();
+  return /^\d{4}-\d{2}-\d{2}$/.test(normalized) ? normalized : '';
+};
+
+const getMinimumFinalizationDate = () => sanitizeDateKey(props.tenant?.contract_start) || getTodayDateKey();
+
+const getDefaultFinalizationDate = () => {
+  const today = getTodayDateKey();
+  const contractStart = sanitizeDateKey(props.tenant?.contract_start);
+  if (!contractStart) return today;
+  return contractStart > today ? contractStart : today;
+};
+
 const form = reactive({
-  finalizationDate: new Date().toISOString().split('T')[0],
+  finalizationDate: getTodayDateKey(),
   depositAmount: null as number | null,
   depositStatus: 'pendiente' as DepositStatus,
   signer: ''
@@ -309,7 +332,7 @@ const extractNumber = (value: unknown) => {
 const resetFormForTenant = () => {
   activeStep.value = 0;
   errorMessage.value = '';
-  form.finalizationDate = new Date().toISOString().split('T')[0];
+  form.finalizationDate = getDefaultFinalizationDate();
   form.depositAmount = extractNumber(props.tenant?.deposit_amount ?? props.tenant?.depositAmount) ?? null;
   form.depositStatus = normalizeDepositStatus(
     String(props.tenant?.deposit_status ?? props.tenant?.depositStatus ?? '')
@@ -436,6 +459,8 @@ const closeWizard = () => {
   emit('close');
 };
 
+const finalizationDateMin = computed(() => getMinimumFinalizationDate());
+
 const handlePrimaryAction = () => {
   if (isFinalStep.value) {
     finalizeContract();
@@ -447,6 +472,10 @@ const handlePrimaryAction = () => {
 const finalizeContract = async () => {
   if (!props.tenant?.id) return;
   errorMessage.value = '';
+  if (form.finalizationDate < finalizationDateMin.value) {
+    errorMessage.value = 'La fecha de finalización no puede ser anterior al inicio del contrato.';
+    return;
+  }
   isFinalizing.value = true;
   try {
     await apiClient.post(`/contracts/${props.tenant.id}/finalize`, {
@@ -457,7 +486,8 @@ const finalizeContract = async () => {
     emit('finalized', props.tenant.id);
   } catch (error) {
     console.error('[FinalizeContractWizard]', error);
-    errorMessage.value = 'No se pudo completar la finalización. Intenta nuevamente.';
+    const responseMessage = (error as AxiosError<{ message?: string }>)?.response?.data?.message;
+    errorMessage.value = responseMessage || 'No se pudo completar la finalización. Intenta nuevamente.';
   } finally {
     isFinalizing.value = false;
   }

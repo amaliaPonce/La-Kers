@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { AuthenticatedRequest } from '../middleware/authMiddleware';
 import { listPayments, markPaymentPaid, createPayment, ensurePendingPaymentsForDate } from '../services/paymentsService';
 
 const router = Router();
@@ -26,18 +27,23 @@ function validatePayment(payload: Record<string, unknown>) {
   return errors;
 }
 
-router.get('/', async (req, res) => {
+router.get('/', async (req: AuthenticatedRequest, res) => {
+  const ownerId = req.supabaseUser?.id;
+  if (!ownerId) {
+    return res.status(401).json({ message: 'Unauthorized' });
+  }
   try {
-    await ensurePendingPaymentsForDate(new Date().toISOString());
-    const payments = await listPayments();
+    await ensurePendingPaymentsForDate(new Date().toISOString(), ownerId);
+    const payments = await listPayments(ownerId);
     res.json(payments);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Unable to load payments' });
+    const status = (error as any).status ?? 500;
+    res.status(status).json({ message: 'Unable to load payments' });
   }
 });
 
-router.post('/', async (req, res) => {
+router.post('/', async (req: AuthenticatedRequest, res) => {
   const payload = {
     unit_id: req.body.unit_id,
     tenant_person_id: req.body.tenant_person_id,
@@ -52,21 +58,31 @@ router.post('/', async (req, res) => {
   }
 
   try {
-    const payment = await createPayment({ ...payload, status: 'PENDING' });
+    const ownerId = req.supabaseUser?.id;
+    if (!ownerId) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+    const payment = await createPayment({ ...payload, status: 'PENDING' }, ownerId);
     res.status(201).json(payment);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Unable to create payment' });
+    const status = (error as any).status ?? 500;
+    res.status(status).json({ message: 'Unable to create payment' });
   }
 });
 
-router.patch('/:id/pay', async (req, res) => {
+router.patch('/:id/pay', async (req: AuthenticatedRequest, res) => {
   try {
-    const payment = await markPaymentPaid(req.params.id);
+    const ownerId = req.supabaseUser?.id;
+    if (!ownerId) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+    const payment = await markPaymentPaid(req.params.id, ownerId);
     res.json(payment);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Unable to mark payment as paid' });
+    const status = (error as any).status ?? 500;
+    res.status(status).json({ message: 'Unable to mark payment as paid' });
   }
 });
 

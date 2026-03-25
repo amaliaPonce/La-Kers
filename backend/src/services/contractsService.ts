@@ -12,11 +12,20 @@ export type ContractFinalizationPayload = {
   depositStatus?: string;
 };
 
-const normalizeFinalizationDate = (value?: string) => {
+const padDatePart = (value: number) => String(value).padStart(2, '0');
+
+const toDateKey = (value: string | Date | null | undefined) => {
   if (!value) return null;
-  const parsed = new Date(value);
+  if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return value;
+  }
+  const parsed = value instanceof Date ? value : new Date(value);
   if (Number.isNaN(parsed.getTime())) return null;
-  return parsed;
+  return `${parsed.getFullYear()}-${padDatePart(parsed.getMonth() + 1)}-${padDatePart(parsed.getDate())}`;
+};
+
+const normalizeFinalizationDate = (value?: string) => {
+  return toDateKey(value);
 };
 
 const buildDepositStatus = (value?: string | null) => {
@@ -56,14 +65,18 @@ const loadUnitDetails = async (unitId: string): Promise<UnitAddressDetails | nul
   }
 };
 
-const getContractRecord = async (contractId: string): Promise<ContractRecord> => {
+const getContractRecord = async (ownerId: string, contractId: string): Promise<ContractRecord> => {
   const { data, error } = await supabaseAdmin
     .from('tenant_persons')
-    .select('*, units(id, name)')
+    .select('*, units(owner_id, id, name)')
     .eq('id', contractId)
-    .single();
-  if (error || !data) {
-    throw error ?? new Error('Contrato no encontrado');
+    .eq('units.owner_id', ownerId)
+    .maybeSingle();
+  if (error) {
+    throw error;
+  }
+  if (!data) {
+    throw new Error('Contrato no encontrado');
   }
   const record = data as ContractRecord;
   if (record.unit_id) {
@@ -104,15 +117,20 @@ export type ContractFinalizationResult = {
 };
 
 export async function finalizeContract(
+  ownerId: string,
   contractId: string,
   payload: ContractFinalizationPayload
 ): Promise<ContractFinalizationResult> {
-  const record = await getContractRecord(contractId);
+  const record = await getContractRecord(ownerId, contractId);
   if (!record) {
     throw new Error('Contrato no encontrado');
   }
-  const parsedDate = normalizeFinalizationDate(payload.finalizationDate) ?? new Date();
-  const finalizationDate = parsedDate.toISOString().split('T')[0];
+  const finalizationDate = normalizeFinalizationDate(payload.finalizationDate) ?? toDateKey(new Date()) ?? record.contract_end;
+  if (finalizationDate < record.contract_start) {
+    const error = new Error('La fecha de finalización no puede ser anterior al inicio del contrato');
+    (error as any).status = 400;
+    throw error;
+  }
 
   const depositAmount = Number(payload.depositAmount ?? record.deposit_amount ?? 0);
   const depositStatus = buildDepositStatus(payload.depositStatus ?? record.deposit_status ?? undefined);
@@ -143,7 +161,7 @@ export async function finalizeContract(
 
   if (record.unit_id) {
     try {
-      await updateApartment(record.unit_id, { status: 'AVAILABLE' });
+      await updateApartment(ownerId, record.unit_id, { status: 'AVAILABLE' });
     } catch (unitError) {
       console.error('[contracts/ensure-unit]', unitError);
     }

@@ -1,14 +1,43 @@
-import { Request, Response, NextFunction } from 'express';
+import { Response, NextFunction } from 'express';
+import { AuthenticatedRequest } from '../middleware/authMiddleware';
 import { access } from 'fs/promises';
 import path from 'path';
 import { supabaseAdmin } from '../config/supabaseClient';
 import { finalizeContract } from '../services/contractsService';
 
-export async function finalizeContractHandler(req: Request, res: Response, next: NextFunction) {
+function resolveFinalizeContractError(error: unknown) {
+  const status = Number((error as { status?: number })?.status);
+  const rawMessage = String((error as { message?: string })?.message ?? '');
+
+  if (Number.isInteger(status) && status >= 400 && status < 600) {
+    return {
+      status,
+      message: rawMessage || 'No se pudo finalizar el contrato'
+    };
+  }
+
+  if (rawMessage.toLowerCase().includes('contrato no encontrado')) {
+    return {
+      status: 404,
+      message: 'Contrato no encontrado'
+    };
+  }
+
+  return {
+    status: 500,
+    message: 'No se pudo finalizar el contrato'
+  };
+}
+
+export async function finalizeContractHandler(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   try {
     const { contractId } = req.params;
     const { finalizationDate, depositAmount, depositStatus } = req.body ?? {};
-    const result = await finalizeContract(contractId, {
+    const ownerId = req.supabaseUser?.id;
+    if (!ownerId) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+    const result = await finalizeContract(ownerId, contractId, {
       finalizationDate,
       depositAmount,
       depositStatus
@@ -20,18 +49,27 @@ export async function finalizeContractHandler(req: Request, res: Response, next:
       documentUrl: result.documentUrl
     });
   } catch (error) {
-    next(error);
+    const resolved = resolveFinalizeContractError(error);
+    if (resolved.status >= 500) {
+      return next(error);
+    }
+    return res.status(resolved.status).json({ message: resolved.message });
   }
 }
 
-export async function downloadContractPdfHandler(req: Request, res: Response) {
+export async function downloadContractPdfHandler(req: AuthenticatedRequest, res: Response) {
   const { contractId } = req.params;
   console.log('Downloading contract:', contractId);
   try {
+    const ownerId = req.supabaseUser?.id;
+    if (!ownerId) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
     const { data: contract, error: contractError } = await supabaseAdmin
       .from('tenant_persons')
-      .select('id')
+      .select('id, units(owner_id)')
       .eq('id', contractId)
+      .eq('units.owner_id', ownerId)
       .maybeSingle();
 
     if (contractError) {

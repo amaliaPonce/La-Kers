@@ -56,7 +56,7 @@ const formatCurrency = (value: number) => {
 
 const formatMonthsLabel = (months: number) => `${months} ${months === 1 ? 'mes' : 'meses'}`;
 
-const checkboxLine = (doc: PDFDocument, label: string, checked: boolean) => {
+const checkboxLine = (doc: any, label: string, checked: boolean) => {
   const symbol = checked ? '☒' : '☐';
   doc.text(`${symbol} ${label}`);
 };

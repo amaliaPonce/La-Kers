@@ -70,6 +70,7 @@
               <input
                 v-model="internalForm.contract_end"
                 type="date"
+                :min="internalForm.contract_start || undefined"
                 class="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-700 shadow-sm focus:border-blue-400 focus:outline-none"
                 required
               />
@@ -177,6 +178,8 @@ watch(
 const handleSubmit = () => {
   emit('submit', {
     ...internalForm,
+    full_name: internalForm.full_name.trim(),
+    identification: internalForm.identification.trim(),
     ...(props.initialValues?.id ? { id: props.initialValues.id } : {})
   });
 };

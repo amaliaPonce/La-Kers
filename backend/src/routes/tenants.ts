@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { AuthenticatedRequest } from '../middleware/authMiddleware';
 import {
   createTenant,
   finalizeTenantContract,
@@ -20,13 +21,13 @@ function formatDateValue(value: unknown) {
 function normalizeTenant(payload: any, partial = false): Partial<TenantPayload> {
   const tenant: Partial<TenantPayload> = {};
   if (!partial || payload.unit_id !== undefined) {
-    tenant.unit_id = String(payload.unit_id ?? '');
+    tenant.unit_id = String(payload.unit_id ?? '').trim();
   }
   if (!partial || payload.full_name !== undefined) {
-    tenant.full_name = String(payload.full_name ?? '');
+    tenant.full_name = String(payload.full_name ?? '').trim();
   }
   if (!partial || payload.identification !== undefined) {
-    tenant.identification = String(payload.identification ?? '');
+    tenant.identification = String(payload.identification ?? '').trim();
   }
   if (!partial || payload.contract_start !== undefined) {
     tenant.contract_start = formatDateValue(payload.contract_start) ?? '';
@@ -66,16 +67,59 @@ function validateTenant(payload: Partial<TenantPayload>, options: { partial?: bo
       errors.push('Fecha de fin inválida');
     }
   }
+  if (payload.contract_start && payload.contract_end) {
+    const startDate = new Date(payload.contract_start);
+    const endDate = new Date(payload.contract_end);
+    if (!Number.isNaN(startDate.getTime()) && !Number.isNaN(endDate.getTime()) && endDate < startDate) {
+      errors.push('La fecha de fin no puede ser anterior a la fecha de inicio');
+    }
+  }
 
   return errors;
 }
 
-router.get('/', async (req, res) => {
+function resolveTenantError(error: unknown, fallbackMessage: string) {
+  const status = Number((error as { status?: number })?.status);
+  const code = String((error as { code?: string })?.code ?? '');
+  const rawMessage = String((error as { message?: string })?.message ?? '');
+  const normalizedMessage = rawMessage.toLowerCase();
+
+  if (Number.isInteger(status) && status >= 400 && status < 600) {
+    return {
+      status,
+      message: rawMessage || fallbackMessage
+    };
+  }
+
+  if (code === '23514' || normalizedMessage.includes('tenant_contract_dates_check')) {
+    return {
+      status: 400,
+      message: 'La fecha de fin no puede ser anterior a la fecha de inicio'
+    };
+  }
+
+  if (normalizedMessage.includes('tenant no encontrado')) {
+    return {
+      status: 404,
+      message: 'Inquilino no encontrado'
+    };
+  }
+
+  return {
+    status: 500,
+    message: fallbackMessage
+  };
+}
+
+router.get('/', async (req: AuthenticatedRequest, res) => {
+  const ownerId = req.supabaseUser?.id;
+  if (!ownerId) {
+    return res.status(401).json({ message: 'Unauthorized' });
+  }
   try {
     const statusParam = String(req.query.status ?? 'active').toLowerCase();
-    const mode: TenantListMode =
-      statusParam === 'archived' ? 'archived' : statusParam === 'all' ? 'all' : 'active';
-    const tenants = await listTenants({ mode });
+    const mode: TenantListMode = statusParam === 'archived' ? 'archived' : statusParam === 'all' ? 'all' : 'active';
+    const tenants = await listTenants(ownerId, { mode });
     res.json(tenants);
   } catch (error) {
     console.error(error);
@@ -83,7 +127,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-router.post('/', async (req, res) => {
+router.post('/', async (req: AuthenticatedRequest, res) => {
   const payload = normalizeTenant(req.body);
   const errors = validateTenant(payload);
   if (errors.length) {
@@ -91,15 +135,20 @@ router.post('/', async (req, res) => {
   }
 
   try {
-    const tenant = await createTenant(payload as TenantPayload);
+    const ownerId = req.supabaseUser?.id;
+    if (!ownerId) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+    const tenant = await createTenant(ownerId, payload as TenantPayload);
     res.status(201).json(tenant);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Unable to create tenant' });
+    const resolved = resolveTenantError(error, 'Unable to create tenant');
+    res.status(resolved.status).json({ message: resolved.message });
   }
 });
 
-router.put('/:id', async (req, res) => {
+router.put('/:id', async (req: AuthenticatedRequest, res) => {
   const { id } = req.params;
   const payload = normalizeTenant(req.body, true);
   const errors = validateTenant(payload, { partial: true });
@@ -108,22 +157,32 @@ router.put('/:id', async (req, res) => {
   }
 
   try {
-    const tenant = await updateTenant(id, payload);
+    const ownerId = req.supabaseUser?.id;
+    if (!ownerId) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+    const tenant = await updateTenant(ownerId, id, payload);
     res.json(tenant);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Unable to update tenant' });
+    const resolved = resolveTenantError(error, 'Unable to update tenant');
+    res.status(resolved.status).json({ message: resolved.message });
   }
 });
 
-router.patch('/:id/finalize', async (req, res) => {
+router.patch('/:id/finalize', async (req: AuthenticatedRequest, res) => {
   try {
     const today = new Date().toISOString().split('T')[0];
-    const tenant = await finalizeTenantContract(req.params.id, today);
+    const ownerId = req.supabaseUser?.id;
+    if (!ownerId) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+    const tenant = await finalizeTenantContract(ownerId, req.params.id, today);
     res.json(tenant);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Unable to finalize tenant contract' });
+    const resolved = resolveTenantError(error, 'Unable to finalize tenant contract');
+    res.status(resolved.status).json({ message: resolved.message });
   }
 });
 

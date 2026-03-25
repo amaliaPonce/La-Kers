@@ -1,6 +1,6 @@
 <template>
   <div class="min-h-screen bg-slate-50">
-    <header class="bg-white">
+    <header v-if="showHeader" class="bg-white">
       <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
         <div class="flex items-center gap-3">
           <span class="text-xl font-semibold text-primary">La-Kers</span>
@@ -26,18 +26,20 @@
         </button>
       </div>
     </header>
-    <main class="max-w-6xl mx-auto px-4 py-6">
+    <main :class="[showHeader ? 'max-w-6xl mx-auto px-4 py-6' : 'px-0 py-0', 'min-h-screen']">
       <router-view />
     </main>
   </div>
 </template>
 
 <script setup>
-import { useRouter } from 'vue-router';
+import { computed } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import { useAuthStore } from './stores/auth';
 
 const auth = useAuthStore();
 const router = useRouter();
+const route = useRoute();
 
 const navItems = [
   { label: 'Dashboard', path: '/dashboard' },
@@ -46,6 +48,8 @@ const navItems = [
   { label: 'Pagos', path: '/payments' },
   { label: 'Incidencias', path: '/incidents' }
 ];
+
+const showHeader = computed(() => !route.meta.hideNavbar);
 
 const handleLogout = () => {
   auth.logout();

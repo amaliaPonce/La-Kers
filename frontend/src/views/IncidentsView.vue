@@ -7,7 +7,7 @@
         <p class="text-sm text-slate-500">Gestiona reparaciones, costes y seguimiento desde un solo sitio.</p>
       </div>
       <button
-        class="inline-flex items-center rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-primary/30 transition hover:bg-blue-600"
+        class="inline-flex items-center rounded-full bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-slate-900/30 transition hover:bg-slate-800"
         type="button"
         @click="showModal = true"
       >
@@ -23,18 +23,13 @@
       <article
         v-for="card in metricCards"
         :key="card.id"
-        class="flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
+        class="flex flex-col justify-between rounded-[28px] border border-slate-100 bg-white/90 p-6 shadow-sm"
       >
-        <div class="flex items-center justify-between space-x-4">
-          <div>
-            <p class="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">{{ card.label }}</p>
-            <p class="mt-3 text-3xl font-semibold text-slate-900">{{ card.valueLabel }}</p>
-          </div>
-          <span class="grid h-12 w-12 place-items-center rounded-xl bg-slate-100 text-lg" aria-hidden="true">
-            {{ card.icon }}
-          </span>
+        <div class="space-y-1">
+          <p class="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">{{ card.label }}</p>
+          <p class="text-3xl font-semibold text-slate-900">{{ card.valueLabel }}</p>
         </div>
-        <p class="text-sm text-slate-500">{{ card.helper }}</p>
+        <p class="mt-4 text-sm text-slate-500">{{ card.helper }}</p>
       </article>
     </section>
 
@@ -512,7 +507,7 @@ const shortDateFormatter = new Intl.DateTimeFormat('es-ES', { day: 'numeric', mo
 
 const formatCurrency = (value: number | null | undefined) => {
   if (value === null || value === undefined) return '—';
-  return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'USD' }).format(value);
+  return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(value);
 };
 
 const formatDate = (value?: string) => {
@@ -735,29 +730,25 @@ const metricCards = computed(() => {
       id: 'open',
       label: 'Incidencias abiertas',
       valueLabel: String(summaryValues.openCount),
-      helper: summaryValues.openCount ? `${summaryValues.openCount} tareas activas` : 'Sin movimientos en curso',
-      icon: '⚡'
+      helper: summaryValues.openCount ? `${summaryValues.openCount} tareas activas` : 'Sin movimientos en curso'
     },
     {
       id: 'progress',
       label: 'En progreso',
       valueLabel: String(summaryValues.inProgressCount),
-      helper: summaryValues.inProgressCount ? 'En seguimiento constante' : 'Nada urgente',
-      icon: '🛠'
+      helper: summaryValues.inProgressCount ? 'En seguimiento constante' : 'Nada urgente'
     },
     {
       id: 'resolved',
       label: 'Resueltas este mes',
       valueLabel: String(summaryValues.resolvedThisMonth),
-      helper: summaryValues.resolvedThisMonth ? 'Actualizado al instante' : 'Aún en revisión',
-      icon: '✅'
+      helper: summaryValues.resolvedThisMonth ? 'Actualizado al instante' : 'Aún en revisión'
     },
     {
       id: 'cost',
       label: 'Coste total del mes',
       valueLabel: formatCurrency(summaryValues.costThisMonth),
-      helper: 'Incluye estimaciones y facturas cargadas',
-      icon: '💶'
+      helper: 'Incluye estimaciones y facturas cargadas'
     }
   ];
 });

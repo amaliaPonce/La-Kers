@@ -1,4 +1,5 @@
 import { supabaseAdmin } from '../config/supabaseClient';
+import { ensureOwnerOwnsUnit } from './ownersService';
 
 type PaymentPayload = {
   unit_id: string;
@@ -22,35 +23,115 @@ export type TenantPaymentSummary = {
   lastPaymentDate: string | null;
 };
 
-export async function listPayments() {
+export type PaymentTenantContract = {
+  id: string;
+  unit_id?: string | null;
+  contract_start?: string | null;
+  contract_end?: string | null;
+  units?: {
+    id?: string | null;
+    monthly_rent?: number | string | null;
+  } | null;
+};
+
+const padDatePart = (value: number) => String(value).padStart(2, '0');
+
+const toDateKey = (value: string | Date | null | undefined) => {
+  if (!value) return null;
+  if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return value;
+  }
+  const date = value instanceof Date ? value : new Date(String(value));
+  if (Number.isNaN(date.getTime())) return null;
+  return `${date.getFullYear()}-${padDatePart(date.getMonth() + 1)}-${padDatePart(date.getDate())}`;
+};
+
+const buildMonthStartDate = (year: number, month: number) => `${year}-${padDatePart(month)}-01`;
+
+const buildMonthRange = (startDateKey: string, endDateKey: string) => {
+  const [startYear, startMonth] = startDateKey.split('-').map(Number);
+  const [endYear, endMonth] = endDateKey.split('-').map(Number);
+  const months: Array<{ month: number; year: number; dueDate: string }> = [];
+  let currentYear = startYear;
+  let currentMonth = startMonth;
+
+  while (currentYear < endYear || (currentYear === endYear && currentMonth <= endMonth)) {
+    months.push({
+      month: currentMonth,
+      year: currentYear,
+      dueDate: buildMonthStartDate(currentYear, currentMonth)
+    });
+    currentMonth += 1;
+    if (currentMonth > 12) {
+      currentMonth = 1;
+      currentYear += 1;
+    }
+  }
+
+  return months;
+};
+
+async function resolveUnitRent(unitId: string, fallbackRent?: number | string | null) {
+  const fallback = Number(fallbackRent ?? 0);
+  if (fallback > 0) return fallback;
+
+  const { data, error } = await supabaseAdmin
+    .from('units')
+    .select('monthly_rent')
+    .eq('id', unitId)
+    .maybeSingle();
+
+  if (error) throw error;
+  return Number(data?.monthly_rent ?? 0);
+}
+
+export async function listPayments(ownerId: string) {
   const { data, error } = await supabaseAdmin
     .from('payments')
-    .select('*, units(name, status), tenant_persons(full_name)')
+    .select('*, units(owner_id, name, status), tenant_persons(full_name)')
+    .eq('units.owner_id', ownerId)
     .order('due_date', { ascending: false });
   if (error) throw error;
   return data;
 }
 
-export async function getPaymentById(id: string) {
-  const { data, error } = await supabaseAdmin.from('payments').select('*').eq('id', id).single();
+export async function getPaymentById(id: string, ownerId?: string) {
+  let query = supabaseAdmin
+    .from('payments')
+    .select('*, units(owner_id, name, status)')
+    .eq('id', id);
+  if (ownerId) {
+    query = query.eq('units.owner_id', ownerId);
+  }
+  const { data, error } = await query.maybeSingle();
   if (error) throw error;
   return data;
 }
 
-export async function createPayment(payload: PaymentPayload) {
+export async function createPayment(payload: PaymentPayload, ownerId?: string) {
+  if (ownerId) {
+    await ensureOwnerOwnsUnit(ownerId, payload.unit_id);
+  }
   const { data, error } = await supabaseAdmin.from('payments').insert({
     ...payload,
     status: payload.status ?? 'PENDING'
-  }).single();
+  }).select('*').single();
   if (error) throw error;
   return data;
 }
 
-export async function markPaymentPaid(id: string) {
+export async function markPaymentPaid(id: string, ownerId?: string) {
+  const payment = await getPaymentById(id, ownerId);
+  if (!payment) {
+    const error = new Error('Payment not found');
+    (error as any).status = 404;
+    throw error;
+  }
   const { data, error } = await supabaseAdmin
     .from('payments')
     .update({ status: 'PAID', paid_date: new Date().toISOString() })
     .eq('id', id)
+    .select('*')
     .single();
   if (error) throw error;
   return data;
@@ -79,20 +160,28 @@ export async function getPaymentForMonth(unit_id: string, month: number, year: n
   return data;
 }
 
-export async function getOccupiedContracts(date: string) {
-  const { data, error } = await supabaseAdmin
+export async function getOccupiedContracts(date: string, ownerId?: string) {
+  const comparisonDateKey = toDateKey(date);
+  if (!comparisonDateKey) return [];
+
+  let query = supabaseAdmin
     .from('tenant_persons')
-    .select('*, units(id, name, status, monthly_rent)')
+    .select('*, units(owner_id, id, name, status, monthly_rent)')
+    .eq('status', 'ACTIVE')
     .order('created_at', { ascending: false });
+  if (ownerId) {
+    query = query.eq('units.owner_id', ownerId);
+  }
+  const { data, error } = await query;
   if (error) throw error;
 
   return data?.filter((tenant) => {
     const unit = tenant.units;
     if (!unit) return false;
-    const contractStart = new Date(tenant.contract_start);
-    const contractEnd = new Date(tenant.contract_end);
-    const comparisonDate = new Date(date);
-    return contractStart <= comparisonDate && contractEnd >= comparisonDate;
+    const contractStart = toDateKey(tenant.contract_start);
+    const contractEnd = toDateKey(tenant.contract_end);
+    if (!contractStart || !contractEnd) return false;
+    return contractStart <= comparisonDateKey && contractEnd >= comparisonDateKey;
   }) ?? [];
 }
 
@@ -105,29 +194,48 @@ export async function markPendingPaymentsAsLate(date: string) {
   if (error) throw error;
 }
 
-export async function ensurePendingPaymentsForDate(date: string) {
-  const target = new Date(date);
-  if (Number.isNaN(target.getTime())) return;
-  const month = target.getMonth() + 1;
-  const year = target.getFullYear();
-  const dueDate = new Date(year, month - 1, 1).toISOString().split('T')[0];
-  const contracts = await getOccupiedContracts(target.toISOString());
+export async function ensurePendingPaymentsForDate(date: string, ownerId?: string) {
+  const targetDateKey = toDateKey(date);
+  if (!targetDateKey) return;
+  const contracts = await getOccupiedContracts(targetDateKey, ownerId);
 
   for (const tenant of contracts) {
-    const unit = tenant.units;
-    if (!unit?.id) {
-      continue;
-    }
-    const alreadyExists = await hasPaymentForMonth(unit.id, month, year);
+    await ensurePendingPaymentsForTenant(ownerId ?? '', tenant, { untilDate: targetDateKey });
+  }
+}
+
+export async function ensurePendingPaymentsForTenant(
+  ownerId: string,
+  tenant: PaymentTenantContract,
+  options: { untilDate?: string } = {}
+) {
+  const unitId = String(tenant.unit_id ?? tenant.units?.id ?? '');
+  const contractStart = toDateKey(tenant.contract_start);
+  const contractEnd = toDateKey(tenant.contract_end);
+  const limitDate = toDateKey(options.untilDate ?? new Date());
+
+  if (!tenant.id || !unitId || !contractStart || !contractEnd || !limitDate) return;
+  if (contractEnd < contractStart || contractStart > limitDate) return;
+
+  const effectiveEndDate = contractEnd < limitDate ? contractEnd : limitDate;
+  const amount = await resolveUnitRent(unitId, tenant.units?.monthly_rent);
+  if (!(amount > 0)) return;
+
+  const monthRange = buildMonthRange(contractStart, effectiveEndDate);
+  for (const entry of monthRange) {
+    const alreadyExists = await hasPaymentForMonth(unitId, entry.month, entry.year);
     if (alreadyExists) continue;
-    await createPayment({
-      unit_id: unit.id,
-      tenant_person_id: tenant.id,
-      amount: Number(unit.monthly_rent ?? 0),
-      due_date: dueDate,
-      month,
-      year
-    });
+    await createPayment(
+      {
+        unit_id: unitId,
+        tenant_person_id: tenant.id,
+        amount,
+        due_date: entry.dueDate,
+        month: entry.month,
+        year: entry.year
+      },
+      ownerId || undefined
+    );
   }
 }
 

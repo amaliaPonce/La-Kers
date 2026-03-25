@@ -1,5 +1,6 @@
 import PDFDocument from 'pdfkit';
 import { Router } from 'express';
+import { AuthenticatedRequest } from '../middleware/authMiddleware';
 import { supabaseAdmin } from '../config/supabaseClient';
 import { landlordConfig } from '../config/landlordConfig';
 
@@ -195,13 +196,18 @@ const generateRentalContractDocument = (tenant: any, landlord: typeof landlordCo
     doc.end();
   });
 
-router.post('/receipt/:paymentId', async (req, res) => {
+router.post('/receipt/:paymentId', async (req: AuthenticatedRequest, res) => {
   try {
     const { paymentId } = req.params;
+    const ownerId = req.supabaseUser?.id;
+    if (!ownerId) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
     const { data: payment, error } = await supabaseAdmin
       .from('payments')
       .select('*, units(name), tenant_persons(full_name)')
       .eq('id', paymentId)
+      .eq('units.owner_id', ownerId)
       .single();
 
     if (error || !payment) {
@@ -219,13 +225,18 @@ router.post('/receipt/:paymentId', async (req, res) => {
   }
 });
 
-router.get('/tenant-contract/:tenantId', async (req, res) => {
+router.get('/tenant-contract/:tenantId', async (req: AuthenticatedRequest, res) => {
   try {
     const { tenantId } = req.params;
+    const ownerId = req.supabaseUser?.id;
+    if (!ownerId) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
     const { data: tenant, error } = await supabaseAdmin
       .from('tenant_persons')
-      .select('*, units(id, name, address, city, postal_code, monthly_rent)')
+      .select('*, units(owner_id, id, name, address, city, postal_code, monthly_rent)')
       .eq('id', tenantId)
+      .eq('units.owner_id', ownerId)
       .single();
 
     if (error || !tenant) {

@@ -1,6 +1,7 @@
 import { supabaseAdmin } from '../config/supabaseClient';
 import { updateApartment } from './apartmentsService';
-import { createPayment, getPaymentForMonth } from './paymentsService';
+import { ensurePendingPaymentsForTenant } from './paymentsService';
+import { ensureOwnerOwnsUnit } from './ownersService';
 
 export type TenantPayload = {
   unit_id: string;
@@ -24,11 +25,12 @@ type TenantLifecycleStatus = 'ACTIVE' | 'ARCHIVED';
 type UnitStatus = 'AVAILABLE' | 'OCCUPIED' | 'RESERVED';
 export type TenantListMode = 'active' | 'archived' | 'all';
 
-export async function listTenants(options: { mode?: TenantListMode } = { mode: 'active' }) {
+export async function listTenants(ownerId: string, options: { mode?: TenantListMode } = { mode: 'active' }) {
   const mode = options.mode ?? 'active';
   let query = supabaseAdmin
     .from('tenant_persons')
-    .select('*, units(name, status, monthly_rent)')
+    .select('*, units(owner_id, name, status, monthly_rent)')
+    .eq('units.owner_id', ownerId)
     .order('created_at', { ascending: false });
 
   if (mode === 'active') {
@@ -42,28 +44,39 @@ export async function listTenants(options: { mode?: TenantListMode } = { mode: '
   return data;
 }
 
-export async function createTenant(payload: TenantPayload) {
+export async function createTenant(ownerId: string, payload: TenantPayload) {
+  await ensureOwnerOwnsUnit(ownerId, payload.unit_id);
   const { data, error } = await supabaseAdmin
     .from('tenant_persons')
     .insert({ ...payload, status: 'ACTIVE' })
+    .select('*')
     .single();
   if (error) throw error;
   if (!data) {
     throw new Error('Tenant no insertado');
   }
   const tenantRecord = data as TenantRecord;
-  await ensurePendingPaymentForTenant(tenantRecord).catch((err) => console.error('[TenantPayment]', err));
-  await synchronizeApartmentStatus(String(tenantRecord.unit_id ?? ''));
+  await ensurePendingPaymentsForTenant(ownerId, tenantRecord).catch((err) => console.error('[TenantPayment]', err));
+  await synchronizeApartmentStatus(ownerId, String(tenantRecord.unit_id ?? ''));
   return data;
 }
 
-export async function updateTenant(id: string, payload: Partial<TenantPayload>) {
-  const existingTenant = (await getTenantById(id)) as TenantRecord | null;
+export async function updateTenant(ownerId: string, id: string, payload: Partial<TenantPayload>) {
+  const existingTenant = (await getTenantById(ownerId, id)) as TenantRecord | null;
   if (!existingTenant) {
     throw new Error('Tenant no encontrado');
   }
 
-  const { data, error } = await supabaseAdmin.from('tenant_persons').update(payload).eq('id', id).single();
+  if (payload.unit_id) {
+    await ensureOwnerOwnsUnit(ownerId, payload.unit_id);
+  }
+
+  const { data, error } = await supabaseAdmin
+    .from('tenant_persons')
+    .update(payload)
+    .eq('id', id)
+    .select('*')
+    .single();
   if (error) throw error;
 
   const updatedTenant = data as TenantRecord;
@@ -74,62 +87,24 @@ export async function updateTenant(id: string, payload: Partial<TenantPayload>) 
   if (updatedTenant.unit_id) {
     unitsToSync.add(updatedTenant.unit_id);
   }
-  await Promise.all([...unitsToSync].map((unitId) => synchronizeApartmentStatus(unitId)));
+  await Promise.all([...unitsToSync].map((unitId) => synchronizeApartmentStatus(ownerId, unitId)));
 
   return data;
 }
 
-export async function getTenantById(id: string) {
-  const { data, error } = await supabaseAdmin.from('tenant_persons').select('*').eq('id', id).single();
+export async function getTenantById(ownerId: string, id: string) {
+  const { data, error } = await supabaseAdmin
+    .from('tenant_persons')
+    .select('*, units(owner_id)')
+    .eq('id', id)
+    .eq('units.owner_id', ownerId)
+    .maybeSingle();
   if (error) throw error;
   return data;
 }
 
-async function ensurePendingPaymentForTenant(tenant: TenantRecord) {
-  if (!tenant.unit_id || !tenant.contract_start || !tenant.contract_end) return;
-  const today = new Date();
-  const startDate = new Date(tenant.contract_start);
-  const endDate = new Date(tenant.contract_end);
-  if (startDate > today || endDate < today) return;
-  const month = today.getMonth() + 1;
-  const year = today.getFullYear();
-  const { data: unit, error } = await supabaseAdmin
-    .from('units')
-    .select('monthly_rent')
-    .eq('id', tenant.unit_id)
-    .single();
-  if (error || !unit) {
-    if (error) throw error;
-    return;
-  }
-  const rent = Number(unit.monthly_rent ?? 0);
-  const dueDate = new Date(year, month - 1, 1).toISOString().split('T')[0];
-  const existingPayment = await getPaymentForMonth(tenant.unit_id, month, year);
-  if (existingPayment) {
-    await supabaseAdmin
-      .from('payments')
-      .update({
-        tenant_person_id: tenant.id,
-        amount: rent,
-        due_date: dueDate,
-        status: 'PENDING',
-        paid_date: null
-      })
-      .eq('id', existingPayment.id);
-    return;
-  }
-  await createPayment({
-    unit_id: tenant.unit_id,
-    tenant_person_id: tenant.id,
-    amount: rent,
-    due_date: dueDate,
-    month,
-    year
-  });
-}
-
-export async function finalizeTenantContract(id: string, finalDate: string) {
-  const tenant = (await getTenantById(id)) as TenantRecord | null;
+export async function finalizeTenantContract(ownerId: string, id: string, finalDate: string) {
+  const tenant = (await getTenantById(ownerId, id)) as TenantRecord | null;
   if (!tenant) {
     throw new Error('Tenant no encontrado');
   }
@@ -137,10 +112,11 @@ export async function finalizeTenantContract(id: string, finalDate: string) {
     .from('tenant_persons')
     .update({ contract_end: finalDate })
     .eq('id', id)
+    .select('*')
     .single();
   if (error) throw error;
   await archiveTenantRecord(id, finalDate);
-  await synchronizeApartmentStatus(String(tenant.unit_id ?? ''));
+  await synchronizeApartmentStatus(ownerId, String(tenant.unit_id ?? ''));
   return data;
 }
 
@@ -176,11 +152,11 @@ async function determineApartmentStatus(unitId: string): Promise<UnitStatus> {
   return 'AVAILABLE';
 }
 
-async function synchronizeApartmentStatus(unitId: string) {
+async function synchronizeApartmentStatus(ownerId: string, unitId: string) {
   if (!unitId) return;
   try {
     const status = await determineApartmentStatus(unitId);
-    await updateApartment(unitId, { status });
+    await updateApartment(ownerId, unitId, { status });
   } catch (error) {
     console.error('[TenantStatus]', error);
   }
