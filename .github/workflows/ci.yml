@@ -27,5 +27,5 @@ jobs:
       - name: Build front and back
         run: npm run build
 
-      - name: Run backend type check
+      - name: Run backend tests
         run: npm run test

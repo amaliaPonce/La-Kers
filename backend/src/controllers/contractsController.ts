@@ -59,7 +59,6 @@ export async function finalizeContractHandler(req: AuthenticatedRequest, res: Re
 
 export async function downloadContractPdfHandler(req: AuthenticatedRequest, res: Response) {
   const { contractId } = req.params;
-  console.log('Downloading contract:', contractId);
   try {
     const ownerId = req.supabaseUser?.id;
     if (!ownerId) {
@@ -81,7 +80,7 @@ export async function downloadContractPdfHandler(req: AuthenticatedRequest, res:
 
     const { data: documents, error: documentsError } = await supabaseAdmin
       .from('contract_documents')
-      .select('storage_path, url')
+      .select('storage_path')
       .eq('contract_id', contractId)
       .order('created_at', { ascending: false })
       .limit(1);
@@ -91,12 +90,11 @@ export async function downloadContractPdfHandler(req: AuthenticatedRequest, res:
     }
 
     const document = documents?.[0];
-    if (!document?.storage_path || !document?.url) {
+    if (!document?.storage_path) {
       return res.status(404).json({ message: 'Contract document not found' });
     }
 
     const filePath = path.resolve(document.storage_path);
-    console.log('File path:', filePath);
 
     try {
       await access(filePath);

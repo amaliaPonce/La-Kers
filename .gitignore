@@ -5,6 +5,9 @@
 /backend/node_modules/
 /backend/backend/
 /backend/backend/logs/
+/backend/logs/
+/backend/documents/contracts/*.pdf
+/backend/src/documents/contracts/*.pdf
 /pdfdocs/
 /sql/*.log
 /tmp/

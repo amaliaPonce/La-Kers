@@ -30,4 +30,21 @@ apiClient.interceptors.request.use((config) => {
   return config;
 });
 
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const status = error?.response?.status;
+    const hasStoredToken = Boolean(localStorage.getItem('la-kers-token'));
+
+    if (status === 401 && hasStoredToken) {
+      localStorage.removeItem('la-kers-token');
+      if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/login')) {
+        window.location.assign('/login');
+      }
+    }
+
+    return Promise.reject(error);
+  }
+);
+
 export default apiClient;

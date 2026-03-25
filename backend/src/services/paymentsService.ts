@@ -127,6 +127,9 @@ export async function markPaymentPaid(id: string, ownerId?: string) {
     (error as any).status = 404;
     throw error;
   }
+  if (payment.status === 'PAID') {
+    return payment;
+  }
   const { data, error } = await supabaseAdmin
     .from('payments')
     .update({ status: 'PAID', paid_date: new Date().toISOString() })

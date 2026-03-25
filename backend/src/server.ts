@@ -1,7 +1,6 @@
+import 'dotenv/config';
 import express from 'express';
-import cors from 'cors';
-import path from 'path';
-import dotenv from 'dotenv';
+import cors, { CorsOptionsDelegate } from 'cors';
 import authRouter from './routes/auth';
 import apartmentsRouter from './routes/apartments';
 import tenantsRouter from './routes/tenants';
@@ -11,25 +10,49 @@ import documentsRouter from './routes/documents';
 import dashboardRouter from './routes/dashboard';
 import contractsRouter from './routes/contracts';
 import { authMiddleware } from './middleware/authMiddleware';
+import { appConfig, isOriginAllowed } from './config/appConfig';
 import { registerLatePaymentCron } from './cron/latePayments';
 import { registerMonthlyPaymentCron } from './cron/monthlyPayments';
 import { registerDataRetentionCron } from './cron/dataRetention';
+import { createRateLimiter } from './middleware/rateLimit';
+import { applySecurityHeaders } from './middleware/securityHeaders';
 import { logError } from './utils/errorLogger';
 
-dotenv.config();
-
 const app = express();
-const PORT = process.env.PORT ? Number(process.env.PORT) : 4000;
+const PORT = appConfig.port;
 
-app.use(cors({ origin: true }));
-app.use(express.json());
+app.disable('x-powered-by');
+app.set('trust proxy', appConfig.trustProxy);
+
+const corsOptions: CorsOptionsDelegate = (req, callback) => {
+  const originHeader = req.headers.origin;
+  const requestOrigin = Array.isArray(originHeader) ? originHeader[0] : originHeader ?? undefined;
+  if (isOriginAllowed(requestOrigin, appConfig.allowedOrigins)) {
+    callback(null, { origin: requestOrigin ?? true, credentials: true });
+    return;
+  }
+  callback(new Error('Origin not allowed by CORS policy'));
+};
+
+app.use(applySecurityHeaders(appConfig));
+app.use(cors(corsOptions));
+app.use(express.json({ limit: appConfig.requestBodyLimit }));
+app.use(createRateLimiter({
+  windowMs: appConfig.globalRateLimitWindowMs,
+  maxRequests: appConfig.globalRateLimitMax,
+  message: 'Too many requests'
+}));
 
 app.get('/health', (req, res) => res.send({ ready: true }));
+app.get('/ready', (req, res) => res.send({ ready: true, environment: appConfig.nodeEnv }));
 
+app.use('/auth', createRateLimiter({
+  windowMs: appConfig.authRateLimitWindowMs,
+  maxRequests: appConfig.authRateLimitMax,
+  message: 'Too many authentication attempts',
+  keyPrefix: 'auth'
+}));
 app.use('/auth', authRouter);
-
-const documentsPath = path.resolve(__dirname, '../documents');
-app.use('/documents', express.static(documentsPath));
 
 app.use(authMiddleware);
 
@@ -50,9 +73,11 @@ app.use((err: unknown, req: express.Request, res: express.Response, next: expres
   res.status(500).json({ message: 'Internal server failure' });
 });
 
-registerMonthlyPaymentCron();
-registerLatePaymentCron();
-registerDataRetentionCron();
+if (appConfig.enableCronJobs) {
+  registerMonthlyPaymentCron();
+  registerLatePaymentCron();
+  registerDataRetentionCron();
+}
 
 app.listen(PORT, () => {
   console.log(`Server listening on http://localhost:${PORT}`);

@@ -213,6 +213,9 @@ router.post('/receipt/:paymentId', async (req: AuthenticatedRequest, res) => {
     if (error || !payment) {
       return res.status(404).json({ message: 'Payment not found' });
     }
+    if (payment.status !== 'PAID') {
+      return res.status(409).json({ message: 'Solo se puede generar un recibo para pagos abonados' });
+    }
 
     const pdfBuffer = await generatePdfWithPdfKit(payment);
 

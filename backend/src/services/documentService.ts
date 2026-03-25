@@ -1,21 +1,22 @@
 import path from 'path';
 import { promises as fs } from 'fs';
+import { appConfig } from '../config/appConfig';
 import { supabaseAdmin } from '../config/supabaseClient';
 import { ContractTerminationDocumentData, generateContractTerminationDocument } from '../utils/pdfGenerator';
 
-const DOCUMENTS_ROUTE = '/documents/contracts';
 const DOCUMENTS_STORAGE_PATH = process.env.DOCUMENT_STORAGE_PATH
   ? path.resolve(process.env.DOCUMENT_STORAGE_PATH)
-  : path.resolve(__dirname, '../documents');
+  : path.resolve(process.cwd(), 'documents');
 const CONTRACTS_FOLDER = path.join(DOCUMENTS_STORAGE_PATH, 'contracts');
 
 const buildBaseUrl = () => {
-  const raw = process.env.APP_BASE_URL;
-  if (raw) {
-    return raw.replace(/\/+$/, '');
-  }
-  const defaultPort = process.env.PORT ?? '4000';
-  return `http://localhost:${defaultPort}`;
+  return appConfig.appBaseUrl;
+};
+
+const buildContractDownloadUrl = (contractId: string) => {
+  const baseUrl = buildBaseUrl();
+  const route = `/contracts/${contractId}/pdf`;
+  return baseUrl ? `${baseUrl}${route}` : route;
 };
 
 export type DocumentCreationResult = {
@@ -34,8 +35,7 @@ export async function createContractTerminationDocument(
   const storagePath = path.join(CONTRACTS_FOLDER, fileName);
   await fs.writeFile(storagePath, buffer);
 
-  const baseUrl = buildBaseUrl();
-  const documentUrl = `${baseUrl}${DOCUMENTS_ROUTE}/${fileName}`;
+  const documentUrl = buildContractDownloadUrl(contractId);
 
   const { data, error } = await supabaseAdmin
     .from('contract_documents')
@@ -58,6 +58,9 @@ export async function createContractTerminationDocument(
   if (error) {
     const msg = String(error.message ?? '').toLowerCase();
     if (msg.includes('relation "contract_documents" does not exist')) {
+      if (appConfig.isProduction) {
+        throw new Error('Missing required database table: contract_documents');
+      }
       console.warn('[documentService]', 'contract_documents table missing, document metadata skipped');
       return {
         url: documentUrl,
