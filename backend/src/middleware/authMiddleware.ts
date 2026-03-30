@@ -1,12 +1,21 @@
 import { NextFunction, Request, Response } from 'express';
-import { supabaseAdmin } from '../config/supabaseClient';
+import { ensureTenantPortalAccess, getClerkPortalRole } from '../services/tenantPortalService';
 
 export interface AuthenticatedRequest extends Request {
-  supabaseUser?: {
+  auth?: {
+    userId?: string | null;
+    sessionClaims?: Record<string, unknown> | null;
+  };
+  authUser?: {
     id: string;
-    email?: string | null;
-    role?: string;
-    plan?: string | null;
+  };
+  authActor?: {
+    authUserId: string;
+    actorType: 'OWNER' | 'TENANT' | 'ADMIN' | 'SYSTEM';
+    actorRef: string;
+    ownerId: string;
+    tenantPersonId?: string | null;
+    portal: 'owner' | 'tenant';
   };
 }
 
@@ -14,30 +23,48 @@ export async function authMiddleware(req: AuthenticatedRequest, res: Response, n
   if (req.method === 'OPTIONS') {
     return next();
   }
-
-  const header = req.headers.authorization;
-  if (!header?.startsWith('Bearer ')) {
-    return res.status(401).json({ message: 'Authorization header missing' });
+  if (!process.env.CLERK_SECRET_KEY?.trim()) {
+    return res.status(503).json({ message: 'Falta configurar CLERK_SECRET_KEY en backend/.env' });
+  }
+  const userId = req.auth?.userId;
+  if (!userId) {
+    return res.status(401).json({ message: 'Autenticación requerida' });
   }
 
-  const token = header.split(' ')[1];
+  const requestedPortalHeader = String(req.headers['x-la-kers-portal'] ?? '').trim().toLowerCase();
+  const requestedPortal = req.path.startsWith('/tenant-portal') || requestedPortalHeader === 'tenant' ? 'tenant' : 'owner';
+
   try {
-    const { data, error } = await supabaseAdmin.auth.getUser(token);
-    const user = data?.user;
-    if (error || !user) {
-      return res.status(401).json({ message: 'Invalid token' });
+    if (requestedPortal === 'tenant') {
+      const access = await ensureTenantPortalAccess(userId);
+      req.authActor = {
+        authUserId: userId,
+        actorType: 'TENANT',
+        actorRef: access.tenant_person_id,
+        ownerId: access.owner_id,
+        tenantPersonId: access.tenant_person_id,
+        portal: 'tenant'
+      };
+      req.authUser = undefined;
+      return next();
     }
 
-    req.supabaseUser = {
-      id: user.id,
-      email: user.email,
-      role: user.role,
-      plan: typeof user.user_metadata?.plan === 'string' ? user.user_metadata.plan : null
-    };
+    const portalRole = await getClerkPortalRole(userId).catch(() => '');
+    if (portalRole === 'tenant') {
+      return res.status(403).json({ message: 'Esta cuenta solo tiene acceso al portal del inquilino' });
+    }
 
-    next();
+    req.authUser = { id: userId };
+    req.authActor = {
+      authUserId: userId,
+      actorType: 'OWNER',
+      actorRef: userId,
+      ownerId: userId,
+      portal: 'owner'
+    };
+    return next();
   } catch (error) {
-    console.error(error);
-    res.status(401).json({ message: 'Authentication failed' });
+    const status = (error as any)?.status ?? 403;
+    return res.status(status).json({ message: String((error as any)?.message ?? 'No tienes acceso a este portal') });
   }
 }

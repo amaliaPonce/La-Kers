@@ -1,122 +1,119 @@
 <template>
-  <div class="flex items-center justify-center min-h-[70vh]">
-    <div class="bg-white shadow rounded-lg p-6 w-full max-w-md space-y-4">
-      <div>
-        <h2 class="text-2xl font-semibold mb-2 text-center">Crear cuenta</h2>
-        <p class="text-sm text-slate-500 text-center">Regístrate con el identificador que uses (CIF de empresa o DNI/NIE personal).</p>
-      </div>
-      <form class="space-y-4" @submit.prevent="handleSubmit">
-        <div>
-          <label class="block text-sm text-slate-600">Nombre completo</label>
-          <input v-model="form.full_name" type="text" class="w-full rounded-md border border-slate-200 px-3 py-2" required />
-        </div>
-        <div>
-          <label class="block text-sm text-slate-600">Correo</label>
-          <input v-model="form.email" type="email" class="w-full rounded-md border border-slate-200 px-3 py-2" required />
-        </div>
-        <div>
-          <label class="block text-sm text-slate-600">Contraseña</label>
-          <input
-            v-model="form.password"
-            type="password"
-            class="w-full rounded-md border border-slate-200 px-3 py-2"
-            minlength="6"
-            required
-          />
-        </div>
-        <div>
-          <label class="block text-sm text-slate-600">Tipo de identificación</label>
-          <select
-            v-model="form.id_type"
-            class="w-full rounded-md border border-slate-200 px-3 py-2"
+  <div class="relative min-h-screen bg-[#f8f5ef] text-slate-900">
+    <div class="pointer-events-none absolute inset-x-0 top-0 h-[420px] bg-[radial-gradient(circle_at_top_left,_rgba(217,119,6,0.14),_transparent_34%),radial-gradient(circle_at_82%_10%,_rgba(15,118,110,0.1),_transparent_28%),linear-gradient(180deg,_rgba(255,255,255,0.92),_rgba(248,245,239,0))]"></div>
+    <div class="pointer-events-none absolute -left-16 top-24 h-56 w-56 rounded-full bg-[#c96a37]/10 blur-3xl"></div>
+    <div class="pointer-events-none absolute bottom-12 right-0 h-72 w-72 rounded-full bg-[#1f4f46]/10 blur-3xl"></div>
+
+    <header class="relative z-10 border-b border-white/60 bg-[#f8f5ef]/80 backdrop-blur-xl">
+      <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
+        <router-link to="/" class="flex items-center gap-3 text-slate-900">
+          <img :src="brandLogo" alt="La-Kers" class="h-12 w-auto object-contain" />
+          <span class="hidden text-sm font-semibold uppercase tracking-[0.24em] text-[#1f4f46] sm:inline">Propiedades</span>
+        </router-link>
+
+        <div class="flex flex-wrap items-center gap-3 text-sm">
+          <router-link
+            to="/"
+            class="rounded-full border border-slate-200/80 bg-white/70 px-4 py-2 text-slate-700 transition hover:border-slate-300 hover:text-slate-900"
           >
-            <option value="cif">CIF de la empresa</option>
-            <option value="dni">DNI/NIE personal</option>
-          </select>
+            Volver
+          </router-link>
+          <router-link
+            to="/sign-in"
+            class="rounded-full bg-[#c96a37] px-4 py-2 font-semibold text-white shadow-lg shadow-orange-950/10 transition hover:bg-[#b85d2d]"
+          >
+            Iniciar sesión
+          </router-link>
         </div>
-        <div>
-          <label class="block text-sm text-slate-600">{{ identifierLabel }}</label>
-          <input
-            v-model="form.identifier"
-            :placeholder="identifierPlaceholder"
-            type="text"
-            class="w-full rounded-md border border-slate-200 px-3 py-2"
-            maxlength="12"
-            required
-          />
-        </div>
-        <button class="w-full bg-primary text-white py-2 rounded-md hover:bg-blue-600" :disabled="loading">
-          {{ loading ? 'Registrando...' : 'Crear cuenta' }}
-        </button>
-        <p v-if="error" class="text-sm text-red-600">{{ error }}</p>
-      </form>
-      <p class="text-sm text-center text-slate-500">
-        ¿Ya tienes cuenta?
-        <router-link to="/login" class="text-primary font-semibold">Ingresar</router-link>
-      </p>
-    </div>
+      </div>
+    </header>
+
+    <main class="relative z-10 mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+      <div class="grid gap-10 lg:min-h-[calc(100vh-96px)] lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] lg:items-center">
+        <section class="hidden lg:block">
+          <div class="max-w-xl space-y-6">
+            <div class="inline-flex items-center gap-2 rounded-full border border-[#d6c7bb] bg-white/85 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.3em] text-[#1f4f46] shadow-sm">
+              <span class="h-2 w-2 rounded-full bg-[#c96a37]"></span>
+              Alta de propietarios
+            </div>
+
+            <div class="space-y-4">
+              <h1 class="text-5xl font-semibold leading-[0.95] text-slate-900">
+                Crea tu acceso al panel de propietario.
+              </h1>
+              <p class="max-w-lg text-base leading-8 text-slate-600">
+                Empieza con tu cuenta, configura tus inmuebles y centraliza cobros, incidencias y contratos.
+              </p>
+            </div>
+
+            <article class="overflow-hidden rounded-[32px] border border-white/80 bg-white/84 shadow-[0_28px_70px_rgba(15,23,42,0.08)] backdrop-blur">
+              <img
+                class="h-[340px] w-full object-cover"
+                src="https://images.unsplash.com/photo-1460317442991-0ec209397118?auto=format&fit=crop&w=1200&q=80"
+                alt="Fachada residencial luminosa"
+              />
+            </article>
+          </div>
+        </section>
+
+        <section class="min-w-0 w-full justify-self-stretch lg:justify-self-end">
+          <div
+            v-if="!hasClerkConfig"
+            class="mx-auto max-w-[520px] rounded-2xl border border-amber-200 bg-amber-50 px-4 py-4 text-sm text-amber-900"
+          >
+            Falta configurar `VITE_CLERK_PUBLISHABLE_KEY` en `frontend/.env`. Sin esa clave Clerk no puede mostrar el registro.
+          </div>
+
+          <div v-else class="clerk-shell">
+            <SignUp
+              path="/sign-up"
+              routing="path"
+              oauth-flow="popup"
+              :appearance="clerkAuthAppearance"
+              :unsafe-metadata="{ portalRole: 'owner' }"
+              :fallback-redirect-url="returnPath"
+              sign-in-url="/sign-in"
+              :sign-in-fallback-redirect-url="returnPath"
+            />
+          </div>
+        </section>
+      </div>
+    </main>
   </div>
 </template>
 
 <script setup lang="ts">
-import axios from 'axios';
-import { computed, reactive, ref } from 'vue';
-import { useRouter } from 'vue-router';
-import apiClient from '../services/apiClient';
-import { useAuthStore } from '../stores/auth';
+import { computed } from 'vue';
+import { useRoute } from 'vue-router';
+import { SignUp } from '@clerk/vue';
+import brandLogo from '../assets/logo.png';
+import { clerkAuthAppearance } from '../services/clerkAppearance';
 
-const router = useRouter();
-const auth = useAuthStore();
-const form = reactive({
-  full_name: '',
-  email: '',
-  password: '',
-  id_type: 'cif',
-  identifier: ''
-});
-const identifierLabel = computed(() => (form.id_type === 'dni' ? 'DNI/NIE del responsable' : 'CIF de la empresa'));
-const identifierPlaceholder = computed(() => (form.id_type === 'dni' ? 'Ej. 12345678Z' : 'Ej. A12345678'));
-const loading = ref(false);
-const error = ref('');
+const route = useRoute();
+const hasClerkConfig = Boolean(import.meta.env.VITE_CLERK_PUBLISHABLE_KEY);
 
-const handleSubmit = async () => {
-  loading.value = true;
-  error.value = '';
-  try {
-    const payload = {
-      full_name: form.full_name,
-      email: form.email,
-      password: form.password,
-      company_cif: form.id_type === 'cif' ? form.identifier : undefined,
-      personal_dni: form.id_type === 'dni' ? form.identifier : undefined
-    };
-    const { data } = await apiClient.post('/auth/register', payload);
-    if (!data?.session) {
-      throw new Error('No se pudo iniciar sesión');
-    }
-    auth.setToken(data.session.access_token);
-    if (data.user) {
-      auth.setUser({ id: data.user.id, email: data.user.email });
-    }
-    router.push('/dashboard');
-  } catch (e: unknown) {
-    console.error(e);
-    if (axios.isAxiosError(e)) {
-      const apiMessage = e.response?.data?.message;
-      const apiDetails =
-        typeof e.response?.data?.details === 'string'
-          ? e.response?.data?.details
-          : Array.isArray(e.response?.data?.errors)
-            ? e.response?.data?.errors.join(', ')
-            : undefined;
-      error.value = [apiMessage, apiDetails]
-        .filter(Boolean)
-        .join(' · ') || 'No se pudo registrar. Verifica los datos.';
-    } else {
-      error.value = 'No se pudo registrar. Verifica los datos.';
-    }
-  } finally {
-    loading.value = false;
-  }
-};
+const returnPath = computed(() =>
+  typeof route.query.redirect === 'string' && route.query.redirect.startsWith('/')
+    ? route.query.redirect
+    : '/dashboard'
+);
 </script>
+
+<style scoped>
+.clerk-shell {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  overflow: visible;
+}
+
+.clerk-shell :deep(.cl-cardBox) {
+  width: 100%;
+  max-width: 520px;
+}
+
+.clerk-shell :deep(.cl-formFieldInput::placeholder),
+.clerk-shell :deep(input::placeholder) {
+  font-size: 0.875rem;
+}
+</style>
