@@ -1,10 +1,9 @@
 import { supabaseAdmin } from '../config/supabaseClient';
-import { landlordConfig } from '../config/landlordConfig';
-import { updateApartment } from './apartmentsService';
-import { archiveTenantRecord } from './tenantsService';
+import { archiveTenantRecord, synchronizeApartmentStatus } from './tenantsService';
 import { createContractTerminationDocument, DocumentCreationResult } from './documentService';
 import { getTenantPaymentSummary } from './paymentsService';
 import { ContractTerminationDocumentData } from '../utils/pdfGenerator';
+import { resolveContractLandlordProfile } from '../utils/contractLandlordProfile';
 
 export type ContractFinalizationPayload = {
   finalizationDate?: string;
@@ -42,33 +41,10 @@ const isMissingColumnError = (error: { message?: string | null } | null | undefi
   return columns.some((column) => message.includes(column.toLowerCase()));
 };
 
-type UnitAddressDetails = {
-  address?: string | null;
-  city?: string | null;
-  postal_code?: string | null;
-};
-
-const loadUnitDetails = async (unitId: string): Promise<UnitAddressDetails | null> => {
-  try {
-    const { data, error } = await supabaseAdmin
-      .from('units')
-      .select('address, city, postal_code')
-      .eq('id', unitId)
-      .maybeSingle();
-    if (error) {
-      throw error;
-    }
-    return data ?? null;
-  } catch (error) {
-    console.warn('[contracts/loadUnitDetails]', error);
-    return null;
-  }
-};
-
 const getContractRecord = async (ownerId: string, contractId: string): Promise<ContractRecord> => {
   const { data, error } = await supabaseAdmin
     .from('tenant_persons')
-    .select('*, units(owner_id, id, name)')
+    .select('*, units(*)')
     .eq('id', contractId)
     .eq('units.owner_id', ownerId)
     .maybeSingle();
@@ -78,17 +54,7 @@ const getContractRecord = async (ownerId: string, contractId: string): Promise<C
   if (!data) {
     throw new Error('Contrato no encontrado');
   }
-  const record = data as ContractRecord;
-  if (record.unit_id) {
-    const unitDetails = await loadUnitDetails(record.unit_id);
-    if (unitDetails) {
-      record.units = {
-        ...(record.units ?? { id: record.unit_id }),
-        ...unitDetails
-      };
-    }
-  }
-  return record;
+  return data as ContractRecord;
 };
 
 type ContractRecord = {
@@ -107,6 +73,9 @@ type ContractRecord = {
     address?: string | null;
     city?: string | null;
     postal_code?: string | null;
+    contract_landlord_name?: string | null;
+    contract_landlord_identification?: string | null;
+    contract_landlord_address?: string | null;
   } | null;
 };
 
@@ -161,7 +130,7 @@ export async function finalizeContract(
 
   if (record.unit_id) {
     try {
-      await updateApartment(ownerId, record.unit_id, { status: 'AVAILABLE' });
+      await synchronizeApartmentStatus(ownerId, record.unit_id);
     } catch (unitError) {
       console.error('[contracts/ensure-unit]', unitError);
     }
@@ -174,7 +143,7 @@ export async function finalizeContract(
   const paymentSummary = await getTenantPaymentSummary(record.id, { untilDate: finalizationDate });
 
   const documentPayload: ContractTerminationDocumentData = {
-    landlord: landlordConfig,
+    landlord: resolveContractLandlordProfile(record.units),
     tenant: {
       name: record.full_name,
       identification: record.identification,

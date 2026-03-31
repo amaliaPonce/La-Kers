@@ -78,6 +78,7 @@ export function generateContractTerminationDocument(
     const propertyAddressLabel = property.address || '—';
     const tenantResidenceLabel = propertyAddressLabel;
     const depositStatus = deposit.status?.trim().toLowerCase() ?? 'pendiente';
+    const hasOutstandingBalance = (financialSummary?.outstanding ?? 0) > 0;
 
     doc.font('Helvetica-Bold').fontSize(16).text('DOCUMENTO DE FINALIZACIÓN DE CONTRATO DE ARRENDAMIENTO Y ENTREGA DE LLAVES', {
       align: 'center'
@@ -133,7 +134,7 @@ export function generateContractTerminationDocument(
     doc.font('Helvetica').text(`La fianza entregada al inicio del contrato, por importe de ${formatCurrency(deposit.amount)}, será:`);
     doc.moveDown(0.1);
     checkboxLine(doc, 'Devuelta íntegramente al arrendatario.', depositStatus === 'devuelta');
-    checkboxLine(doc, 'Devuelta parcialmente tras descontar los siguientes conceptos: [detallar si procede].', depositStatus === 'parcial');
+    checkboxLine(doc, 'Devuelta parcialmente al arrendatario.', depositStatus === 'parcial');
     checkboxLine(doc, 'Devuelta en el plazo legal establecido tras la revisión del estado de la vivienda.', depositStatus === 'pendiente');
     doc.moveDown(sectionSpacing);
 
@@ -179,8 +180,8 @@ export function generateContractTerminationDocument(
     doc.font('Helvetica-Bold').text('Cuarto. Saldos pendientes');
     doc.font('Helvetica').text('Las partes declaran que:');
     doc.moveDown(0.1);
-    checkboxLine(doc, 'No existen cantidades pendientes entre ellas.', true);
-    checkboxLine(doc, 'Existen las siguientes cantidades pendientes: [detallar si procede].', false);
+    checkboxLine(doc, 'No existen cantidades pendientes entre ellas.', !hasOutstandingBalance);
+    checkboxLine(doc, 'Existen cantidades pendientes entre las partes.', hasOutstandingBalance);
 
     doc.moveDown(0.5);
     doc.text('Y para que así conste, ambas partes firman el presente documento por duplicado en el lugar y fecha indicados.');

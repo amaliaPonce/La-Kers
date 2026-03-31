@@ -6,6 +6,7 @@ import {
   listIncidents,
   updateIncident
 } from '../services/incidentsService';
+import { notifyDashboardUpdated } from '../services/dashboardRealtime';
 
 const router = Router();
 const allowedStatus = ['OPEN', 'IN_PROGRESS', 'CLOSED'];
@@ -44,9 +45,9 @@ function validateIncident(payload: Record<string, unknown>, options: { partial?:
 }
 
 router.get('/', async (req: AuthenticatedRequest, res) => {
-  const ownerId = req.supabaseUser?.id;
+  const ownerId = req.authUser?.id;
   if (!ownerId) {
-    return res.status(401).json({ message: 'Unauthorized' });
+    return res.status(401).json({ message: 'Autenticación requerida' });
   }
   try {
     const incidents = await listIncidents(ownerId);
@@ -54,7 +55,7 @@ router.get('/', async (req: AuthenticatedRequest, res) => {
   } catch (error) {
     console.error(error);
     const status = (error as any).status ?? 500;
-    res.status(status).json({ message: 'Unable to load incidents' });
+    res.status(status).json({ message: 'No se pudieron cargar las incidencias' });
   }
 });
 
@@ -72,16 +73,17 @@ router.post('/', async (req: AuthenticatedRequest, res) => {
   }
 
   try {
-    const ownerId = req.supabaseUser?.id;
+    const ownerId = req.authUser?.id;
     if (!ownerId) {
-      return res.status(401).json({ message: 'Unauthorized' });
+      return res.status(401).json({ message: 'Autenticación requerida' });
     }
     const incident = await createIncident(ownerId, payload);
+    notifyDashboardUpdated(ownerId, 'incidents.created');
     res.status(201).json(incident);
   } catch (error) {
     console.error(error);
     const status = (error as any).status ?? 500;
-    res.status(status).json({ message: 'Unable to create incident' });
+    res.status(status).json({ message: 'No se pudo crear la incidencia' });
   }
 });
 
@@ -108,31 +110,33 @@ router.put('/:id', async (req: AuthenticatedRequest, res) => {
   }
 
   try {
-    const ownerId = req.supabaseUser?.id;
+    const ownerId = req.authUser?.id;
     if (!ownerId) {
-      return res.status(401).json({ message: 'Unauthorized' });
+      return res.status(401).json({ message: 'Autenticación requerida' });
     }
     const incident = await updateIncident(ownerId, req.params.id, payload);
+    notifyDashboardUpdated(ownerId, 'incidents.updated');
     res.json(incident);
   } catch (error) {
     console.error(error);
     const status = (error as any).status ?? 500;
-    res.status(status).json({ message: 'Unable to update incident' });
+    res.status(status).json({ message: 'No se pudo actualizar la incidencia' });
   }
 });
 
 router.delete('/:id', async (req: AuthenticatedRequest, res) => {
   try {
-    const ownerId = req.supabaseUser?.id;
+    const ownerId = req.authUser?.id;
     if (!ownerId) {
-      return res.status(401).json({ message: 'Unauthorized' });
+      return res.status(401).json({ message: 'Autenticación requerida' });
     }
     await deleteIncident(ownerId, req.params.id);
+    notifyDashboardUpdated(ownerId, 'incidents.deleted');
     res.status(204).end();
   } catch (error) {
     console.error(error);
     const status = (error as any).status ?? 500;
-    res.status(status).json({ message: 'Unable to delete incident' });
+    res.status(status).json({ message: 'No se pudo eliminar la incidencia' });
   }
 });
 

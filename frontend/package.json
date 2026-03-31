@@ -9,8 +9,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@clerk/vue": "^1.12.0",
     "axios": "^1.5.0",
-    "pinia": "^3.0.0",
     "vue": "^3.3.4",
     "vue-router": "^4.3.1"
   },

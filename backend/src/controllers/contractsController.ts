@@ -4,6 +4,7 @@ import { access } from 'fs/promises';
 import path from 'path';
 import { supabaseAdmin } from '../config/supabaseClient';
 import { finalizeContract } from '../services/contractsService';
+import { notifyDashboardUpdated } from '../services/dashboardRealtime';
 
 function resolveFinalizeContractError(error: unknown) {
   const status = Number((error as { status?: number })?.status);
@@ -33,15 +34,16 @@ export async function finalizeContractHandler(req: AuthenticatedRequest, res: Re
   try {
     const { contractId } = req.params;
     const { finalizationDate, depositAmount, depositStatus } = req.body ?? {};
-    const ownerId = req.supabaseUser?.id;
+    const ownerId = req.authUser?.id;
     if (!ownerId) {
-      return res.status(401).json({ message: 'Unauthorized' });
+      return res.status(401).json({ message: 'Autenticación requerida' });
     }
     const result = await finalizeContract(ownerId, contractId, {
       finalizationDate,
       depositAmount,
       depositStatus
     });
+    notifyDashboardUpdated(ownerId, 'contracts.finalized');
 
     res.json({
       success: true,
@@ -60,9 +62,9 @@ export async function finalizeContractHandler(req: AuthenticatedRequest, res: Re
 export async function downloadContractPdfHandler(req: AuthenticatedRequest, res: Response) {
   const { contractId } = req.params;
   try {
-    const ownerId = req.supabaseUser?.id;
+    const ownerId = req.authUser?.id;
     if (!ownerId) {
-      return res.status(401).json({ message: 'Unauthorized' });
+      return res.status(401).json({ message: 'Autenticación requerida' });
     }
     const { data: contract, error: contractError } = await supabaseAdmin
       .from('tenant_persons')
@@ -75,7 +77,7 @@ export async function downloadContractPdfHandler(req: AuthenticatedRequest, res:
       throw contractError;
     }
     if (!contract) {
-      return res.status(404).json({ message: 'Contract not found' });
+      return res.status(404).json({ message: 'Contrato no encontrado' });
     }
 
     const { data: documents, error: documentsError } = await supabaseAdmin
@@ -91,7 +93,7 @@ export async function downloadContractPdfHandler(req: AuthenticatedRequest, res:
 
     const document = documents?.[0];
     if (!document?.storage_path) {
-      return res.status(404).json({ message: 'Contract document not found' });
+      return res.status(404).json({ message: 'Documento del contrato no encontrado' });
     }
 
     const filePath = path.resolve(document.storage_path);
@@ -100,7 +102,7 @@ export async function downloadContractPdfHandler(req: AuthenticatedRequest, res:
       await access(filePath);
     } catch (error) {
       console.error('[contracts/download-pdf] file missing', error);
-      return res.status(404).json({ message: 'Contract document not found' });
+      return res.status(404).json({ message: 'Documento del contrato no encontrado' });
     }
 
     res.setHeader('Content-Type', 'application/pdf');
@@ -108,11 +110,11 @@ export async function downloadContractPdfHandler(req: AuthenticatedRequest, res:
     return res.sendFile(filePath, (sendError) => {
       if (sendError && !res.headersSent) {
         console.error('[contracts/download-pdf] res.sendFile', sendError);
-        res.status(500).json({ message: 'Error downloading contract document' });
+        res.status(500).json({ message: 'No se pudo descargar el documento del contrato' });
       }
     });
   } catch (error) {
     console.error('[contracts/download-pdf]', error);
-    res.status(500).json({ message: 'Error downloading contract document' });
+    res.status(500).json({ message: 'No se pudo descargar el documento del contrato' });
   }
 }

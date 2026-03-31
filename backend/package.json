@@ -6,12 +6,12 @@
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
     "build": "tsc",
     "check": "tsc --noEmit",
-    "seed:demo-user": "ts-node src/scripts/seedDemoUser.ts",
     "test:unit": "node --test -r ts-node/register ./src/tests/*.test.ts",
     "test": "npm run check && npm run test:unit",
     "start": "node dist/server.js"
   },
   "dependencies": {
+    "@clerk/express": "^1.7.29",
     "@supabase/supabase-js": "^2.34.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.0",

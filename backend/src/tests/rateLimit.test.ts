@@ -26,7 +26,7 @@ test('rate limiter blocks requests above the configured threshold', () => {
   const middleware = createRateLimiter({
     windowMs: 60_000,
     maxRequests: 2,
-    message: 'Too many requests',
+    message: 'Demasiadas solicitudes',
     keyPrefix: 'test'
   });
 
@@ -52,5 +52,5 @@ test('rate limiter blocks requests above the configured threshold', () => {
   assert.equal(nextCalls, 2);
   assert.equal(blockedResponse.statusCode, 429);
   assert.equal(blockedResponse.headers['Retry-After'], '60');
-  assert.deepEqual(blockedResponse.body, { message: 'Too many requests' });
+  assert.deepEqual(blockedResponse.body, { message: 'Demasiadas solicitudes' });
 });

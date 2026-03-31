@@ -3,6 +3,7 @@ import { Router } from 'express';
 import { AuthenticatedRequest } from '../middleware/authMiddleware';
 import { supabaseAdmin } from '../config/supabaseClient';
 import { landlordConfig } from '../config/landlordConfig';
+import { resolveContractLandlordProfile } from '../utils/contractLandlordProfile';
 
 const router = Router();
 
@@ -42,6 +43,17 @@ const translatePaymentStatus = (status?: string | null) => {
   }
 };
 
+const translatePaymentMethod = (method?: string | null) => {
+  switch (method) {
+    case 'BANK':
+      return 'Banco';
+    case 'CASH':
+      return 'Efectivo';
+    default:
+      return 'No indicado';
+  }
+};
+
 const generatePdfWithPdfKit = (payment: any): Promise<Buffer> =>
   new Promise((resolve) => {
     const doc = new PDFDocument({ size: 'A4', margin: 36 });
@@ -71,12 +83,11 @@ const generatePdfWithPdfKit = (payment: any): Promise<Buffer> =>
     doc.text(`Mes / Año: ${payment.month ?? '—'} / ${payment.year ?? '—'}`);
     doc.text(`Vencimiento registrado: ${formatDateLabel(payment.due_date)}`);
     doc.text(`Pago registrado: ${formatDateLabel(payment.paid_date)}`);
+    doc.text(`Método de cobro: ${translatePaymentMethod(payment.payment_method)}`);
     doc.moveDown();
 
     doc.fontSize(10).fillColor('#475569');
-    doc.text('Este documento certifica la operación registrada en el sistema operativo de Apartamentos La Kers. Conserva este recibo como constancia formal del estado del cobro.');
-    doc.moveDown(0.5);
-    doc.text('La emisión no garantiza la confirmación definitiva del pago si el estado del registro permanece en "Pendiente" o "Atrasado".');
+    doc.text('Documento generado a partir del pago registrado en La-Kers.');
     doc.end();
   });
 
@@ -199,9 +210,9 @@ const generateRentalContractDocument = (tenant: any, landlord: typeof landlordCo
 router.post('/receipt/:paymentId', async (req: AuthenticatedRequest, res) => {
   try {
     const { paymentId } = req.params;
-    const ownerId = req.supabaseUser?.id;
+    const ownerId = req.authUser?.id;
     if (!ownerId) {
-      return res.status(401).json({ message: 'Unauthorized' });
+      return res.status(401).json({ message: 'Autenticación requerida' });
     }
     const { data: payment, error } = await supabaseAdmin
       .from('payments')
@@ -211,7 +222,7 @@ router.post('/receipt/:paymentId', async (req: AuthenticatedRequest, res) => {
       .single();
 
     if (error || !payment) {
-      return res.status(404).json({ message: 'Payment not found' });
+      return res.status(404).json({ message: 'Pago no encontrado' });
     }
     if (payment.status !== 'PAID') {
       return res.status(409).json({ message: 'Solo se puede generar un recibo para pagos abonados' });
@@ -231,13 +242,13 @@ router.post('/receipt/:paymentId', async (req: AuthenticatedRequest, res) => {
 router.get('/tenant-contract/:tenantId', async (req: AuthenticatedRequest, res) => {
   try {
     const { tenantId } = req.params;
-    const ownerId = req.supabaseUser?.id;
+    const ownerId = req.authUser?.id;
     if (!ownerId) {
-      return res.status(401).json({ message: 'Unauthorized' });
+      return res.status(401).json({ message: 'Autenticación requerida' });
     }
     const { data: tenant, error } = await supabaseAdmin
       .from('tenant_persons')
-      .select('*, units(owner_id, id, name, address, city, postal_code, monthly_rent)')
+      .select('*, units(*)')
       .eq('id', tenantId)
       .eq('units.owner_id', ownerId)
       .single();
@@ -246,7 +257,7 @@ router.get('/tenant-contract/:tenantId', async (req: AuthenticatedRequest, res) 
       return res.status(404).json({ message: 'Inquilino no encontrado' });
     }
 
-    const pdfBuffer = await generateRentalContractDocument(tenant, landlordConfig);
+    const pdfBuffer = await generateRentalContractDocument(tenant, resolveContractLandlordProfile(tenant.units));
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename=contrato-alquiler-${tenantId}.pdf`);
     res.send(pdfBuffer);

@@ -1,54 +1,86 @@
 <template>
-  <article class="rounded-3xl border border-slate-100 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg">
-    <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-      <div class="flex-1 space-y-2">
-        <div class="flex flex-wrap gap-2 items-center">
-          <p class="text-lg font-semibold text-slate-900">{{ apartment.name }}</p>
-          <StatusBadge :status="statusValue" />
+  <article
+    class="cursor-pointer px-4 py-4 transition-colors"
+    :class="selected ? 'bg-[#fff8f3]' : 'bg-white hover:bg-[#fbf8f2]'"
+    role="button"
+    tabindex="0"
+    @click="emit('detail', apartment)"
+    @keydown.enter.prevent="emit('detail', apartment)"
+    @keydown.space.prevent="emit('detail', apartment)"
+  >
+    <div class="grid gap-4 md:grid-cols-[minmax(0,1.75fr)_minmax(140px,0.6fr)_minmax(150px,0.65fr)_minmax(160px,auto)] md:items-center">
+      <div class="min-w-0 space-y-2">
+        <div class="flex flex-wrap items-center gap-2">
+          <p class="text-[15px] font-semibold leading-5 text-slate-900">{{ apartment.name }}</p>
+          <span
+            v-if="selected"
+            class="inline-flex items-center rounded-full bg-[#f4dfd2] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#8c4d29]"
+          >
+            Activo
+          </span>
         </div>
-        <div class="flex flex-wrap gap-4 text-sm text-slate-500">
-          <span class="inline-flex items-center gap-1">
-            <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
-              <path d="M12 8c-3 0-5 1.5-5 4h10c0-2.5-2-4-5-4z" />
-              <path d="M11 12v6m2-6v6" />
-            </svg>
-            {{ formatCurrency(apartment.monthly_rent) }} / mes
-          </span>
-          <span v-if="occupant" class="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-500">
-            <span class="text-slate-700">Inquilino:</span>
-            <span class="text-emerald-700">{{ occupant.full_name }}</span>
-          </span>
-          <span v-else class="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-500">
-            <svg class="h-3 w-3 text-slate-400" viewBox="0 0 8 8" fill="currentColor" aria-hidden="true">
+        <p class="text-xs text-slate-400">
+          {{ apartment.address || 'Dirección no registrada' }}
+        </p>
+        <div class="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1">
+          <span class="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">Inquilino</span>
+          <p v-if="occupant" class="text-sm font-semibold text-slate-700">{{ occupant.full_name }}</p>
+          <span v-else class="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-medium text-slate-500">
+            <svg class="h-2.5 w-2.5 text-slate-400" viewBox="0 0 8 8" fill="currentColor" aria-hidden="true">
               <circle cx="4" cy="4" r="4" />
             </svg>
             Sin inquilino asignado
           </span>
         </div>
       </div>
-      <div class="flex flex-wrap items-center gap-2 text-sm font-semibold text-slate-600">
-        <button
-          class="rounded-full border border-slate-200 px-3 py-1 transition hover:border-primary hover:text-primary"
-          type="button"
-          @click="$emit('detail', apartment)"
-        >
-          Detalle
-        </button>
-        <button
-          class="rounded-full border border-slate-200 px-3 py-1 transition hover:border-primary hover:text-primary"
-          type="button"
-          @click="$emit('edit', apartment)"
-        >
-          Editar
-        </button>
-        <button
-          class="rounded-full border border-rose-100 px-3 py-1 text-rose-600 transition hover:bg-rose-50"
-          type="button"
-          @click="$emit('delete', apartment)"
-        >
-          Eliminar
-        </button>
+
+      <div>
+        <p class="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">Renta</p>
+        <p class="mt-1 text-sm font-semibold leading-5 text-slate-900">{{ formatCurrency(apartment.monthly_rent) }} / mes</p>
       </div>
+
+      <div>
+        <p class="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">Estado</p>
+        <div class="mt-1">
+          <StatusBadge :status="statusValue" />
+        </div>
+      </div>
+
+      <div class="hidden md:flex md:flex-wrap md:justify-end md:gap-2">
+        <div class="flex flex-wrap justify-end gap-2">
+          <button
+            class="inline-flex items-center justify-center rounded-full bg-[#1f4f46] px-3.5 py-2 text-[12px] font-semibold text-white transition hover:bg-[#173c36]"
+            type="button"
+            @click.stop="emit('edit', apartment)"
+          >
+            Editar
+          </button>
+          <button
+            class="inline-flex items-center justify-center rounded-full border border-rose-200 bg-rose-50 px-3.5 py-2 text-[12px] font-semibold text-rose-600 transition hover:border-rose-300 hover:bg-rose-100"
+            type="button"
+            @click.stop="emit('delete', apartment)"
+          >
+            Eliminar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2 border-t border-[#efe7dd] pt-3 md:hidden">
+      <button
+        class="inline-flex min-w-[104px] items-center justify-center rounded-full bg-[#1f4f46] px-4 py-2 text-[12px] font-semibold text-white transition hover:bg-[#173c36]"
+        type="button"
+        @click.stop="emit('edit', apartment)"
+      >
+        Editar
+      </button>
+      <button
+        class="inline-flex items-center justify-center rounded-full border border-rose-200 bg-rose-50 px-3.5 py-2 text-[12px] font-semibold text-rose-600 transition hover:border-rose-300 hover:bg-rose-100"
+        type="button"
+        @click.stop="emit('delete', apartment)"
+      >
+        Eliminar
+      </button>
     </div>
   </article>
 </template>
@@ -61,8 +93,9 @@ const props = defineProps<{
   apartment: Record<string, unknown>;
   occupant?: Record<string, unknown> | null;
   derivedStatus?: string;
+  selected?: boolean;
 }>();
-defineEmits<{
+const emit = defineEmits<{
   (e: 'detail', apartment: Record<string, unknown>): void;
   (e: 'edit', apartment: Record<string, unknown>): void;
   (e: 'delete', apartment: Record<string, unknown>): void;
@@ -83,4 +116,5 @@ const formatCurrency = (value: unknown) => {
 
 const occupant = computed(() => props.occupant ?? null);
 const statusValue = computed(() => props.derivedStatus ?? (props.apartment.status as string));
+const selected = computed(() => Boolean(props.selected));
 </script>

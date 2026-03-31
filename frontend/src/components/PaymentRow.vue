@@ -1,58 +1,99 @@
 <template>
-  <tr
+  <article
+    class="cursor-pointer"
     :class="[
-      'transition-colors hover:bg-slate-50 focus-within:bg-slate-50 odd:bg-slate-50 even:bg-white',
-      isCritical ? 'ring-1 ring-amber-200 bg-amber-50/70' : '',
-      isAnimating ? 'opacity-80' : ''
+      'px-4 py-4 transition-colors',
+      isCritical ? 'bg-amber-50/70' : 'bg-white',
+      isAnimating ? 'opacity-80' : '',
+      !isCritical ? 'hover:bg-[#fbf8f2]' : ''
     ]"
+    role="button"
+    tabindex="0"
+    @click="() => emit('view-detail', payment)"
+    @keydown.enter.prevent="() => emit('view-detail', payment)"
+    @keydown.space.prevent="() => emit('view-detail', payment)"
   >
-    <td class="px-3 py-4 align-top">
-      <p class="text-sm font-semibold text-slate-900">{{ tenantName }}</p>
-      <p class="text-xs text-slate-500">{{ tenantHint }}</p>
-    </td>
-    <td class="px-3 py-4 align-top text-sm text-slate-600">{{ apartmentLabel }}</td>
-    <td class="px-3 py-4 align-top text-sm font-semibold text-slate-900">{{ monthLabel }}</td>
-    <td class="px-3 py-4 align-top text-sm text-slate-900">{{ formattedAmount }}</td>
-    <td class="px-3 py-4 align-top space-y-1">
-      <PaymentStatusBadge :status="payment.status" />
-      <p v-if="daysLateLabel" class="text-[0.65rem] font-semibold text-rose-500">
-        {{ daysLateLabel }} días de retraso
-      </p>
-      <p v-else-if="isImminent" class="text-xs font-semibold text-amber-600">
-        Vence en {{ daysUntilDueLabel }} días
-      </p>
-    </td>
-      <td class="px-3 py-4 align-top text-sm text-slate-600">{{ dueLabel }}</td>
-    <td class="px-3 py-4 align-top space-y-2">
-      <div class="space-y-2">
-        <button
-          v-if="payment.status !== 'PAID'"
-          type="button"
-          class="w-full rounded-2xl border border-slate-200 bg-slate-900 px-3 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
-          @click="() => emit('mark-paid', payment.id)"
-        >
-          Marcar como pagado
-        </button>
-        <div class="flex gap-2">
-          <button
-            type="button"
-            class="flex-1 rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-600 transition hover:border-slate-900"
-            @click="() => emit('view-detail', payment)"
+    <div class="grid gap-4 md:grid-cols-[minmax(0,1.35fr)_minmax(0,0.85fr)_minmax(190px,1fr)_minmax(200px,auto)] md:items-center">
+      <div class="min-w-0">
+        <div class="flex flex-wrap items-center gap-2">
+          <p class="text-[15px] font-semibold leading-5 text-slate-900">{{ tenantName }}</p>
+          <span
+            v-if="selected"
+            class="inline-flex items-center rounded-full bg-[#f4dfd2] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#8c4d29]"
           >
-            Detalle
+            Activo
+          </span>
+        </div>
+        <p class="mt-1 text-xs text-slate-400">{{ tenantHint }}</p>
+      </div>
+
+      <div class="min-w-0">
+        <p class="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400 md:hidden">Apartamento</p>
+        <p class="mt-1 text-sm font-semibold leading-5 text-slate-900 md:mt-0">{{ apartmentLabel }}</p>
+      </div>
+
+      <div>
+        <p class="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">Resumen</p>
+        <p class="mt-1 text-sm font-semibold text-slate-900">{{ monthLabel }}</p>
+        <p class="mt-1 text-sm font-semibold text-slate-900">{{ formattedAmount }}</p>
+        <div class="mt-2 flex flex-wrap items-center gap-2">
+          <PaymentStatusBadge :status="payment.status" />
+          <p v-if="daysLateLabel" class="text-[0.65rem] font-semibold text-rose-500">
+            {{ daysLateLabel }} días de retraso
+          </p>
+          <p v-else-if="isImminent" class="text-xs font-semibold text-amber-600">
+            Vence en {{ daysUntilDueLabel }} días
+          </p>
+          <p v-else class="text-xs text-slate-400">
+            Vence {{ dueLabel }}
+          </p>
+        </div>
+      </div>
+
+      <div class="hidden md:flex md:flex-wrap md:justify-end md:gap-2">
+        <div class="flex flex-wrap justify-end gap-2">
+          <button
+            v-if="showMarkPaidAction"
+            type="button"
+            class="inline-flex items-center justify-center rounded-full bg-[#1f4f46] px-3.5 py-2 text-[12px] font-semibold text-white transition hover:bg-[#173c36]"
+            @click.stop="() => emit('mark-paid', payment)"
+          >
+            {{ payment.status === 'PAID' ? 'Añadir método' : 'Marcar como pagado' }}
           </button>
           <button
             v-if="payment.status === 'PAID'"
             type="button"
-            class="flex-1 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-600 transition hover:border-slate-900"
-            @click="() => emit('download-receipt', payment)"
+            class="inline-flex items-center justify-center rounded-full border border-[#d9cdbc] bg-[#fbf8f2] px-3.5 py-2 text-[12px] font-semibold text-[#8c4d29] transition hover:bg-[#f6efe5]"
+            @click.stop="() => emit('download-receipt', payment)"
           >
             Recibo
           </button>
         </div>
+        <p v-if="paymentMethodLabel" class="text-xs text-slate-400">
+          Método: {{ paymentMethodLabel }}
+        </p>
       </div>
-    </td>
-  </tr>
+    </div>
+
+    <div class="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2 border-t border-[#efe7dd] pt-3 md:hidden">
+      <button
+        v-if="showMarkPaidAction"
+        type="button"
+        class="inline-flex min-w-[140px] items-center justify-center rounded-full bg-[#1f4f46] px-4 py-2 text-[12px] font-semibold text-white transition hover:bg-[#173c36]"
+        @click.stop="() => emit('mark-paid', payment)"
+      >
+        {{ payment.status === 'PAID' ? 'Añadir método' : 'Marcar como pagado' }}
+      </button>
+      <button
+        v-if="payment.status === 'PAID'"
+        type="button"
+        class="inline-flex items-center justify-center rounded-full border border-[#d9cdbc] bg-[#fbf8f2] px-3.5 py-2 text-[12px] font-semibold text-[#8c4d29] transition hover:bg-[#f6efe5]"
+        @click.stop="() => emit('download-receipt', payment)"
+      >
+        Recibo
+      </button>
+    </div>
+  </article>
 </template>
 
 <script setup lang="ts">
@@ -63,10 +104,11 @@ import { Payment } from '../types/payment';
 const props = defineProps<{
   payment: Payment;
   isAnimating?: boolean;
+  selected?: boolean;
 }>();
 
 const emit = defineEmits<{
-  (event: 'mark-paid', id: string): void;
+  (event: 'mark-paid', payment: Payment): void;
   (event: 'view-detail', payment: Payment): void;
   (event: 'download-receipt', payment: Payment): void;
 }>();
@@ -96,6 +138,16 @@ const monthLabel = computed(() => {
 });
 
 const formattedAmount = computed(() => currencyFormatter.format(props.payment.amount ?? 0));
+const paymentMethodLabel = computed(() => {
+  switch (props.payment.payment_method) {
+    case 'BANK':
+      return 'Banco';
+    case 'CASH':
+      return 'Efectivo';
+    default:
+      return props.payment.status === 'PAID' ? 'No indicado' : 'Pendiente';
+  }
+});
 
 const dueDate = computed(() => {
   if (!props.payment.due_date) return null;
@@ -118,8 +170,7 @@ const daysLate = computed(() => {
 
 const daysUntilDue = computed(() => {
   if (!dueDate.value) return Infinity;
-  const diff = Math.ceil((dueDate.value.getTime() - Date.now()) / MS_PER_DAY);
-  return diff;
+  return Math.ceil((dueDate.value.getTime() - Date.now()) / MS_PER_DAY);
 });
 
 const daysLateLabel = computed(() => (daysLate.value ? daysLate.value.toString() : null));
@@ -133,4 +184,7 @@ const isCritical = computed(() => {
   if ((props.payment.amount ?? 0) >= 3000) return true;
   return false;
 });
+
+const showMarkPaidAction = computed(() => props.payment.status !== 'PAID' || !props.payment.payment_method);
+const selected = computed(() => Boolean(props.selected));
 </script>

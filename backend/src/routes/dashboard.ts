@@ -1,13 +1,25 @@
 import { Router } from 'express';
 import { AuthenticatedRequest } from '../middleware/authMiddleware';
 import { getDashboardSummary } from '../services/dashboardService';
+import { openDashboardStream } from '../services/dashboardRealtime';
 
 const router = Router();
 
-router.get('/summary', async (req: AuthenticatedRequest, res) => {
-  const ownerId = req.supabaseUser?.id;
+router.get('/stream', async (req: AuthenticatedRequest, res) => {
+  const ownerId = req.authUser?.id;
   if (!ownerId) {
-    return res.status(401).json({ message: 'Unauthorized' });
+    return res.status(401).json({ message: 'Autenticación requerida' });
+  }
+
+  const closeStream = openDashboardStream(ownerId, res);
+  req.on('close', closeStream);
+  res.on('close', closeStream);
+});
+
+router.get('/summary', async (req: AuthenticatedRequest, res) => {
+  const ownerId = req.authUser?.id;
+  if (!ownerId) {
+    return res.status(401).json({ message: 'Autenticación requerida' });
   }
   try {
     const summary = await getDashboardSummary(ownerId);
@@ -15,7 +27,7 @@ router.get('/summary', async (req: AuthenticatedRequest, res) => {
   } catch (error) {
     console.error(error);
     const status = (error as any).status ?? 500;
-    res.status(status).json({ message: 'Unable to load dashboard summary' });
+    res.status(status).json({ message: 'No se pudo cargar el resumen del panel' });
   }
 });
 

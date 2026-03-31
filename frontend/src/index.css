@@ -1,9 +1,45 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Syne:wght@500;600;700;800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-body {
-  @apply bg-slate-100 text-slate-900;
+@layer base {
+  html {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+  }
+
+  body {
+    @apply bg-slate-100 text-slate-900;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+  }
+
+  button,
+  input,
+  textarea,
+  select {
+    font: inherit;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  .font-display,
+  .brand-wordmark {
+    font-family: 'Syne', sans-serif;
+    letter-spacing: -0.05em;
+  }
+
+  h1 {
+    line-height: 0.92;
+  }
+
+  h2,
+  h3 {
+    line-height: 0.96;
+  }
 }
 
 #app {
@@ -29,4 +65,11 @@ body {
   .animate-fade-up {
     animation: fade-up 0.9s ease forwards;
   }
+}
+
+.cl-internal-b3fm6y,
+.cl-internal-1dauvpw,
+.cl-internal-1hp5nqm,
+.cl-formFieldAction {
+  font-family: 'Plus Jakarta Sans', sans-serif;
 }

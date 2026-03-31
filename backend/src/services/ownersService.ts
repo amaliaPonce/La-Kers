@@ -51,6 +51,8 @@ export function buildPlanPayload(plan: PlanDefinition) {
     id: plan.id,
     name: plan.name,
     description: plan.description,
-    unitLimit: plan.unitLimit
+    unitLimit: plan.unitLimit,
+    monthlyPriceCents: plan.monthlyPriceCents,
+    yearlyPriceCents: plan.yearlyPriceCents
   };
 }

@@ -5,6 +5,7 @@
 - Set `APP_BASE_URL` to the public backend URL.
 - Set `CORS_ALLOWED_ORIGINS` to the exact frontend origins allowed to call the API.
 - Set `LANDLORD_NAME`, `LANDLORD_IDENTIFICATION` and `LANDLORD_ADDRESS`.
+- If you enable automatic billing, set `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_ID_PRO_MONTHLY` and `STRIPE_PRICE_ID_PRO_YEARLY`.
 - Review `TRUST_PROXY=true` when running behind Nginx, Render, Railway, Fly.io, or another reverse proxy.
 - Keep `REQUEST_BODY_LIMIT` small unless a larger payload is strictly required.
 
@@ -15,6 +16,7 @@
 ## Storage and Data
 - Persist `backend/documents` or configure `DOCUMENT_STORAGE_PATH` to a durable volume.
 - Run `sql/schema.sql` before the first production boot.
+- If the database already exists, run `sql/20260327_owner_subscriptions.sql`.
 - Do not store generated PDFs or logs in Git.
 - Rotate Supabase keys if any secret was ever committed or shared insecurely.
 
@@ -22,6 +24,7 @@
 - Put the backend behind HTTPS.
 - Restrict the frontend to the production API base URL via `VITE_API_BASE`.
 - Verify `/health` and `/ready` from the deployment platform.
+- If using Stripe, expose and verify `POST /billing/webhook` from the public backend URL.
 - Confirm rate limits do not block expected internal traffic.
 
 ## Release Checks

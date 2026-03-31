@@ -9,7 +9,10 @@ type PaymentPayload = {
   month: number;
   year: number;
   status?: 'PENDING' | 'PAID' | 'LATE';
+  payment_method?: 'CASH' | 'BANK' | null;
 };
+
+export type PaymentMethod = 'CASH' | 'BANK';
 
 export type TenantPaymentSummaryOptions = {
   untilDate?: string;
@@ -34,7 +37,10 @@ export type PaymentTenantContract = {
   } | null;
 };
 
+const PAYMENT_SELECT = '*, units!inner(id, owner_id, name, status), tenant_persons(id, full_name)';
+
 const padDatePart = (value: number) => String(value).padStart(2, '0');
+const createMonthKey = (year: number, month: number) => `${year}-${padDatePart(month)}`;
 
 const toDateKey = (value: string | Date | null | undefined) => {
   if (!value) return null;
@@ -85,10 +91,19 @@ async function resolveUnitRent(unitId: string, fallbackRent?: number | string | 
   return Number(data?.monthly_rent ?? 0);
 }
 
+type UnpaidTenantPaymentRecord = {
+  id: string;
+  unit_id?: string | null;
+  amount?: number | string | null;
+  due_date?: string | null;
+  month?: number | null;
+  year?: number | null;
+};
+
 export async function listPayments(ownerId: string) {
   const { data, error } = await supabaseAdmin
     .from('payments')
-    .select('*, units(owner_id, name, status), tenant_persons(full_name)')
+    .select(PAYMENT_SELECT)
     .eq('units.owner_id', ownerId)
     .order('due_date', { ascending: false });
   if (error) throw error;
@@ -98,7 +113,7 @@ export async function listPayments(ownerId: string) {
 export async function getPaymentById(id: string, ownerId?: string) {
   let query = supabaseAdmin
     .from('payments')
-    .select('*, units(owner_id, name, status)')
+    .select(PAYMENT_SELECT)
     .eq('id', id);
   if (ownerId) {
     query = query.eq('units.owner_id', ownerId);
@@ -120,24 +135,34 @@ export async function createPayment(payload: PaymentPayload, ownerId?: string) {
   return data;
 }
 
-export async function markPaymentPaid(id: string, ownerId?: string) {
+export async function markPaymentPaid(id: string, paymentMethod: PaymentMethod, ownerId?: string) {
   const payment = await getPaymentById(id, ownerId);
   if (!payment) {
-    const error = new Error('Payment not found');
+    const error = new Error('Pago no encontrado');
     (error as any).status = 404;
     throw error;
   }
   if (payment.status === 'PAID') {
-    return payment;
+    if (payment.payment_method === paymentMethod) {
+      return payment;
+    }
+    const { error } = await supabaseAdmin
+      .from('payments')
+      .update({ payment_method: paymentMethod })
+      .eq('id', id);
+    if (error) throw error;
+    return getPaymentById(id, ownerId);
   }
-  const { data, error } = await supabaseAdmin
+  const { error } = await supabaseAdmin
     .from('payments')
-    .update({ status: 'PAID', paid_date: new Date().toISOString() })
-    .eq('id', id)
-    .select('*')
-    .single();
+    .update({
+      status: 'PAID',
+      paid_date: new Date().toISOString(),
+      payment_method: paymentMethod
+    })
+    .eq('id', id);
   if (error) throw error;
-  return data;
+  return getPaymentById(id, ownerId);
 }
 
 export async function hasPaymentForMonth(unit_id: string, month: number, year: number) {
@@ -188,12 +213,29 @@ export async function getOccupiedContracts(date: string, ownerId?: string) {
   }) ?? [];
 }
 
-export async function markPendingPaymentsAsLate(date: string) {
-  const { error } = await supabaseAdmin
+export async function markPendingPaymentsAsLate(date: string, ownerId?: string) {
+  const targetDate = toDateKey(date);
+  if (!targetDate) return;
+
+  let query = supabaseAdmin
     .from('payments')
     .update({ status: 'LATE' })
-    .lt('due_date', date)
+    .lt('due_date', targetDate)
     .eq('status', 'PENDING');
+
+  if (ownerId) {
+    const { data: units, error: unitsError } = await supabaseAdmin
+      .from('units')
+      .select('id')
+      .eq('owner_id', ownerId);
+    if (unitsError) throw unitsError;
+
+    const unitIds = (units ?? []).map((unit) => String(unit.id ?? '')).filter(Boolean);
+    if (!unitIds.length) return;
+    query = query.in('unit_id', unitIds);
+  }
+
+  const { error } = await query;
   if (error) throw error;
 }
 
@@ -240,6 +282,90 @@ export async function ensurePendingPaymentsForTenant(
       ownerId || undefined
     );
   }
+}
+
+export async function reconcileUnpaidPaymentsForTenant(
+  ownerId: string,
+  tenant: PaymentTenantContract
+) {
+  const unitId = String(tenant.unit_id ?? tenant.units?.id ?? '');
+  const contractStart = toDateKey(tenant.contract_start);
+  const contractEnd = toDateKey(tenant.contract_end);
+
+  if (!tenant.id || !unitId || !contractStart || !contractEnd) return;
+  if (contractEnd < contractStart) return;
+
+  const amount = await resolveUnitRent(unitId, tenant.units?.monthly_rent);
+  if (!(amount > 0)) return;
+
+  const desiredEntries = new Map(
+    buildMonthRange(contractStart, contractEnd).map((entry) => [
+      createMonthKey(entry.year, entry.month),
+      entry
+    ])
+  );
+
+  const { data, error } = await supabaseAdmin
+    .from('payments')
+    .select('id, unit_id, amount, due_date, month, year')
+    .eq('tenant_person_id', tenant.id)
+    .in('status', ['PENDING', 'LATE']);
+  if (error) throw error;
+
+  const unpaidPayments = (data ?? []) as UnpaidTenantPaymentRecord[];
+  const paymentIdsToDelete: string[] = [];
+
+  for (const payment of unpaidPayments) {
+    const month = Number(payment.month ?? 0);
+    const year = Number(payment.year ?? 0);
+    if (!month || !year) {
+      paymentIdsToDelete.push(payment.id);
+      continue;
+    }
+
+    const key = createMonthKey(year, month);
+    const desiredEntry = desiredEntries.get(key);
+    if (!desiredEntry) {
+      paymentIdsToDelete.push(payment.id);
+      continue;
+    }
+
+    const dueDate = toDateKey(payment.due_date);
+    const currentAmount = Number(payment.amount ?? 0);
+    const requiresUpdate =
+      String(payment.unit_id ?? '') !== unitId ||
+      dueDate !== desiredEntry.dueDate ||
+      currentAmount !== amount;
+
+    if (!requiresUpdate) continue;
+
+    const conflictingPayment = await getPaymentForMonth(unitId, desiredEntry.month, desiredEntry.year);
+    if (conflictingPayment && conflictingPayment.id !== payment.id) {
+      const conflict = new Error('Ya existe un pago pendiente para esa unidad y ese mes. Revisa si el contrato se está solapando con otro inquilino.');
+      (conflict as any).status = 409;
+      throw conflict;
+    }
+
+    const { error: updateError } = await supabaseAdmin
+      .from('payments')
+      .update({
+        unit_id: unitId,
+        amount,
+        due_date: desiredEntry.dueDate
+      })
+      .eq('id', payment.id);
+    if (updateError) throw updateError;
+  }
+
+  if (paymentIdsToDelete.length) {
+    const { error: deleteError } = await supabaseAdmin
+      .from('payments')
+      .delete()
+      .in('id', paymentIdsToDelete);
+    if (deleteError) throw deleteError;
+  }
+
+  await ensurePendingPaymentsForTenant(ownerId, tenant);
 }
 
 export async function getTenantPaymentSummary(

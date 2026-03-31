@@ -1,11 +1,17 @@
 import { supabaseAdmin } from '../config/supabaseClient';
-import { PlanDefinition } from '../config/plans';
-import { countOwnerUnits, ensureOwnerOwnsUnit } from './ownersService';
+import { ensureOwnerCanCreateUnit } from './billingService';
+import { ensureOwnerOwnsUnit } from './ownersService';
 
 type ApartmentPayload = {
   name: string;
   monthly_rent: number;
   status: 'AVAILABLE' | 'OCCUPIED' | 'RESERVED';
+  address?: string | null;
+  city?: string | null;
+  postal_code?: string | null;
+  contract_landlord_name?: string | null;
+  contract_landlord_identification?: string | null;
+  contract_landlord_address?: string | null;
 };
 
 export type ApartmentStatusCount = {
@@ -25,13 +31,8 @@ export async function listApartments(ownerId: string) {
   return data;
 }
 
-export async function createApartment(ownerId: string, payload: ApartmentPayload, plan: PlanDefinition) {
-  const ownedUnits = await countOwnerUnits(ownerId);
-  if (ownedUnits >= plan.unitLimit) {
-    const error = new Error(`El plan ${plan.name} permite hasta ${plan.unitLimit} viviendas`);
-    (error as any).status = 403;
-    throw error;
-  }
+export async function createApartment(ownerId: string, payload: ApartmentPayload) {
+  await ensureOwnerCanCreateUnit(ownerId);
   const { data, error } = await supabaseAdmin
     .from('units')
     .insert({ ...payload, owner_id: ownerId })
@@ -83,6 +84,7 @@ export async function countApartmentsByStatus(ownerId: string): Promise<Apartmen
     const result = await supabaseAdmin
       .from('tenant_persons')
       .select('unit_id')
+      .eq('status', 'ACTIVE')
       .lte('contract_start', todayKey)
       .gte('contract_end', todayKey)
       .in('unit_id', unitIds);

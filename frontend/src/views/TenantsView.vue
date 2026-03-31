@@ -10,6 +10,7 @@
         <button
           type="button"
           class="inline-flex items-center gap-2 rounded-2xl bg-black px-5 py-2 text-sm font-semibold text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-slate-800"
+          data-onboarding="create-tenant"
           @click="openTenantModal('create')"
         >
           <svg aria-hidden="true" class="h-4 w-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
@@ -60,38 +61,33 @@
         <p class="text-sm text-slate-500">{{ displayedTenants.length }} contratos visibles</p>
       </div>
 
-      <div class="mt-5 space-y-5">
-        <TenantFilters
-          v-if="tenantViewMode === 'active'"
-          :filters="tenantFilters"
-          @update:filters="handleFiltersUpdate"
-        />
-        <div
-          v-if="tenantViewMode === 'archived'"
-          class="rounded-2xl border border-dashed border-slate-200 bg-slate-50/70 p-4 text-sm text-slate-600"
-        >
-          <p class="text-xs uppercase tracking-[0.4em] text-slate-400">Retenciones</p>
-          <ul class="mt-3 space-y-2">
-            <li v-for="note in retentionNotes" :key="note.title">
-              <span class="font-semibold text-slate-900">{{ note.title }}:</span> {{ note.detail }}
-            </li>
-          </ul>
-        </div>
-        <div class="overflow-hidden rounded-2xl border border-slate-100">
-          <div class="overflow-x-auto">
-            <table class="w-full text-left text-sm">
-              <thead class="bg-slate-50 text-sm font-semibold text-slate-500">
-                <tr>
-                  <th
-                    v-for="label in tenantHeaders"
-                    :key="label"
-                    class="px-3 py-3"
-                  >
-                    {{ label }}
-                  </th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-slate-100 bg-white">
+      <div class="mt-5 grid gap-6 xl:grid-cols-[minmax(0,2.15fr)_minmax(260px,300px)] xl:items-start">
+        <div class="order-2 space-y-5 xl:order-1">
+          <TenantFilters
+            v-if="tenantViewMode === 'active'"
+            :filters="tenantFilters"
+            @update:filters="handleFiltersUpdate"
+          />
+          <div
+            v-if="tenantViewMode === 'archived'"
+            class="rounded-2xl border border-dashed border-slate-200 bg-slate-50/70 p-4 text-sm text-slate-600"
+          >
+            <p class="text-xs uppercase tracking-[0.4em] text-slate-400">Retenciones</p>
+            <ul class="mt-3 space-y-2">
+              <li v-for="note in retentionNotes" :key="note.title">
+                <span class="font-semibold text-slate-900">{{ note.title }}:</span> {{ note.detail }}
+              </li>
+            </ul>
+          </div>
+          <div class="overflow-hidden rounded-[28px] border border-[#eadfd2] bg-white">
+            <div>
+              <div class="hidden border-b border-[#efe7dd] bg-[#fbf8f2] px-4 py-3 md:grid md:grid-cols-[minmax(0,1.85fr)_minmax(230px,1.1fr)_minmax(120px,0.7fr)_minmax(170px,auto)] md:items-center md:gap-4">
+                <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Inquilino</p>
+                <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Contrato</p>
+                <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Estado</p>
+                <p class="text-right text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Acciones</p>
+              </div>
+              <div class="divide-y divide-[#efe7dd]">
                 <TenantRow
                   v-for="tenant in displayedTenants"
                   :key="tenant.id"
@@ -101,21 +97,144 @@
                   :status="tenant.status"
                   :days-label="tenant.daysLabel"
                   :is-highlighted="tenant.signature === lastCreatedSignature"
+                  :selected="detailTenant?.id === tenant.id"
                   @edit="handleRowInteraction('editar', $event)"
                   @details="handleRowInteraction('detalle', $event)"
                   @pdf="handleRowInteraction('pdf', $event)"
                   @finalize="handleRowInteraction('finalizar', $event)"
                 />
-              </tbody>
-            </table>
-            <p
-              v-if="!displayedTenants.length"
-              class="border-t border-slate-100 px-4 py-6 text-center text-sm text-slate-500"
-            >
-              No hay inquilinos que cumplan los filtros seleccionados en esta pestaña.
-            </p>
+              </div>
+              <p
+                v-if="!displayedTenants.length"
+                class="border-t border-[#efe7dd] px-4 py-6 text-center text-sm text-slate-500"
+              >
+                No hay inquilinos que cumplan los filtros seleccionados en esta pestaña.
+              </p>
+            </div>
           </div>
         </div>
+
+        <aside ref="detailPanelRef" class="order-1 scroll-mt-24 xl:order-2 xl:sticky xl:top-6">
+          <transition name="detail-slide" mode="out-in">
+            <article
+              v-if="detailTenant"
+              key="tenant-detail"
+              class="rounded-[32px] border border-[#ead8ca] bg-[linear-gradient(180deg,_rgba(255,255,255,0.97),_rgba(249,246,240,0.96))] p-5 shadow-[0_22px_50px_rgba(15,23,42,0.08)]"
+            >
+              <div class="flex flex-wrap items-start justify-between gap-4">
+                <div class="space-y-2">
+                  <p class="text-xs font-semibold uppercase tracking-[0.32em] text-[#8c4d29]">Ficha activa</p>
+                  <div>
+                    <h3 class="text-2xl font-semibold text-slate-900">{{ detailTenant.full_name }}</h3>
+                    <p class="mt-1 text-sm text-slate-500">DNI: {{ detailTenant.identification ?? '—' }}</p>
+                  </div>
+                </div>
+                <div class="flex items-center gap-2">
+                  <TenantStatusBadge :status="detailTenant.status" />
+                  <button
+                    type="button"
+                    class="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 transition hover:border-primary hover:text-primary"
+                    @click="closeDetailPanel"
+                  >
+                    Cerrar
+                  </button>
+                </div>
+              </div>
+
+              <div v-if="hasTenantReminders" class="mt-5 flex flex-wrap gap-2">
+                <RouterLink
+                  v-if="pendingPaymentCount > 0"
+                  to="/payments"
+                  class="inline-flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.3em] text-amber-700 transition hover:border-amber-300 hover:bg-amber-100"
+                >
+                  <span class="h-2.5 w-2.5 rounded-full bg-amber-500" aria-hidden="true"></span>
+                  Pagos pendientes
+                  <span class="text-[0.55rem] font-semibold text-amber-600">({{ pendingPaymentCount }})</span>
+                </RouterLink>
+                <RouterLink
+                  v-if="openIncidentCount > 0"
+                  to="/incidents"
+                  class="inline-flex items-center gap-2 rounded-full border border-rose-200 bg-rose-50 px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.3em] text-rose-700 transition hover:border-rose-300 hover:bg-rose-100"
+                >
+                  <span class="h-2.5 w-2.5 rounded-full bg-rose-500" aria-hidden="true"></span>
+                  Incidencias abiertas
+                  <span class="text-[0.55rem] font-semibold text-rose-600">({{ openIncidentCount }})</span>
+                </RouterLink>
+              </div>
+
+              <div class="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
+                <div class="rounded-3xl border border-white/80 bg-white/80 p-4 shadow-sm">
+                  <p class="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-400">Apartamento</p>
+                  <p class="mt-2 text-base font-semibold text-slate-900">{{ detailTenant.units?.name ?? '—' }}</p>
+                </div>
+                <div class="rounded-3xl border border-white/80 bg-white/80 p-4 shadow-sm">
+                  <p class="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-400">Inicio</p>
+                  <p class="mt-2 text-base font-semibold text-slate-900">{{ detailTenant.formattedStart }}</p>
+                </div>
+                <div class="rounded-3xl border border-white/80 bg-white/80 p-4 shadow-sm">
+                  <p class="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-400">Fin</p>
+                  <p class="mt-2 text-base font-semibold text-slate-900">{{ detailTenant.formattedEnd }}</p>
+                </div>
+                <div class="rounded-3xl border border-white/80 bg-white/80 p-4 shadow-sm">
+                  <p class="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-400">Seguimiento</p>
+                  <p
+                    class="mt-2 text-base font-semibold"
+                    :class="detailTenant.status === 'VENCIDO' ? 'text-rose-600' : detailTenant.status === 'PRÓXIMO A VENCER' ? 'text-amber-600' : 'text-emerald-600'"
+                  >
+                    {{ detailTenant.daysLabel }}
+                  </p>
+                </div>
+              </div>
+
+              <div class="mt-5 rounded-3xl border border-white/80 bg-white/80 p-4 shadow-sm">
+                <p class="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-400">Control del contrato</p>
+                <p class="mt-2 text-base font-semibold text-slate-900">
+                  {{ detailTenant.status === 'VENCIDO' ? 'Contrato vencido' : detailTenant.status === 'ARCHIVADO' ? 'Contrato archivado' : 'Contrato activo' }}
+                </p>
+                <p class="mt-1 text-sm leading-6 text-slate-600">
+                  {{ detailTenant.daysLabel }}
+                </p>
+              </div>
+
+              <div class="mt-6 flex flex-wrap gap-3">
+                <button
+                  type="button"
+                  class="rounded-2xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:border-primary hover:text-primary"
+                  @click="openTenantModal('edit', detailTenant)"
+                >
+                  Editar
+                </button>
+                <button
+                  type="button"
+                  class="rounded-2xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:border-primary hover:text-primary"
+                  @click="downloadRentalContractPdf(detailTenant.id)"
+                >
+                  Descargar contrato
+                </button>
+                <button
+                  v-if="detailTenant.status !== 'ARCHIVADO'"
+                  type="button"
+                  class="rounded-2xl border border-rose-100 px-4 py-2 text-sm font-semibold text-rose-600 transition hover:bg-rose-50"
+                  @click="openFinalizeWizard(detailTenant)"
+                >
+                  Finalizar contrato
+                </button>
+              </div>
+            </article>
+
+            <article
+              v-else
+              key="tenant-empty-detail"
+              class="rounded-[32px] border border-dashed border-slate-200 bg-slate-50/80 p-6 shadow-sm xl:min-h-[320px]"
+            >
+              <p class="text-xs font-semibold uppercase tracking-[0.32em] text-slate-400">Ficha del inquilino</p>
+              <h3 class="mt-3 text-xl font-semibold text-slate-900">Selecciona un contrato para ver su detalle</h3>
+              <p class="mt-2 text-sm leading-6 text-slate-500">
+                La ficha queda fija al lado del listado para revisar pagos, incidencias y fechas sin salir de la tabla.
+              </p>
+            </article>
+          </transition>
+        </aside>
       </div>
     </section>
 
@@ -138,96 +257,11 @@
       @finalized="handleContractFinalized"
     />
 
-    <transition name="slide-left">
-      <div v-if="detailTenant" class="fixed inset-0 z-40 flex">
-        <div class="flex-1" @click="closeDetailPanel"></div>
-        <aside class="w-full max-w-sm border-l border-slate-100 bg-white p-5 shadow-xl" @click.stop>
-          <header class="mb-5 flex items-start justify-between gap-3">
-            <div>
-              <p class="text-xs uppercase tracking-[0.4em] text-slate-400">Detalle</p>
-              <h3 class="text-xl font-semibold text-slate-900">{{ detailTenant.full_name }}</h3>
-              <p class="text-xs font-semibold uppercase tracking-[0.4em] text-slate-500">DNI: {{ detailTenant.identification ?? '—' }}</p>
-            </div>
-            <button
-              type="button"
-              class="rounded-full border border-slate-200 p-2 text-slate-500 transition hover:border-slate-300 hover:text-slate-900"
-              @click="closeDetailPanel"
-            >
-              ✕
-            </button>
-          </header>
-          <div v-if="hasTenantReminders" class="mb-4 flex flex-wrap gap-2">
-            <RouterLink
-              v-if="pendingPaymentCount > 0"
-              to="/payments"
-              class="inline-flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-[0.6rem] font-semibold uppercase tracking-[0.3em] text-amber-700 transition hover:border-amber-300 hover:bg-amber-100"
-            >
-              <span class="h-2.5 w-2.5 rounded-full bg-amber-500" aria-hidden="true"></span>
-              Pagos pendientes
-              <span class="text-[0.55rem] font-semibold text-amber-600">({{ pendingPaymentCount }})</span>
-            </RouterLink>
-            <RouterLink
-              v-if="openIncidentCount > 0"
-              to="/incidents"
-              class="inline-flex items-center gap-2 rounded-full border border-rose-200 bg-rose-50 px-3 py-1 text-[0.6rem] font-semibold uppercase tracking-[0.3em] text-rose-700 transition hover:border-rose-300 hover:bg-rose-100"
-            >
-              <span class="h-2.5 w-2.5 rounded-full bg-rose-500" aria-hidden="true"></span>
-              Incidencias abiertas
-              <span class="text-[0.55rem] font-semibold text-rose-600">({{ openIncidentCount }})</span>
-            </RouterLink>
-          </div>
-          <div class="space-y-4 text-sm text-slate-600">
-            <div class="flex items-center justify-between gap-3">
-              <div>
-                <p class="text-xs uppercase tracking-[0.3em] text-slate-400">Estado</p>
-                <TenantStatusBadge :status="detailTenant.status" />
-              </div>
-              <p class="text-xs text-slate-500">{{ detailTenant.daysLabel }}</p>
-            </div>
-            <div class="grid gap-4 rounded-2xl border border-slate-100 bg-slate-50 p-4">
-              <div>
-                <p class="text-xs uppercase tracking-[0.3em] text-slate-400">Inicio</p>
-                <p class="text-base font-semibold text-slate-900">{{ detailTenant.formattedStart }}</p>
-              </div>
-              <div>
-                <p class="text-xs uppercase tracking-[0.3em] text-slate-400">Fin</p>
-                <p class="text-base font-semibold text-slate-900">{{ detailTenant.formattedEnd }}</p>
-              </div>
-              <div>
-                <p class="text-xs uppercase tracking-[0.3em] text-slate-400">Apartamento</p>
-                <p class="text-base font-semibold text-slate-900">{{ detailTenant.units?.name ?? '—' }}</p>
-              </div>
-            </div>
-            <div class="space-y-2 rounded-2xl border border-indigo-100 bg-indigo-50/70 p-4 text-sm text-slate-700">
-              <p class="text-xs uppercase tracking-[0.3em] text-slate-400">Control del contrato</p>
-              <p class="font-semibold text-slate-900">{{ detailTenant.status === 'VENCIDO' ? 'Contrato vencido' : 'Contrato activo' }}</p>
-              <p class="text-xs text-slate-500">{{ detailTenant.daysLabel }}</p>
-            </div>
-            <div class="flex flex-wrap gap-3 pt-2">
-              <button
-                type="button"
-                class="flex-1 rounded-2xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:text-slate-900"
-                @click="downloadContractPdf(detailTenant.id)"
-              >
-                Descargar contrato
-              </button>
-              <button
-                type="button"
-                class="flex-1 rounded-2xl bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-700 transition hover:bg-rose-100"
-                @click="detailTenant && openFinalizeWizard(detailTenant)"
-              >
-                Finalizar contrato
-              </button>
-            </div>
-          </div>
-        </aside>
-      </div>
-    </transition>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 import { RouterLink } from 'vue-router';
 import TenantMetricCard from '../components/TenantMetricCard.vue';
 import TenantFilters from '../components/TenantFilters.vue';
@@ -235,6 +269,7 @@ import TenantRow from '../components/TenantRow.vue';
 import TenantModal from '../components/TenantModal.vue';
 import TenantStatusBadge from '../components/TenantStatusBadge.vue';
 import FinalizeContractWizard from '../components/FinalizeContractWizard.vue';
+import { useOnboarding } from '../composables/useOnboarding';
 import apiClient from '../services/apiClient';
 import type { AxiosError } from 'axios';
 import type { Payment, PaymentStatus } from '../types/payment';
@@ -269,11 +304,12 @@ const tenantModalState = reactive({
   mode: 'create' as 'create' | 'edit',
   tenant: null as TenantWithMeta | null
 });
-const tenantHeaders = ['Nombre', 'Apartamento', 'Inicio contrato', 'Fin contrato', 'Estado', 'Acciones'];
 const detailTenant = ref<TenantWithMeta | null>(null);
+const detailPanelRef = ref<HTMLElement | null>(null);
 const saving = ref(false);
 const lastCreatedSignature = ref('');
 const highlightTimer = ref<number | null>(null);
+const { completeStep } = useOnboarding();
 const finalizeWizard = reactive({
   visible: false,
   tenant: null as TenantWithMeta | null
@@ -366,6 +402,8 @@ const metrics = computed(() => {
   });
   return { total, active, upcoming, expired };
 });
+
+const hasTenants = computed(() => metrics.value.total > 0);
 
 const filteredActiveTenants = computed(() => {
   const query = tenantFilters.query.trim().toLowerCase();
@@ -622,6 +660,14 @@ const openFinalizeWizard = (tenant: TenantWithMeta) => {
   finalizeWizard.visible = true;
 };
 
+const openDetailPanel = async (tenant: TenantWithMeta) => {
+  detailTenant.value = tenant;
+  await nextTick();
+  if (window.innerWidth < 1280) {
+    detailPanelRef.value?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+};
+
 const closeFinalizeWizard = () => {
   finalizeWizard.visible = false;
   finalizeWizard.tenant = null;
@@ -645,7 +691,7 @@ const handleRowInteraction = (action: 'editar' | 'detalle' | 'pdf' | 'finalizar'
       openTenantModal('edit', tenant);
       break;
     case 'detalle':
-      detailTenant.value = tenant;
+      void openDetailPanel(tenant);
       break;
     case 'pdf':
       downloadRentalContractPdf(tenant.id);
@@ -665,6 +711,14 @@ onMounted(() => {
   Promise.all([refreshData(), loadPayments(), loadIncidents()]).catch((error) => console.error(error));
 });
 
+watch(
+  hasTenants,
+  (value) => {
+    if (value) completeStep('tenantAdded');
+  },
+  { immediate: true }
+);
+
 onBeforeUnmount(() => {
   if (highlightTimer.value) {
     clearTimeout(highlightTimer.value);
@@ -672,3 +726,16 @@ onBeforeUnmount(() => {
   }
 });
 </script>
+
+<style scoped>
+.detail-slide-enter-active,
+.detail-slide-leave-active {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.detail-slide-enter-from,
+.detail-slide-leave-to {
+  opacity: 0;
+  transform: translateY(12px);
+}
+</style>

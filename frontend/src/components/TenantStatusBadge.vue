@@ -1,6 +1,6 @@
 <template>
   <span
-    class="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide"
+    class="inline-flex items-center gap-2 rounded-full px-3 py-1 text-[11px] font-semibold"
     :class="badgeClass"
   >
     <span class="h-2.5 w-2.5 rounded-full" :class="dotClass" aria-hidden="true"></span>
@@ -21,23 +21,23 @@ const statusMap: Record<
 > = {
   ACTIVO: {
     label: 'Activo',
-    badge: 'bg-emerald-50 text-emerald-700 shadow-inner shadow-emerald-50',
-    dot: 'bg-emerald-500'
+    badge: 'bg-[#edf6f2] text-[#1f4f46]',
+    dot: 'bg-[#2ab27b]'
   },
   'PRÓXIMO A VENCER': {
     label: 'Próximo a vencer',
-    badge: 'bg-amber-50 text-amber-700 shadow-inner shadow-amber-50',
-    dot: 'bg-amber-500'
+    badge: 'bg-[#fff4e7] text-[#8c4d29]',
+    dot: 'bg-[#f59e0b]'
   },
   VENCIDO: {
     label: 'Vencido',
-    badge: 'bg-rose-50 text-rose-700 shadow-inner shadow-rose-50',
-    dot: 'bg-rose-500'
+    badge: 'bg-[#fff1f1] text-[#c55a5a]',
+    dot: 'bg-[#e06a6a]'
   }
   ,
   ARCHIVADO: {
     label: 'Archivado',
-    badge: 'bg-slate-50 text-slate-500 shadow-inner shadow-slate-100',
+    badge: 'bg-[#f3f4f6] text-slate-500',
     dot: 'bg-slate-600'
   }
 };

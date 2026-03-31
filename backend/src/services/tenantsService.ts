@@ -1,7 +1,13 @@
 import { supabaseAdmin } from '../config/supabaseClient';
 import { updateApartment } from './apartmentsService';
-import { ensurePendingPaymentsForTenant } from './paymentsService';
+import { ensurePendingPaymentsForTenant, reconcileUnpaidPaymentsForTenant } from './paymentsService';
 import { ensureOwnerOwnsUnit } from './ownersService';
+import {
+  normalizeDateKey,
+  tenantContractBlocksRange,
+  tenantOccupiesDate,
+  type TenantLifecycleStatus
+} from '../utils/tenantContracts';
 
 export type TenantPayload = {
   unit_id: string;
@@ -20,10 +26,40 @@ type TenantRecord = {
   archived_at?: string | null;
   is_anonymized?: boolean;
 };
-
-type TenantLifecycleStatus = 'ACTIVE' | 'ARCHIVED';
 type UnitStatus = 'AVAILABLE' | 'OCCUPIED' | 'RESERVED';
 export type TenantListMode = 'active' | 'archived' | 'all';
+
+async function assertNoOverlappingTenantContract(
+  unitId: string,
+  contractStart: string,
+  contractEnd: string,
+  excludeTenantId?: string
+) {
+  let query = supabaseAdmin
+    .from('tenant_persons')
+    .select('id, full_name, contract_start, contract_end, status')
+    .eq('unit_id', unitId)
+    .eq('status', 'ACTIVE');
+
+  if (excludeTenantId) {
+    query = query.neq('id', excludeTenantId);
+  }
+
+  const { data, error } = await query;
+  if (error) throw error;
+
+  const overlap = (data ?? []).find((tenant) =>
+    tenantContractBlocksRange(tenant.status, tenant.contract_start, tenant.contract_end, contractStart, contractEnd)
+  );
+
+  if (!overlap) return;
+
+  const conflict = new Error(
+    `La unidad ya tiene un contrato que se solapa en esas fechas${overlap.full_name ? ` con ${overlap.full_name}` : ''}.`
+  );
+  (conflict as any).status = 409;
+  throw conflict;
+}
 
 export async function listTenants(ownerId: string, options: { mode?: TenantListMode } = { mode: 'active' }) {
   const mode = options.mode ?? 'active';
@@ -46,6 +82,7 @@ export async function listTenants(ownerId: string, options: { mode?: TenantListM
 
 export async function createTenant(ownerId: string, payload: TenantPayload) {
   await ensureOwnerOwnsUnit(ownerId, payload.unit_id);
+  await assertNoOverlappingTenantContract(payload.unit_id, payload.contract_start, payload.contract_end);
   const { data, error } = await supabaseAdmin
     .from('tenant_persons')
     .insert({ ...payload, status: 'ACTIVE' })
@@ -71,6 +108,18 @@ export async function updateTenant(ownerId: string, id: string, payload: Partial
     await ensureOwnerOwnsUnit(ownerId, payload.unit_id);
   }
 
+  const nextTenantState = {
+    unit_id: payload.unit_id ?? existingTenant.unit_id,
+    contract_start: payload.contract_start ?? existingTenant.contract_start,
+    contract_end: payload.contract_end ?? existingTenant.contract_end
+  };
+  await assertNoOverlappingTenantContract(
+    nextTenantState.unit_id,
+    nextTenantState.contract_start,
+    nextTenantState.contract_end,
+    id
+  );
+
   const { data, error } = await supabaseAdmin
     .from('tenant_persons')
     .update(payload)
@@ -87,6 +136,7 @@ export async function updateTenant(ownerId: string, id: string, payload: Partial
   if (updatedTenant.unit_id) {
     unitsToSync.add(updatedTenant.unit_id);
   }
+  await reconcileUnpaidPaymentsForTenant(ownerId, updatedTenant).catch((err) => console.error('[TenantPaymentSync]', err));
   await Promise.all([...unitsToSync].map((unitId) => synchronizeApartmentStatus(ownerId, unitId)));
 
   return data;
@@ -115,6 +165,7 @@ export async function finalizeTenantContract(ownerId: string, id: string, finalD
     .select('*')
     .single();
   if (error) throw error;
+  await reconcileUnpaidPaymentsForTenant(ownerId, data as TenantRecord).catch((err) => console.error('[TenantPaymentSync]', err));
   await archiveTenantRecord(id, finalDate);
   await synchronizeApartmentStatus(ownerId, String(tenant.unit_id ?? ''));
   return data;
@@ -123,24 +174,24 @@ export async function finalizeTenantContract(ownerId: string, id: string, finalD
 async function determineApartmentStatus(unitId: string): Promise<UnitStatus> {
   const { data, error } = await supabaseAdmin
     .from('tenant_persons')
-    .select('contract_start, contract_end')
-    .eq('unit_id', unitId);
+    .select('contract_start, contract_end, status')
+    .eq('unit_id', unitId)
+    .eq('status', 'ACTIVE');
   if (error) throw error;
 
   const tenants = data ?? [];
-  const today = new Date();
+  const today = normalizeDateKey(new Date());
   let hasFutureContract = false;
 
   for (const tenant of tenants) {
-    const startDate = new Date(String(tenant.contract_start ?? ''));
-    const endDate = new Date(String(tenant.contract_end ?? ''));
-    if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) {
+    const contractStart = normalizeDateKey(tenant.contract_start);
+    if (!contractStart || !today) {
       continue;
     }
-    if (startDate <= today && endDate >= today) {
+    if (tenantOccupiesDate(tenant.status, tenant.contract_start, tenant.contract_end, today)) {
       return 'OCCUPIED';
     }
-    if (startDate > today) {
+    if (contractStart > today) {
       hasFutureContract = true;
     }
   }
@@ -152,7 +203,7 @@ async function determineApartmentStatus(unitId: string): Promise<UnitStatus> {
   return 'AVAILABLE';
 }
 
-async function synchronizeApartmentStatus(ownerId: string, unitId: string) {
+export async function synchronizeApartmentStatus(ownerId: string, unitId: string) {
   if (!unitId) return;
   try {
     const status = await determineApartmentStatus(unitId);

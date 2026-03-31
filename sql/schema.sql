@@ -8,9 +8,17 @@ create table if not exists public.units (
   address text,
   city text,
   postal_code text,
-  owner_id uuid references auth.users(id) on delete set null,
+  contract_landlord_name text,
+  contract_landlord_identification text,
+  contract_landlord_address text,
+  owner_id text not null,
   created_at timestamptz not null default now()
 );
+
+alter table public.units
+  add column if not exists contract_landlord_name text,
+  add column if not exists contract_landlord_identification text,
+  add column if not exists contract_landlord_address text;
 
 create index if not exists units_owner_id_idx on public.units(owner_id);
 create index if not exists units_status_idx on public.units(status);
@@ -43,16 +51,21 @@ create table if not exists public.payments (
   amount numeric(12,2) not null check (amount > 0),
   due_date date not null,
   paid_date timestamptz,
+  payment_method text check (payment_method in ('CASH', 'BANK')),
   status text not null default 'PENDING' check (status in ('PENDING', 'PAID', 'LATE')),
   month integer not null check (month between 1 and 12),
   year integer not null check (year >= 2000),
   created_at timestamptz not null default now()
 );
 
+alter table public.payments
+  add column if not exists payment_method text check (payment_method in ('CASH', 'BANK'));
+
 create unique index if not exists payments_unit_month_year_unique on public.payments(unit_id, month, year);
 create index if not exists payments_tenant_person_id_idx on public.payments(tenant_person_id);
 create index if not exists payments_due_date_idx on public.payments(due_date);
 create index if not exists payments_status_idx on public.payments(status);
+create index if not exists payments_payment_method_idx on public.payments(payment_method);
 
 create table if not exists public.incidents (
   id uuid primary key default gen_random_uuid(),
@@ -80,3 +93,22 @@ create table if not exists public.contract_documents (
 
 create index if not exists contract_documents_contract_id_idx on public.contract_documents(contract_id);
 create index if not exists contract_documents_document_type_idx on public.contract_documents(document_type);
+
+create table if not exists public.owner_subscriptions (
+  owner_id text primary key,
+  plan_id text not null default 'freemium' check (plan_id in ('freemium', 'pro')),
+  billing_cycle text check (billing_cycle in ('monthly', 'yearly')),
+  subscription_status text not null default 'inactive' check (subscription_status in ('inactive', 'trialing', 'active', 'past_due', 'canceled', 'unpaid', 'incomplete', 'incomplete_expired')),
+  stripe_customer_id text,
+  stripe_subscription_id text,
+  stripe_price_id text,
+  stripe_checkout_session_id text,
+  current_period_end timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists owner_subscriptions_plan_id_idx on public.owner_subscriptions(plan_id);
+create index if not exists owner_subscriptions_status_idx on public.owner_subscriptions(subscription_status);
+create unique index if not exists owner_subscriptions_stripe_customer_id_idx on public.owner_subscriptions(stripe_customer_id) where stripe_customer_id is not null;
+create unique index if not exists owner_subscriptions_stripe_subscription_id_idx on public.owner_subscriptions(stripe_subscription_id) where stripe_subscription_id is not null;

@@ -1,4 +1,5 @@
 export type PaymentStatus = 'PENDING' | 'PAID' | 'LATE';
+export type PaymentMethod = 'CASH' | 'BANK';
 
 export type PaymentUnit = {
   id: string;
@@ -18,6 +19,7 @@ export type Payment = {
   month: number;
   year: number;
   paid_date?: string;
+  payment_method?: PaymentMethod | null;
   tenant_person_id?: string;
   unit_id?: string;
   units?: PaymentUnit;

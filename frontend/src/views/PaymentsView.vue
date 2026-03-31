@@ -20,168 +20,263 @@
       </div>
     </section>
 
-    <section class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
-      <div class="space-y-5">
-        <PaymentFilters
-          :state-filter="filters.state"
-          :apartment-filter="filters.apartment"
-          :month-filter="filters.month"
-          :search-term="filters.query"
-          :apartment-options="apartmentOptions"
-          :month-options="monthOptions"
-          @update:stateFilter="updateStateFilter"
-          @update:apartmentFilter="updateApartmentFilter"
-          @update:monthFilter="updateMonthFilter"
-          @update:searchTerm="updateSearchTerm"
-        />
-        <PaymentSummaryBar
-          :month-label="summaryMonthLabel"
-          :collected="summaryTotals.collected"
-          :expected="summaryTotals.expected"
-          :pending="outstandingPending"
-          :late="summaryTotals.late"
-        />
-      </div>
-      <div class="rounded-3xl border border-slate-200 bg-white/90 p-6 shadow-lg">
-        <div class="flex items-center justify-between">
-          <p class="text-sm font-semibold text-slate-900">Detalle del pago</p>
-          <button
-            v-if="selectedPayment"
-            type="button"
-            class="text-xs font-semibold text-slate-500 transition hover:text-slate-900"
-            @click="selectedPayment = null"
-          >
-            Cerrar
-          </button>
+    <template v-if="hasAnyPayments">
+      <section class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_300px] xl:items-start">
+        <div class="order-2 space-y-5 xl:order-1">
+          <PaymentFilters
+            :state-filter="filters.state"
+            :apartment-filter="filters.apartment"
+            :month-filter="filters.month"
+            :search-term="filters.query"
+            :apartment-options="apartmentOptions"
+            :month-options="monthOptions"
+            @update:stateFilter="updateStateFilter"
+            @update:apartmentFilter="updateApartmentFilter"
+            @update:monthFilter="updateMonthFilter"
+            @update:searchTerm="updateSearchTerm"
+          />
+          <PaymentSummaryBar
+            :month-label="summaryMonthLabel"
+            :collected="summaryTotals.collected"
+            :expected="summaryTotals.expected"
+            :pending="outstandingPending"
+            :late="summaryTotals.late"
+          />
         </div>
-        <div v-if="selectedPayment" class="mt-4 space-y-4 text-sm text-slate-600">
-          <div class="flex items-center justify-between gap-4">
-            <div>
-              <p class="text-lg font-semibold text-slate-900">{{ selectedPayment.tenant_persons?.full_name ?? '—' }}</p>
-              <p class="text-xs font-semibold text-slate-400">
-                {{ formatMonthLabel(createMonthKey(selectedPayment.year, selectedPayment.month)) }}
-              </p>
-            </div>
-            <PaymentStatusBadge :status="selectedPayment.status" />
-          </div>
-          <div class="grid gap-3 md:grid-cols-2">
-            <div>
-              <p class="text-xs font-semibold text-slate-500">Apartamento</p>
-              <p class="text-base font-semibold text-slate-900">{{ selectedPayment.units?.name ?? 'Sin asignar' }}</p>
-            </div>
-            <div>
-              <p class="text-xs font-semibold text-slate-500">Vencimiento</p>
-              <p class="text-base font-semibold text-slate-900">{{ formatDate(selectedPayment.due_date) }}</p>
-            </div>
-          </div>
-          <div class="border-t border-dashed border-slate-200 pt-4">
-            <div class="grid gap-3 text-sm md:grid-cols-2">
-              <div>
-              <p class="text-xs font-semibold text-slate-500">Monto</p>
-                <p class="text-2xl font-semibold text-slate-900">{{ formatCurrency(selectedPayment.amount ?? 0) }}</p>
+        <aside ref="detailPanelRef" class="order-1 scroll-mt-24 xl:order-2 xl:sticky xl:top-6">
+          <transition name="detail-slide" mode="out-in">
+            <article
+              v-if="selectedPayment"
+              key="payment-detail"
+              class="rounded-[32px] border border-[#ead8ca] bg-[linear-gradient(180deg,_rgba(255,255,255,0.97),_rgba(249,246,240,0.96))] p-5 shadow-[0_22px_50px_rgba(15,23,42,0.08)]"
+            >
+              <div class="flex flex-wrap items-start justify-between gap-4">
+                <div class="space-y-2">
+                  <p class="text-xs font-semibold uppercase tracking-[0.32em] text-[#8c4d29]">Ficha activa</p>
+                  <div>
+                    <h3 class="text-2xl font-semibold text-slate-900">{{ selectedPayment.tenant_persons?.full_name ?? '—' }}</h3>
+                    <p class="mt-1 text-sm text-slate-500">
+                      {{ selectedPayment.units?.name ?? 'Sin apartamento asignado' }} ·
+                      {{ formatMonthLabel(createMonthKey(selectedPayment.year, selectedPayment.month)) }}
+                    </p>
+                  </div>
+                </div>
+                <div class="flex items-center gap-2">
+                  <PaymentStatusBadge :status="selectedPayment.status" />
+                  <button
+                    type="button"
+                    class="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 transition hover:border-primary hover:text-primary"
+                    @click="selectedPayment = null"
+                  >
+                    Cerrar
+                  </button>
+                </div>
               </div>
-              <div>
-                <p class="text-xs font-semibold text-slate-500">Estado de mora</p>
-                <p
-                  class="text-sm font-semibold"
-                  :class="{
-                    'text-rose-600': selectedDaysLate > 0,
-                    'text-amber-600': !selectedDaysLate && selectedDaysUntilDue <= 3
-                  }"
-                >
-                  <span v-if="selectedDaysLate > 0" class="text-[0.65rem] font-semibold">{{ selectedDaysLate }} días de retraso</span>
-                  <span v-else>Vence en {{ selectedDaysUntilDue }} días</span>
+
+              <div class="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
+                <div class="rounded-3xl border border-white/80 bg-white/80 p-4 shadow-sm">
+                  <p class="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-400">Monto</p>
+                  <p class="mt-2 text-2xl font-semibold text-slate-900">{{ formatCurrency(selectedPayment.amount ?? 0) }}</p>
+                </div>
+                <div class="rounded-3xl border border-white/80 bg-white/80 p-4 shadow-sm">
+                  <p class="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-400">Vencimiento</p>
+                  <p class="mt-2 text-base font-semibold text-slate-900">{{ formatDate(selectedPayment.due_date) }}</p>
+                </div>
+                <div class="rounded-3xl border border-white/80 bg-white/80 p-4 shadow-sm">
+                  <p class="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-400">Estado de mora</p>
+                  <p
+                    class="mt-2 text-base font-semibold"
+                    :class="{
+                      'text-rose-600': selectedDaysLate > 0,
+                      'text-amber-600': !selectedDaysLate && selectedDaysUntilDue <= 3,
+                      'text-emerald-600': selectedPayment.status === 'PAID'
+                    }"
+                  >
+                    <span v-if="selectedPayment.status === 'PAID'">Cobro confirmado</span>
+                    <span v-else-if="selectedDaysLate > 0">{{ selectedDaysLate }} días de retraso</span>
+                    <span v-else>Vence en {{ selectedDaysUntilDue }} días</span>
+                  </p>
+                </div>
+                <div class="rounded-3xl border border-white/80 bg-white/80 p-4 shadow-sm">
+                  <p class="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-400">Última actualización</p>
+                  <p class="mt-2 text-base font-semibold text-slate-900">{{ lastUpdatedLabel }}</p>
+                </div>
+                <div class="rounded-3xl border border-white/80 bg-white/80 p-4 shadow-sm">
+                  <p class="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-400">Método de pago</p>
+                  <p class="mt-2 text-base font-semibold text-slate-900">
+                    {{ formatPaymentMethod(selectedPayment.payment_method, selectedPayment.status) }}
+                  </p>
+                </div>
+              </div>
+
+              <div class="mt-5 rounded-3xl border border-white/80 bg-white/80 p-4 shadow-sm">
+                <p class="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-400">Seguimiento</p>
+                <p class="mt-2 text-base font-semibold text-slate-900">
+                  {{ selectedPayment.status === 'PAID' ? 'Pago liquidado' : 'Cobro en seguimiento' }}
+                </p>
+                <p class="mt-1 text-sm leading-6 text-slate-600">
+                  {{ selectedDaysLate > 0 ? `Retraso acumulado de ${selectedDaysLate} días.` : `Periodo ${formatMonthLabel(createMonthKey(selectedPayment.year, selectedPayment.month))}.` }}
                 </p>
               </div>
-            </div>
-          </div>
-          <div class="flex flex-wrap gap-3 pt-3 text-xs text-slate-500">
-            <p>Mes {{ formatMonthLabel(createMonthKey(selectedPayment.year, selectedPayment.month)) }}</p>
-            <p>Días de retraso {{ selectedDaysLate }}</p>
-            <p>Última actualización {{ lastUpdatedLabel }}</p>
-          </div>
-          <div class="flex flex-wrap gap-3 pt-2">
-            <button
-              type="button"
-              class="flex-1 min-w-[140px] rounded-2xl border border-slate-900 bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
-              :disabled="selectedPayment.status === 'PAID'"
-              @click="() => markPaid(selectedPayment.id)"
-            >
-              Marcar como pagado
-            </button>
-            <button
-              v-if="selectedPayment.status === 'PAID'"
-              type="button"
-              class="flex-1 min-w-[140px] rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600 transition hover:border-slate-900"
-              @click="() => downloadReceipt(selectedPayment.id)"
-            >
-              Generar recibo
-            </button>
-          </div>
-        </div>
-        <p v-else class="mt-4 text-sm text-slate-500">
-          Selecciona un pago para abrir su ficha rápida y activar acciones inmediatas.
-        </p>
-      </div>
-    </section>
 
-    <section class="rounded-[32px] border border-slate-200 bg-white p-5 shadow-sm">
-      <div class="overflow-hidden rounded-2xl border border-slate-100">
-        <table class="w-full text-left text-sm">
-          <thead class="bg-slate-50 text-sm font-semibold text-slate-500">
-            <tr>
-              <th class="px-3 py-3">Inquilino</th>
-              <th class="px-3 py-3">Apartamento</th>
-              <th class="px-3 py-3">Mes</th>
-              <th class="px-3 py-3">Importe</th>
-              <th class="px-3 py-3">Estado</th>
-              <th class="px-3 py-3">Fecha venc.</th>
-              <th class="px-3 py-3">Acciones</th>
-            </tr>
-          </thead>
-          <template v-if="groupedPayments.length">
-            <tbody
+              <div class="mt-5 rounded-3xl border border-white/80 bg-white/80 p-4 shadow-sm">
+                <div class="flex items-start justify-between gap-3">
+                  <div>
+                    <p class="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-400">Histórico del inquilino</p>
+                    <p class="mt-2 text-base font-semibold text-slate-900">Cómo ha pagado en periodos anteriores</p>
+                  </div>
+                  <p class="text-xs font-semibold text-slate-500">{{ selectedTenantHistory.length }} registros</p>
+                </div>
+
+                <div class="mt-4 grid gap-3 sm:grid-cols-3">
+                  <div class="rounded-2xl border border-slate-100 bg-slate-50 p-3">
+                    <p class="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">Pagado</p>
+                    <p class="mt-1 text-lg font-semibold text-slate-900">{{ selectedHistorySummary.paidCount }}</p>
+                    <p class="text-xs text-slate-500">{{ formatCurrency(selectedHistorySummary.paidAmount) }}</p>
+                  </div>
+                  <div class="rounded-2xl border border-slate-100 bg-slate-50 p-3">
+                    <p class="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">Banco</p>
+                    <p class="mt-1 text-lg font-semibold text-slate-900">{{ selectedHistorySummary.bankCount }}</p>
+                    <p class="text-xs text-slate-500">{{ formatCurrency(selectedHistorySummary.bankAmount) }}</p>
+                  </div>
+                  <div class="rounded-2xl border border-slate-100 bg-slate-50 p-3">
+                    <p class="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">Efectivo</p>
+                    <p class="mt-1 text-lg font-semibold text-slate-900">{{ selectedHistorySummary.cashCount }}</p>
+                    <p class="text-xs text-slate-500">{{ formatCurrency(selectedHistorySummary.cashAmount) }}</p>
+                  </div>
+                </div>
+
+                <div v-if="selectedTenantHistory.length" class="mt-4 space-y-3">
+                  <article
+                    v-for="historyPayment in selectedTenantHistory"
+                    :key="historyPayment.id"
+                    class="rounded-2xl border border-slate-100 bg-slate-50/70 p-3"
+                  >
+                    <div class="flex items-start justify-between gap-3">
+                      <div>
+                        <p class="text-sm font-semibold text-slate-900">
+                          {{ formatMonthLabel(createMonthKey(historyPayment.year, historyPayment.month)) }}
+                        </p>
+                        <p class="mt-1 text-xs text-slate-500">
+                          {{ historyPayment.units?.name ?? 'Sin apartamento' }} ·
+                          {{ formatDate(historyPayment.paid_date ?? historyPayment.due_date) }}
+                        </p>
+                      </div>
+                      <div class="text-right">
+                        <p class="text-sm font-semibold text-slate-900">{{ formatCurrency(historyPayment.amount ?? 0) }}</p>
+                        <p class="mt-1 text-xs font-semibold text-slate-500">
+                          {{ formatPaymentMethod(historyPayment.payment_method, historyPayment.status) }}
+                        </p>
+                      </div>
+                    </div>
+                  </article>
+                </div>
+                <p v-else class="mt-4 text-sm text-slate-500">
+                  Aún no hay pagos anteriores para construir un histórico útil.
+                </p>
+              </div>
+
+              <div class="mt-6 flex flex-wrap gap-3">
+                <button
+                  type="button"
+                  data-onboarding="register-payment"
+                  class="min-w-[140px] rounded-2xl border border-slate-900 bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+                  :disabled="selectedPayment.status === 'PAID' && Boolean(selectedPayment.payment_method)"
+                  @click="openMarkPaidModal(selectedPayment)"
+                >
+                  {{ selectedPayment.status === 'PAID' ? 'Actualizar método' : 'Marcar como pagado' }}
+                </button>
+                <button
+                  v-if="selectedPayment.status === 'PAID'"
+                  type="button"
+                  class="rounded-2xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:border-primary hover:text-primary"
+                  @click="() => downloadReceipt(selectedPayment.id)"
+                >
+                  Generar recibo
+                </button>
+              </div>
+            </article>
+
+            <article
+              v-else
+              key="payment-empty-detail"
+              class="rounded-[32px] border border-dashed border-slate-200 bg-slate-50/80 p-6 shadow-sm xl:min-h-[320px]"
+            >
+              <p class="text-xs font-semibold uppercase tracking-[0.32em] text-slate-400">Ficha del pago</p>
+              <h3 class="mt-3 text-xl font-semibold text-slate-900">Selecciona un cobro para ver su detalle</h3>
+              <p class="mt-2 text-sm leading-6 text-slate-500">
+                La ficha mantiene el contexto visible mientras revisas el histórico y activas acciones rápidas.
+              </p>
+            </article>
+          </transition>
+        </aside>
+      </section>
+
+      <section class="rounded-[32px] border border-slate-200 bg-white p-5 shadow-sm">
+        <div class="overflow-hidden rounded-[28px] border border-[#eadfd2] bg-white">
+          <div class="hidden border-b border-[#efe7dd] bg-[#fbf8f2] px-4 py-3 md:grid md:grid-cols-[minmax(0,1.35fr)_minmax(0,0.85fr)_minmax(190px,1fr)_minmax(200px,auto)] md:items-center md:gap-4">
+            <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Inquilino</p>
+            <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Apartamento</p>
+            <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Resumen</p>
+            <p class="text-right text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Acciones</p>
+          </div>
+          <div v-if="groupedPayments.length" class="divide-y divide-[#efe7dd] bg-white">
+            <div
               v-for="group in groupedPayments"
               :key="group.key"
-              class="divide-y divide-slate-100 bg-white"
+              class="bg-white"
             >
-              <tr
+              <div
                 v-if="shouldShowGroupSummary(group.key)"
-                class="bg-slate-100 text-xs font-semibold text-slate-500"
+                class="border-b border-[#efe7dd] bg-[#f7f3ee] px-4 py-3"
               >
-                <td class="px-3 py-3" colspan="7">
-                  <div class="flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
-                    <div>
-                      <p class="text-sm font-semibold text-slate-900">{{ group.label }}</p>
-                      <p class="text-xs text-slate-500">
-                        Esperado {{ formatCurrency(group.totals.expected) }}, cobrado {{ formatCurrency(group.totals.collected) }}
-                      </p>
-                    </div>
-                    <div class="flex flex-wrap gap-3 text-[0.65rem] font-semibold text-slate-600">
-                      <span>{{ computeProgress(group.totals.collected, group.totals.expected) }}% cobrado</span>
-                      <span>Pendiente {{ formatCurrency(group.totals.pending) }}</span>
-                      <span>Retrasado {{ formatCurrency(group.totals.late) }}</span>
-                    </div>
+                <div class="flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
+                  <div>
+                    <p class="text-sm font-semibold text-slate-900">{{ group.label }}</p>
+                    <p class="text-xs text-slate-500">
+                      Esperado {{ formatCurrency(group.totals.expected) }}, cobrado {{ formatCurrency(group.totals.collected) }}
+                    </p>
                   </div>
-                </td>
-              </tr>
-              <PaymentRow
-                v-for="payment in group.items"
-                :key="payment.id"
-                :payment="payment"
-                :is-animating="animatingPaymentId === payment.id"
-                @mark-paid="markPaid"
-                @view-detail="selectPayment"
-                @download-receipt="handleDownloadReceipt"
-              />
-            </tbody>
-          </template>
-        </table>
-        <p v-if="!groupedPayments.length && !isLoading" class="p-6 text-center text-sm text-slate-500">
-          No hay registros para los filtros actuales.
-        </p>
-        <p v-if="isLoading" class="p-6 text-center text-sm text-slate-500">Cargando pagos...</p>
-      </div>
+                  <div class="flex flex-wrap gap-3 text-[0.65rem] font-semibold text-slate-600">
+                    <span>{{ computeProgress(group.totals.collected, group.totals.expected) }}% cobrado</span>
+                    <span>Pendiente {{ formatCurrency(group.totals.pending) }}</span>
+                    <span>Retrasado {{ formatCurrency(group.totals.late) }}</span>
+                  </div>
+                </div>
+              </div>
+              <div class="divide-y divide-[#efe7dd]">
+                <PaymentRow
+                  v-for="payment in group.items"
+                  :key="payment.id"
+                  :payment="payment"
+                  :is-animating="animatingPaymentId === payment.id"
+                  :selected="selectedPayment?.id === payment.id"
+                  @mark-paid="openMarkPaidModal"
+                  @view-detail="selectPayment"
+                  @download-receipt="handleDownloadReceipt"
+                />
+              </div>
+            </div>
+          </div>
+          <p v-if="!groupedPayments.length && !isLoading" class="p-6 text-center text-sm text-slate-500">
+            No hay registros para los filtros actuales.
+          </p>
+          <p v-if="isLoading" class="p-6 text-center text-sm text-slate-500">Cargando pagos...</p>
+        </div>
+      </section>
+    </template>
+
+    <section
+      v-else
+      class="rounded-[32px] border border-slate-200 bg-white p-6 shadow-sm"
+    >
+      <EmptyPaymentsState
+        eyebrow="Pagos"
+        title="Todavía no hay pagos"
+        description="Cuando registres pagos, aquí verás el resumen financiero."
+        cta-label="Ir a inquilinos"
+        cta-to="/tenants"
+      />
     </section>
 
     <Transition name="toast">
@@ -192,18 +287,82 @@
         {{ toastMessage }}
       </div>
     </Transition>
+
+    <Transition name="fade-scale">
+      <div
+        v-if="paymentToMarkPaid"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 px-4 backdrop-blur-sm"
+        @click.self="closeMarkPaidModal"
+      >
+        <article class="w-full max-w-md rounded-[28px] border border-slate-200 bg-white p-6 shadow-2xl">
+          <p class="text-[11px] font-semibold uppercase tracking-[0.3em] text-slate-400">Método de cobro</p>
+          <h3 class="mt-3 text-xl font-semibold text-slate-900">
+            {{ paymentToMarkPaid.status === 'PAID' ? 'Actualizar método del pago' : 'Registrar cobro' }}
+          </h3>
+          <p class="mt-2 text-sm leading-6 text-slate-500">
+            {{ paymentToMarkPaid.tenant_persons?.full_name ?? 'Inquilino sin nombre' }} ·
+            {{ formatCurrency(paymentToMarkPaid.amount ?? 0) }}
+          </p>
+
+          <div class="mt-5 grid gap-3 sm:grid-cols-2">
+            <button
+              type="button"
+              class="rounded-2xl border px-4 py-4 text-left transition"
+              :class="paymentMethodDraft === 'BANK'
+                ? 'border-slate-900 bg-slate-900 text-white'
+                : 'border-slate-200 bg-white text-slate-700 hover:border-slate-400'"
+              @click="paymentMethodDraft = 'BANK'"
+            >
+              <p class="text-sm font-semibold">Banco</p>
+              <p class="mt-1 text-xs opacity-80">Transferencia, ingreso o domiciliación.</p>
+            </button>
+            <button
+              type="button"
+              class="rounded-2xl border px-4 py-4 text-left transition"
+              :class="paymentMethodDraft === 'CASH'
+                ? 'border-slate-900 bg-slate-900 text-white'
+                : 'border-slate-200 bg-white text-slate-700 hover:border-slate-400'"
+              @click="paymentMethodDraft = 'CASH'"
+            >
+              <p class="text-sm font-semibold">Efectivo</p>
+              <p class="mt-1 text-xs opacity-80">Cobro presencial en metálico.</p>
+            </button>
+          </div>
+
+          <div class="mt-6 flex justify-end gap-3">
+            <button
+              type="button"
+              class="rounded-2xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:border-slate-900"
+              @click="closeMarkPaidModal"
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              class="rounded-2xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+              :disabled="!paymentMethodDraft || isSavingPaymentMethod"
+              @click="confirmMarkPaid"
+            >
+              {{ isSavingPaymentMethod ? 'Guardando...' : 'Confirmar' }}
+            </button>
+          </div>
+        </article>
+      </div>
+    </Transition>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue';
+import { computed, nextTick, onMounted, ref, watch } from 'vue';
 import apiClient from '../services/apiClient';
+import EmptyPaymentsState from '../components/empty-states/EmptyPaymentsState.vue';
 import PaymentFilters from '../components/PaymentFilters.vue';
 import PaymentMetricCard from '../components/PaymentMetricCard.vue';
 import PaymentRow from '../components/PaymentRow.vue';
 import PaymentSummaryBar from '../components/PaymentSummaryBar.vue';
 import PaymentStatusBadge from '../components/PaymentStatusBadge.vue';
-import { Payment, PaymentStatus } from '../types/payment';
+import { useOnboarding } from '../composables/useOnboarding';
+import { Payment, PaymentMethod, PaymentStatus } from '../types/payment';
 
 type FilterState = PaymentStatus | 'ALL';
 const MS_PER_DAY = 1000 * 60 * 60 * 24;
@@ -217,7 +376,12 @@ const toastVisible = ref(false);
 let toastTimer: ReturnType<typeof setTimeout> | null = null;
 const animatingPaymentId = ref<string | null>(null);
 const selectedPayment = ref<Payment | null>(null);
+const detailPanelRef = ref<HTMLElement | null>(null);
 const lastLoadedAt = ref(new Date());
+const paymentToMarkPaid = ref<Payment | null>(null);
+const paymentMethodDraft = ref<PaymentMethod | null>(null);
+const isSavingPaymentMethod = ref(false);
+const { completeStep } = useOnboarding();
 
 const filters = ref<{
   state: FilterState;
@@ -244,6 +408,11 @@ const formatDate = (value?: string) => {
   if (Number.isNaN(date.getTime())) return '—';
   return date.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
 };
+const formatPaymentMethod = (method?: PaymentMethod | null, status?: PaymentStatus) => {
+  if (method === 'BANK') return 'Banco';
+  if (method === 'CASH') return 'Efectivo';
+  return status === 'PAID' ? 'No indicado' : 'Pendiente';
+};
 
 const createMonthKey = (year?: number, month?: number) => {
   if (!year || !month) return 'unknown';
@@ -264,8 +433,7 @@ const computeProgress = (collected: number, expected: number) => {
   return Math.min(100, Math.round((collected / expected) * 100));
 };
 
-const hiddenGroupSummaryKeys = new Set(['2026-03']);
-const shouldShowGroupSummary = (key: string) => !hiddenGroupSummaryKeys.has(key);
+const shouldShowGroupSummary = (_key: string) => true;
 
 const getDaysLate = (value?: string) => {
   if (!value) return 0;
@@ -441,6 +609,11 @@ const groupedPayments = computed(() => {
   return sorted;
 });
 
+const hasAnyPayments = computed(() => payments.value.length > 0);
+const hasRegisteredPayment = computed(() =>
+  payments.value.some((payment) => payment.status === 'PAID')
+);
+
 const loadPayments = async () => {
   isLoading.value = true;
   try {
@@ -464,23 +637,44 @@ const setToast = (message: string) => {
   }, 2400);
 };
 
-const markPaid = async (id: string) => {
+const closeMarkPaidModal = (force = false) => {
+  if (isSavingPaymentMethod.value && !force) return;
+  paymentToMarkPaid.value = null;
+  paymentMethodDraft.value = null;
+};
+
+const openMarkPaidModal = (payment: Payment) => {
+  paymentToMarkPaid.value = payment;
+  paymentMethodDraft.value = payment.payment_method ?? null;
+};
+
+const confirmMarkPaid = async () => {
+  if (!paymentToMarkPaid.value || !paymentMethodDraft.value) return;
+  const id = paymentToMarkPaid.value.id;
   animatingPaymentId.value = id;
+  isSavingPaymentMethod.value = true;
   try {
-    await apiClient.patch(`/payments/${id}/pay`);
-    const matched = payments.value.find((payment) => payment.id === id);
-    if (matched) {
-      matched.status = 'PAID';
-      matched.paid_date = new Date().toISOString();
+    const { data } = await apiClient.patch(`/payments/${id}/pay`, {
+      payment_method: paymentMethodDraft.value
+    });
+    const matchedIndex = payments.value.findIndex((payment) => payment.id === id);
+    if (matchedIndex >= 0) {
+      payments.value[matchedIndex] = {
+        ...payments.value[matchedIndex],
+        ...(data ?? {})
+      };
     }
-    setToast('Pago marcado como cobrado.');
-    if (selectedPayment.value?.id === id && matched) {
-      selectedPayment.value = matched;
+    closeMarkPaidModal(true);
+    completeStep('paymentAdded');
+    setToast('Pago actualizado correctamente.');
+    if (selectedPayment.value?.id === id && matchedIndex >= 0) {
+      selectedPayment.value = payments.value[matchedIndex];
     }
   } catch (error) {
     console.error(error);
     setToast('No fue posible registrar el pago.');
   } finally {
+    isSavingPaymentMethod.value = false;
     setTimeout(() => {
       if (animatingPaymentId.value === id) animatingPaymentId.value = null;
     }, 500);
@@ -515,8 +709,12 @@ const handleDownloadReceipt = (payment: Payment) => {
   downloadReceipt(payment.id);
 };
 
-const selectPayment = (payment: Payment) => {
+const selectPayment = async (payment: Payment) => {
   selectedPayment.value = payment;
+  await nextTick();
+  if (window.innerWidth < 1280) {
+    detailPanelRef.value?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
 };
 
 watch(
@@ -531,6 +729,14 @@ watch(
     }
   },
   { deep: true }
+);
+
+watch(
+  hasRegisteredPayment,
+  (value) => {
+    if (value) completeStep('paymentAdded');
+  },
+  { immediate: true }
 );
 
 const updateStateFilter = (value: FilterState) => {
@@ -560,6 +766,53 @@ const selectedDaysUntilDue = computed(() => {
   return diff >= 0 ? diff : 0;
 });
 
+const selectedTenantHistory = computed(() => {
+  const tenantId = selectedPayment.value?.tenant_person_id ?? selectedPayment.value?.tenant_persons?.id;
+  if (!tenantId) return [];
+
+  return payments.value
+    .filter((payment) => {
+      const paymentTenantId = payment.tenant_person_id ?? payment.tenant_persons?.id;
+      return paymentTenantId === tenantId;
+    })
+    .slice()
+    .sort((a, b) => {
+      const dateA = new Date(a.paid_date ?? a.due_date ?? '').getTime();
+      const dateB = new Date(b.paid_date ?? b.due_date ?? '').getTime();
+      return dateB - dateA;
+    })
+    .slice(0, 6);
+});
+
+const selectedHistorySummary = computed(() => {
+  const summary = {
+    paidCount: 0,
+    paidAmount: 0,
+    bankCount: 0,
+    bankAmount: 0,
+    cashCount: 0,
+    cashAmount: 0
+  };
+
+  selectedTenantHistory.value.forEach((payment) => {
+    const amount = Number(payment.amount ?? 0);
+    if (payment.status === 'PAID') {
+      summary.paidCount += 1;
+      summary.paidAmount += amount;
+    }
+    if (payment.payment_method === 'BANK') {
+      summary.bankCount += 1;
+      summary.bankAmount += amount;
+    }
+    if (payment.payment_method === 'CASH') {
+      summary.cashCount += 1;
+      summary.cashAmount += amount;
+    }
+  });
+
+  return summary;
+});
+
 onMounted(() => {
   loadPayments().catch((error) => console.error(error));
 });
@@ -581,5 +834,27 @@ onMounted(() => {
 .toast-leave-from {
   opacity: 1;
   transform: translateY(0);
+}
+
+.detail-slide-enter-active,
+.detail-slide-leave-active {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.detail-slide-enter-from,
+.detail-slide-leave-to {
+  opacity: 0;
+  transform: translateY(12px);
+}
+
+.fade-scale-enter-active,
+.fade-scale-leave-active {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.fade-scale-enter-from,
+.fade-scale-leave-to {
+  opacity: 0;
+  transform: scale(0.98);
 }
 </style>

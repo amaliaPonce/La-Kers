@@ -8,6 +8,7 @@ import {
   type TenantListMode,
   type TenantPayload
 } from '../services/tenantsService';
+import { notifyDashboardUpdated } from '../services/dashboardRealtime';
 
 const router = Router();
 
@@ -112,9 +113,9 @@ function resolveTenantError(error: unknown, fallbackMessage: string) {
 }
 
 router.get('/', async (req: AuthenticatedRequest, res) => {
-  const ownerId = req.supabaseUser?.id;
+  const ownerId = req.authUser?.id;
   if (!ownerId) {
-    return res.status(401).json({ message: 'Unauthorized' });
+    return res.status(401).json({ message: 'Autenticación requerida' });
   }
   try {
     const statusParam = String(req.query.status ?? 'active').toLowerCase();
@@ -123,7 +124,7 @@ router.get('/', async (req: AuthenticatedRequest, res) => {
     res.json(tenants);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Unable to load tenants' });
+    res.status(500).json({ message: 'No se pudieron cargar los inquilinos' });
   }
 });
 
@@ -135,15 +136,16 @@ router.post('/', async (req: AuthenticatedRequest, res) => {
   }
 
   try {
-    const ownerId = req.supabaseUser?.id;
+    const ownerId = req.authUser?.id;
     if (!ownerId) {
-      return res.status(401).json({ message: 'Unauthorized' });
+      return res.status(401).json({ message: 'Autenticación requerida' });
     }
     const tenant = await createTenant(ownerId, payload as TenantPayload);
+    notifyDashboardUpdated(ownerId, 'tenants.created');
     res.status(201).json(tenant);
   } catch (error) {
     console.error(error);
-    const resolved = resolveTenantError(error, 'Unable to create tenant');
+    const resolved = resolveTenantError(error, 'No se pudo crear el inquilino');
     res.status(resolved.status).json({ message: resolved.message });
   }
 });
@@ -157,15 +159,16 @@ router.put('/:id', async (req: AuthenticatedRequest, res) => {
   }
 
   try {
-    const ownerId = req.supabaseUser?.id;
+    const ownerId = req.authUser?.id;
     if (!ownerId) {
-      return res.status(401).json({ message: 'Unauthorized' });
+      return res.status(401).json({ message: 'Autenticación requerida' });
     }
     const tenant = await updateTenant(ownerId, id, payload);
+    notifyDashboardUpdated(ownerId, 'tenants.updated');
     res.json(tenant);
   } catch (error) {
     console.error(error);
-    const resolved = resolveTenantError(error, 'Unable to update tenant');
+    const resolved = resolveTenantError(error, 'No se pudo actualizar el inquilino');
     res.status(resolved.status).json({ message: resolved.message });
   }
 });
@@ -173,15 +176,16 @@ router.put('/:id', async (req: AuthenticatedRequest, res) => {
 router.patch('/:id/finalize', async (req: AuthenticatedRequest, res) => {
   try {
     const today = new Date().toISOString().split('T')[0];
-    const ownerId = req.supabaseUser?.id;
+    const ownerId = req.authUser?.id;
     if (!ownerId) {
-      return res.status(401).json({ message: 'Unauthorized' });
+      return res.status(401).json({ message: 'Autenticación requerida' });
     }
     const tenant = await finalizeTenantContract(ownerId, req.params.id, today);
+    notifyDashboardUpdated(ownerId, 'tenants.finalized');
     res.json(tenant);
   } catch (error) {
     console.error(error);
-    const resolved = resolveTenantError(error, 'Unable to finalize tenant contract');
+    const resolved = resolveTenantError(error, 'No se pudo finalizar el contrato del inquilino');
     res.status(resolved.status).json({ message: resolved.message });
   }
 });

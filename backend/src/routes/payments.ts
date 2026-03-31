@@ -1,6 +1,14 @@
 import { Router } from 'express';
 import { AuthenticatedRequest } from '../middleware/authMiddleware';
-import { listPayments, markPaymentPaid, createPayment, ensurePendingPaymentsForDate } from '../services/paymentsService';
+import {
+  listPayments,
+  markPaymentPaid,
+  createPayment,
+  ensurePendingPaymentsForDate,
+  markPendingPaymentsAsLate,
+  PaymentMethod
+} from '../services/paymentsService';
+import { notifyDashboardUpdated } from '../services/dashboardRealtime';
 
 const router = Router();
 
@@ -28,18 +36,20 @@ function validatePayment(payload: Record<string, unknown>) {
 }
 
 router.get('/', async (req: AuthenticatedRequest, res) => {
-  const ownerId = req.supabaseUser?.id;
+  const ownerId = req.authUser?.id;
   if (!ownerId) {
-    return res.status(401).json({ message: 'Unauthorized' });
+    return res.status(401).json({ message: 'Autenticación requerida' });
   }
   try {
-    await ensurePendingPaymentsForDate(new Date().toISOString(), ownerId);
+    const today = new Date().toISOString().split('T')[0];
+    await ensurePendingPaymentsForDate(today, ownerId);
+    await markPendingPaymentsAsLate(today, ownerId);
     const payments = await listPayments(ownerId);
     res.json(payments);
   } catch (error) {
     console.error(error);
     const status = (error as any).status ?? 500;
-    res.status(status).json({ message: 'Unable to load payments' });
+    res.status(status).json({ message: 'No se pudieron cargar los pagos' });
   }
 });
 
@@ -58,31 +68,38 @@ router.post('/', async (req: AuthenticatedRequest, res) => {
   }
 
   try {
-    const ownerId = req.supabaseUser?.id;
+    const ownerId = req.authUser?.id;
     if (!ownerId) {
-      return res.status(401).json({ message: 'Unauthorized' });
+      return res.status(401).json({ message: 'Autenticación requerida' });
     }
     const payment = await createPayment({ ...payload, status: 'PENDING' }, ownerId);
+    notifyDashboardUpdated(ownerId, 'payments.created');
     res.status(201).json(payment);
   } catch (error) {
     console.error(error);
     const status = (error as any).status ?? 500;
-    res.status(status).json({ message: 'Unable to create payment' });
+    res.status(status).json({ message: 'No se pudo crear el pago' });
   }
 });
 
 router.patch('/:id/pay', async (req: AuthenticatedRequest, res) => {
+  const paymentMethod = req.body.payment_method;
+  if (paymentMethod !== 'BANK' && paymentMethod !== 'CASH') {
+    return res.status(400).json({ message: 'Método de pago inválido' });
+  }
+
   try {
-    const ownerId = req.supabaseUser?.id;
+    const ownerId = req.authUser?.id;
     if (!ownerId) {
-      return res.status(401).json({ message: 'Unauthorized' });
+      return res.status(401).json({ message: 'Autenticación requerida' });
     }
-    const payment = await markPaymentPaid(req.params.id, ownerId);
+    const payment = await markPaymentPaid(req.params.id, paymentMethod as PaymentMethod, ownerId);
+    notifyDashboardUpdated(ownerId, 'payments.marked_paid');
     res.json(payment);
   } catch (error) {
     console.error(error);
     const status = (error as any).status ?? 500;
-    res.status(status).json({ message: 'Unable to mark payment as paid' });
+    res.status(status).json({ message: 'No se pudo marcar el pago como abonado' });
   }
 });
 
