@@ -1,49 +1,195 @@
-# La-Kers Propiedades
+# LA-KERS
 
-Administración compuesta por backend Express/TypeScript y frontend Vue 3. Ejecuta lo siguiente desde la raíz:
+SaaS inmobiliario con backend Express/TypeScript y frontend Vue 3. El producto incluye gestión de inmuebles, inquilinos, pagos, incidencias, documentos, billing y una bandeja profesional de comunicaciones para el plan PRO.
+
+Este repositorio está preparado para handoff técnico. Si vas a compartirlo con otra persona, empieza por aquí y luego revisa [docs/handoff-guide.md](docs/handoff-guide.md).
+
+## Stack
+
+- Backend: Express + TypeScript
+- Frontend: Vue 3 + Vite + Tailwind
+- Auth: Clerk
+- Database: Supabase Postgres
+- Billing: Stripe
+
+## Requisitos
+
+- Node.js 20 o superior
+- npm 10 o superior
+- Proyecto de Supabase accesible
+- Proyecto de Clerk
+- Opcional: Stripe si quieres probar checkout/webhooks
+
+## Arranque rápido
+
+Desde la raíz:
 
 ```bash
 npm install
+cp backend/.env.example backend/.env
+cp frontend/.env.example frontend/.env
 npm run dev
 ```
 
-El script `dev` arranca el backend y el frontend en paralelo usando `concurrently`.
+Servicios locales por defecto:
 
-## Variables de entorno del backend
-Renombra `backend/.env.example` a `.env` y configura:
+- Backend: `http://localhost:4000`
+- Frontend: `http://127.0.0.1:4173`
 
+## Variables de entorno
+
+### Backend
+
+Configura `backend/.env` con al menos:
+
+- `PORT=4000`
 - `SUPABASE_URL`
 - `SUPABASE_SERVICE_ROLE_KEY`
 - `SUPABASE_ANON_KEY`
-- `PORT` (opcional, por defecto 4000)
-- `APP_BASE_URL` (recomendado en producción para devolver enlaces absolutos)
-- `DOCUMENT_STORAGE_PATH` (opcional; por defecto usa `backend/documents`)
+- `CLERK_PUBLISHABLE_KEY`
+- `CLERK_SECRET_KEY`
+- `APP_BASE_URL`
+- `CORS_ALLOWED_ORIGINS`
+- `TRUST_PROXY`
+- `ENABLE_CRON_JOBS`
+- `REQUEST_BODY_LIMIT`
+- `RATE_LIMIT_WINDOW_MS`
+- `RATE_LIMIT_MAX`
+- `AUTH_RATE_LIMIT_WINDOW_MS`
+- `AUTH_RATE_LIMIT_MAX`
 - `LANDLORD_NAME`
 - `LANDLORD_IDENTIFICATION`
 - `LANDLORD_ADDRESS`
 
-En producción, las variables `LANDLORD_*` son obligatorias para evitar contratos con datos placeholder.
+Opcionales:
 
-## Frontend
-- Usa `VITE_API_BASE` para apuntar al backend (por defecto `http://localhost:4000`).
-- Navegación por ruta: `/login`, `/register`, `/dashboard`, `/apartments`, `/tenants`, `/payments`, `/incidents`.
-- Crea `frontend/.env` a partir de `frontend/.env.example` para fijar la URL de la API en cada entorno.
+- `DOCUMENT_STORAGE_PATH`
+- `STRIPE_SECRET_KEY`
+- `STRIPE_WEBHOOK_SECRET`
+- `STRIPE_PRICE_ID_PRO_MONTHLY`
+- `STRIPE_PRICE_ID_PRO_YEARLY`
+- `BILLING_CONTACT_EMAIL`
+
+### Frontend
+
+Configura `frontend/.env` con:
+
+- `VITE_API_BASE=/api`
+- `VITE_CLERK_PUBLISHABLE_KEY`
+
+En desarrollo, Vite ya proxifica `/api` hacia `http://localhost:4000`.
 
 ## Base de datos
-Ejecuta `sql/schema.sql` en Supabase (activa `pgcrypto`) para crear las tablas `units`, `tenant_persons`, `payments`, `incidents` y `contract_documents`, junto con sus índices.
 
-## Características clave
-- Supabase Auth en `/auth/login` y middleware JWT.
-- Cron mensual (`0 4 1 * *`) para crear pagos pendientes y diario (`0 3 * * *`) para marcar atrasos.
-- Endpoint `PATCH /payments/:id/pay` para marcar pagos.
-- Dashboard `/dashboard/summary` con métricas.
-- `/documents/receipt/:paymentId` genera un PDF mediante PDFKit.
-- `GET /contracts/:contractId/pdf` descarga el último PDF de finalización con autenticación.
-- Frontend consume la API protegida usando Pinia, Tailwind, y Axios.
+Orden recomendado de ejecución en Supabase:
 
-## Operación
-- Los PDFs generados se almacenan fuera de `src` en `backend/documents/contracts` salvo que se configure `DOCUMENT_STORAGE_PATH`.
-- No subas PDFs generados ni logs al repositorio; `.gitignore` ya excluye esas rutas.
-- En producción, define `CORS_ALLOWED_ORIGINS` y revisa `TRUST_PROXY`, `ENABLE_CRON_JOBS` y los límites `RATE_LIMIT_*`.
-- Usa `docs/production-checklist.md` como checklist previo al despliegue.
-- Si quieres desplegar en Render, usa `render.yaml` y la guía de `docs/render-deploy.md`.
+1. `sql/schema.sql`
+2. `sql/20260327_clerk_owner_ids.sql`
+3. `sql/20260327_owner_subscriptions.sql`
+4. `sql/20260327_pro_communications.sql`
+5. `sql/20260327_tenant_portal_access.sql`
+
+Notas:
+
+- `sql/schema.sql` crea las tablas base como `units`, `tenant_persons`, `payments`, `incidents` y `contract_documents`.
+- `20260327_owner_subscriptions.sql` es necesaria para el gating por plan y billing.
+- `20260327_pro_communications.sql` habilita la bandeja profesional de comunicaciones.
+- `20260327_tenant_portal_access.sql` habilita acceso al portal de inquilino.
+
+## Rutas importantes
+
+### Owner portal
+
+- `/sign-in`
+- `/sign-up`
+- `/dashboard`
+- `/apartments`
+- `/tenants`
+- `/payments`
+- `/incidents`
+- `/documents`
+- `/billing`
+- `/communications`
+
+### Tenant portal
+
+- `/tenant/sign-in`
+- `/tenant/sign-up`
+- `/tenant`
+
+## Qué incluye ahora mismo
+
+- Gestión de inmuebles
+- Gestión de inquilinos
+- Pagos y recibos PDF
+- Contratos y documentos
+- Incidencias
+- Billing con plan `Freemium` y `Pro`
+- Comunicaciones PRO owner-side y tenant-side
+- Portal de inquilino autenticado con Clerk
+
+## Comunicaciones PRO
+
+El módulo de comunicaciones incluye:
+
+- conversaciones con `scope` general, propiedad o contrato
+- categorías y prioridad
+- mensajes leídos/no leídos
+- cierre y reapertura
+- SSE para actualización en tiempo real
+- auditoría y notificaciones
+- portal tenant para responder y abrir conversaciones
+
+Documentación funcional y de arquitectura:
+
+- [docs/communications-pro-architecture.md](docs/communications-pro-architecture.md)
+
+## Flujo tenant portal
+
+El acceso del inquilino funciona así:
+
+1. El usuario se registra o inicia sesión en Clerk por `/tenant/sign-up` o `/tenant/sign-in`.
+2. El backend valida que esa cuenta corresponde a un inquilino activo.
+3. El enlace se resuelve desde `tenant_portal_access` o por coincidencia automática del email con `tenant_persons.email`.
+
+Para que funcione bien en demo:
+
+- el email de Clerk del inquilino debe coincidir con `tenant_persons.email`
+- el inquilino debe estar en estado `ACTIVE`
+- debe existir una relación válida con la unidad y el propietario
+
+## Comandos útiles
+
+Desde la raíz:
+
+```bash
+npm run dev
+npm run build
+npm test
+```
+
+Validaciones por workspace:
+
+```bash
+npm --workspace backend run check
+npm --workspace frontend run check
+```
+
+## Producción
+
+Antes de desplegar:
+
+- revisa [docs/production-checklist.md](docs/production-checklist.md)
+- si usas Render, revisa [docs/render-deploy.md](docs/render-deploy.md)
+
+## Limitaciones actuales
+
+- Los adjuntos de comunicaciones están listos a nivel de modelo/API, pero el flujo principal actual está más centrado en links/documentos que en upload binario completo.
+- El portal tenant depende de Clerk + correspondencia real de email o linkage manual.
+- El árbol de trabajo local puede contener cambios no incluidos en el último commit funcional; para compartir una demo estable, usa commits ya publicados en `main`.
+
+## Referencias de handoff
+
+- [docs/handoff-guide.md](docs/handoff-guide.md)
+- [docs/communications-pro-architecture.md](docs/communications-pro-architecture.md)
+- [docs/production-checklist.md](docs/production-checklist.md)
