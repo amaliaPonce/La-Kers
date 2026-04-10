@@ -2,7 +2,7 @@ services:
   - type: web
     name: la-kers-api
     runtime: node
-    buildCommand: npm ci && npm --workspace backend run build
+    buildCommand: npm ci --include=dev && npm --workspace backend run build
     startCommand: npm --workspace backend run start
     healthCheckPath: /ready
     envVars:
