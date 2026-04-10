@@ -34,7 +34,7 @@ services:
         value: /opt/render/project/src/backend/documents
       - key: CORS_ALLOWED_ORIGINS
         fromService:
-          type: static
+          type: web
           name: la-kers-web
           envVarKey: RENDER_EXTERNAL_URL
       - key: SUPABASE_URL
@@ -62,8 +62,9 @@ services:
       - key: BILLING_CONTACT_EMAIL
         sync: false
 
-  - type: static
+  - type: web
     name: la-kers-web
+    runtime: static
     buildCommand: npm ci && npm --workspace frontend run build
     staticPublishPath: frontend/dist
     routes:

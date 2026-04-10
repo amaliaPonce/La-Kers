@@ -15,6 +15,7 @@ import { appConfig, isOriginAllowed } from './config/appConfig';
 import { createRateLimiter } from './middleware/rateLimit';
 import { applySecurityHeaders } from './middleware/securityHeaders';
 import { logError } from './utils/errorLogger';
+import { getReadinessStatus } from './utils/readiness';
 
 const app = express();
 
@@ -42,7 +43,15 @@ app.use(createRateLimiter({
 }));
 
 app.get('/health', (req, res) => res.send({ ready: true }));
-app.get('/ready', (req, res) => res.send({ ready: true, environment: appConfig.nodeEnv }));
+app.get('/ready', async (req, res) => {
+  const readiness = await getReadinessStatus(process.env);
+
+  if (!readiness.ready) {
+    return res.status(503).json(readiness);
+  }
+
+  return res.send(readiness);
+});
 
 app.use(clerkMiddleware());
 app.use(authMiddleware);
