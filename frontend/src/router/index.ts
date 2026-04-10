@@ -11,7 +11,6 @@ const PaymentsView = () => import('../views/PaymentsView.vue');
 const IncidentsView = () => import('../views/IncidentsView.vue');
 const DocumentsView = () => import('../views/DocumentsView.vue');
 const BillingView = () => import('../views/BillingView.vue');
-const CommunicationsView = () => import('../views/CommunicationsView.vue');
 const TenantPortalView = () => import('../views/TenantPortalView.vue');
 const TenantLoginView = () => import('../views/TenantLoginView.vue');
 const TenantRegisterView = () => import('../views/TenantRegisterView.vue');
@@ -39,7 +38,6 @@ const router = createRouter({
     { path: '/payments', name: 'Payments', component: PaymentsView, meta: { onboardingRoute: 'payments' } },
     { path: '/incidents', name: 'Incidents', component: IncidentsView },
     { path: '/documents', name: 'Documents', component: DocumentsView },
-    { path: '/communications', name: 'Communications', component: CommunicationsView },
     { path: '/tenant', name: 'TenantPortal', component: TenantPortalView, meta: { tenantPortal: true } }
   ]
 });

@@ -8,7 +8,6 @@ import incidentsRouter from './routes/incidents';
 import documentsRouter from './routes/documents';
 import dashboardRouter from './routes/dashboard';
 import contractsRouter from './routes/contracts';
-import communicationsRouter from './routes/communications';
 import tenantPortalRouter from './routes/tenantPortal';
 import billingRouter, { billingWebhookHandler, billingWebhookMiddleware } from './routes/billing';
 import { authMiddleware } from './middleware/authMiddleware';
@@ -55,9 +54,7 @@ app.use('/incidents', incidentsRouter);
 app.use('/dashboard', dashboardRouter);
 app.use('/contracts', contractsRouter);
 app.use('/documents', documentsRouter);
-app.use('/communications', communicationsRouter);
 app.use('/tenant-portal', tenantPortalRouter);
-app.use('/tenant-portal/communications', communicationsRouter);
 app.use('/billing', billingRouter);
 app.use((err: unknown, req: express.Request, res: express.Response, next: express.NextFunction) => {
   logError(err, {

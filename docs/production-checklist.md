@@ -1,22 +1,29 @@
 # Production Checklist
 
+## Release Gate
+- Run `npm run build`.
+- Run `npm test`.
+- Validate owner login, tenant login, apartment CRUD, tenant CRUD, payment marking, receipt download and contract finalization end to end.
+- Validate that generated contract PDFs download through `GET /contracts/:contractId/pdf`.
+
 ## Runtime
 - Set `NODE_ENV=production`.
-- Set `APP_BASE_URL` to the public backend URL.
+- Set `APP_BASE_URL` to the public backend URL if your platform does not inject it automatically.
 - Set `CORS_ALLOWED_ORIGINS` to the exact frontend origins allowed to call the API.
+- Set `CLERK_SECRET_KEY` in the backend runtime.
+- Set `VITE_CLERK_PUBLISHABLE_KEY` in the frontend runtime.
 - Set `LANDLORD_NAME`, `LANDLORD_IDENTIFICATION` and `LANDLORD_ADDRESS`.
 - If you enable automatic billing, set `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_ID_PRO_MONTHLY` and `STRIPE_PRICE_ID_PRO_YEARLY`.
 - Review `TRUST_PROXY=true` when running behind Nginx, Render, Railway, Fly.io, or another reverse proxy.
 - Keep `REQUEST_BODY_LIMIT` small unless a larger payload is strictly required.
 
-## Cron Jobs
-- If you deploy more than one backend replica, set `ENABLE_CRON_JOBS=true` on only one instance.
-- Set `ENABLE_CRON_JOBS=false` on the rest to avoid duplicated monthly payments and retention jobs.
-
 ## Storage and Data
 - Persist `backend/documents` or configure `DOCUMENT_STORAGE_PATH` to a durable volume.
-- Run `sql/schema.sql` before the first production boot.
-- If the database already exists, run `sql/20260327_owner_subscriptions.sql`.
+- Run the SQL scripts in this order before opening production:
+  - `sql/schema.sql`
+  - `sql/20260327_clerk_owner_ids.sql`
+  - `sql/20260327_owner_subscriptions.sql`
+  - `sql/20260327_tenant_portal_access.sql`
 - Do not store generated PDFs or logs in Git.
 - Rotate Supabase keys if any secret was ever committed or shared insecurely.
 
@@ -27,13 +34,14 @@
 - If using Stripe, expose and verify `POST /billing/webhook` from the public backend URL.
 - Confirm rate limits do not block expected internal traffic.
 
-## Release Checks
-- Run `npm run build`.
-- Run `npm test`.
-- Test register, login, apartment CRUD, tenant CRUD, payment marking, receipt download and contract finalization end to end.
-- Validate that generated contract PDFs download through `GET /contracts/:contractId/pdf`.
+## Cron Jobs
+- If you deploy more than one backend replica, set `ENABLE_CRON_JOBS=true` on only one instance.
+- Set `ENABLE_CRON_JOBS=false` on the rest to avoid duplicated monthly payments and retention jobs.
+- Do not scale horizontally until you have a shared strategy for cron and rate limiting.
 
 ## Operations
 - Ensure logs are collected from `backend/logs` or `logs` according to your process manager working directory.
 - Add database backups in Supabase and confirm recovery steps.
 - Add uptime and error monitoring before opening the product to real users.
+- Keep a staging validation pass before each production release.
+- Use [docs/api-production-runbook.md](/Users/Amalia/Desktop/La-Kers/docs/api-production-runbook.md) as the ordered deployment runbook.

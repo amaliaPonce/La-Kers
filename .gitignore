@@ -10,6 +10,7 @@
 /backend/src/documents/contracts/*.pdf
 /pdfdocs/
 /sql/*.log
+/sql/20260404_amalia_pro_subscription.sql
 /tmp/
 *.log
 .env

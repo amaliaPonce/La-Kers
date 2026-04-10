@@ -11,18 +11,7 @@ La base estable del proyecto incluye:
 - backend Express con Clerk y Supabase
 - frontend Vue 3 con panel owner
 - billing con plan `Freemium` y `Pro`
-- módulo PRO de comunicaciones
 - portal de inquilino con autenticación separada
-
-El sistema de comunicaciones ya soporta:
-
-- owner -> tenant
-- tenant -> owner
-- conversaciones por contrato, propiedad o generales
-- unread counts
-- cierre/reapertura
-- SSE
-- auditoría
 
 ## Qué tiene que preparar la persona que recibe el proyecto
 
@@ -48,7 +37,6 @@ Ejecutar en Supabase:
 \i sql/schema.sql
 \i sql/20260327_clerk_owner_ids.sql
 \i sql/20260327_owner_subscriptions.sql
-\i sql/20260327_pro_communications.sql
 \i sql/20260327_tenant_portal_access.sql
 ```
 
@@ -74,14 +62,14 @@ URLs locales:
 2. Crear unidad/inmueble
 3. Crear inquilino con email realista
 4. Asegurar que el owner tiene plan `pro`
-5. Abrir `/communications`
+5. Revisar panel, documentos y billing
 
 ### Tenant
 
 1. Registrarse en `/tenant/sign-up`
 2. Usar el mismo email que existe en `tenant_persons.email`
 3. Entrar en `/tenant`
-4. Abrir o responder comunicaciones
+4. Verificar la ficha del contrato y la vivienda
 
 ## Requisito importante para el tenant portal
 
@@ -95,9 +83,7 @@ Si el email no coincide o hay más de una coincidencia, el tenant portal no podr
 ## Feature flags y gating funcional
 
 - `Freemium`: base del producto
-- `Pro`: comunicaciones profesionales y capacidades avanzadas asociadas
-
-Si una cuenta no tiene plan PRO, el módulo de comunicaciones puede bloquear parte del acceso.
+- `Pro`: más capacidad operativa asociada al plan
 
 ## Verificaciones mínimas antes de enseñar el proyecto
 
@@ -122,10 +108,6 @@ npm test
 ## Ficheros clave
 
 - `README.md`
-- `docs/communications-pro-architecture.md`
-- `backend/src/modules/communications`
 - `backend/src/services/tenantPortalService.ts`
-- `frontend/src/views/CommunicationsView.vue`
 - `frontend/src/views/TenantPortalView.vue`
-- `sql/20260327_pro_communications.sql`
 - `sql/20260327_tenant_portal_access.sql`

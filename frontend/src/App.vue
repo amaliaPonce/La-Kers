@@ -37,7 +37,7 @@
 
           <div class="lg:grid lg:min-h-screen lg:grid-cols-[280px_minmax(0,1fr)]">
           <aside class="hidden border-r border-[#eadfd2] bg-[#fbf8f2] lg:block">
-            <div class="sticky top-0 flex h-screen flex-col px-6 py-8">
+            <div class="sticky top-0 flex h-screen flex-col overflow-hidden px-6 py-8">
               <div class="border-b border-[#eadfd2] pb-6">
                 <div class="flex items-center gap-4">
                   <span class="flex h-14 items-center rounded-[22px] border border-[#e5ddd2] bg-white/90 px-3 shadow-sm shadow-[#1f4f46]/5">
@@ -49,26 +49,24 @@
                   </div>
                 </div>
 
-                <div class="mt-5 rounded-2xl border border-[#eadfd2] bg-white px-4 py-4">
+                <div class="mt-5 rounded-2xl border border-[#efe6dc] bg-white/60 px-4 py-3">
                   <div class="flex items-start justify-between gap-3">
                     <div class="min-w-0">
-                      <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">Cuenta activa</p>
-                      <p class="mt-2 truncate text-sm font-semibold text-slate-900">{{ accountTitle }}</p>
-                      <p class="mt-1 text-sm text-slate-500">{{ accountSubtitle }}</p>
+                      <p class="truncate text-[11px] font-medium text-slate-600">{{ accountTitle }}</p>
                     </div>
                     <span
-                      class="rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em]"
+                      class="rounded-full border px-2 py-1 text-[9px] font-semibold uppercase tracking-[0.1em]"
                       :class="planBadgeClass"
                     >
                       {{ planBadgeLabel }}
                     </span>
                   </div>
-                  <div v-if="billingSummary" class="mt-4">
-                    <div class="flex items-center justify-between gap-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
-                      <span>Uso del plan</span>
+                  <div v-if="billingSummary" class="mt-3">
+                    <div class="flex items-center justify-between gap-3 text-[10px] font-medium text-slate-400">
+                      <span>{{ planBadgeLabel }}</span>
                       <span>{{ billingSummary.usage.unitCount }} / {{ billingSummary.usage.unitLimit }}</span>
                     </div>
-                    <div class="mt-2 h-2 overflow-hidden rounded-full bg-[#efe7dd]">
+                    <div class="mt-2 h-1.5 overflow-hidden rounded-full bg-[#efe7dd]/80">
                       <div
                         class="h-full rounded-full transition-all duration-500"
                         :class="isProPlan ? 'bg-[#1f4f46]' : 'bg-[#c96a37]'"
@@ -79,7 +77,7 @@
                 </div>
               </div>
 
-              <nav class="mt-8 space-y-6">
+              <nav class="mt-8 min-h-0 flex-1 space-y-6 overflow-y-auto pr-2">
                 <div v-for="section in sidebarSections" :key="section.title" class="space-y-3">
                   <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">{{ section.title }}</p>
                   <div class="space-y-1">
@@ -89,7 +87,7 @@
                       :key="item.label"
                       :to="item.path"
                       :type="item.path ? undefined : 'button'"
-                      class="flex w-full items-center justify-between gap-3 rounded-2xl px-3 py-3 text-left text-sm font-medium transition"
+                      class="flex w-full items-center justify-between gap-3 rounded-2xl px-3 py-2.5 text-left text-xs font-medium transition"
                       :class="item.active
                         ? 'bg-[#1f4f46] text-white'
                         : item.path
@@ -103,7 +101,7 @@
                         >
                           <SolidIcon :name="item.icon" class="h-4 w-4" />
                         </span>
-                        <span>{{ item.label }}</span>
+                        <span class="leading-5">{{ item.label }}</span>
                       </span>
                       <span
                         v-if="!item.path"
@@ -116,25 +114,22 @@
                 </div>
               </nav>
 
-              <div class="mt-auto border-t border-[#eadfd2] pt-6">
-                <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">Resumen</p>
-                <p class="mt-2 text-sm font-semibold text-slate-900">{{ billingSummary?.plan.name ?? currentSectionTitle }}</p>
-                <p class="mt-1 text-sm text-slate-500">{{ billingCtaDescription }}</p>
+              <div class="mt-auto border-t border-[#eadfd2] pt-4">
                 <router-link
                   to="/billing"
-                  class="mt-5 flex items-center justify-between rounded-2xl border border-[#d8cec2] bg-white px-4 py-3 text-sm font-medium text-slate-700 transition hover:border-[#cdbba8] hover:text-slate-900"
+                  class="flex items-center justify-between rounded-2xl border border-[#e1d7cb] bg-white/80 px-3 py-2.5 text-xs font-medium text-slate-600 transition hover:border-[#cdbba8] hover:text-slate-900"
                   :class="route.path === '/billing' ? 'border-[#1f4f46] bg-[#1f4f46] text-white' : ''"
                 >
                   <span class="flex items-center gap-3">
                     <span
-                      class="flex h-9 w-9 items-center justify-center rounded-xl"
+                      class="flex h-8 w-8 items-center justify-center rounded-xl"
                       :class="route.path === '/billing' ? 'bg-white/12 text-white' : 'bg-[#f3ede4] text-[#8c4d29]'"
                     >
-                      <SolidIcon name="coin" class="h-4 w-4" />
+                      <SolidIcon name="coin" class="h-3.5 w-3.5" />
                     </span>
-                    <span>Plan y Billing</span>
+                    <span>Billing</span>
                   </span>
-                  <span class="text-xs font-semibold uppercase tracking-[0.18em]" :class="route.path === '/billing' ? 'text-white/75' : 'text-slate-400'">
+                  <span class="text-[10px] font-semibold uppercase tracking-[0.12em]" :class="route.path === '/billing' ? 'text-white/75' : 'text-slate-400'">
                     {{ billingLinkLabel }}
                   </span>
                 </router-link>
@@ -273,8 +268,7 @@ const quickNavItems = computed(() => {
     { label: 'Inquilinos', path: '/tenants', icon: 'users' },
     { label: 'Pagos', path: '/payments', icon: 'wallet' },
     { label: 'Incidencias', path: '/incidents', icon: 'warning' },
-    { label: 'Documentos', path: '/documents', icon: 'calendar' },
-    { label: 'Mensajes', path: '/communications', icon: 'message' }
+    { label: 'Documentos', path: '/documents', icon: 'calendar' }
   ];
 });
 
@@ -290,15 +284,13 @@ const sidebarSections = computed(() => {
         { label: 'Inquilinos', path: '/tenants', icon: 'users', active: resolveActive('/tenants') },
         { label: 'Sistema de pagos', path: '/payments', icon: 'wallet', active: resolveActive('/payments') },
         { label: 'Incidencias', path: '/incidents', icon: 'warning', active: resolveActive('/incidents') },
-        { label: 'Documentos', path: '/documents', icon: 'calendar', active: resolveActive('/documents') },
-        { label: 'Mensajes', path: '/communications', icon: 'message', active: resolveActive('/communications') }
+        { label: 'Documentos', path: '/documents', icon: 'calendar', active: resolveActive('/documents') }
       ]
     },
     {
       title: 'El resto',
       items: [
         { label: 'Contactos', icon: 'users', active: false },
-        { label: 'Mensajes legacy', icon: 'message', active: false },
         { label: 'Candidatos', icon: 'users', active: false },
         { label: 'Herramientas', icon: 'spark', active: false },
         { label: 'Basura', icon: 'warning', active: false }
@@ -314,38 +306,15 @@ const currentSectionTitle = computed(() => {
 });
 
 const accountTitle = computed(() => user.value?.primaryEmailAddress?.emailAddress ?? user.value?.fullName ?? 'Cuenta activa');
-const accountSubtitle = computed(() => {
-  if (!billingSummary.value) return 'Cargando plan y capacidad.';
-  const remaining = billingSummary.value.usage.remainingUnits;
-  if (isProPlan.value) {
-    return `${billingSummary.value.usage.unitCount} de ${billingSummary.value.usage.unitLimit} inmuebles en uso.`;
-  }
-  if (remaining > 0) {
-    return `Plan gratis activo. Te quedan ${remaining} huecos antes de pasar a Pro.`;
-  }
-  return 'Plan gratis al límite. Necesitas Pro para seguir creciendo.';
-});
-
 const planBadgeLabel = computed(() => (isProPlan.value ? 'Pro' : 'Gratis'));
 
 const planBadgeClass = computed(() =>
   isProPlan.value
-    ? 'bg-[#1f4f46] text-white'
-    : 'bg-[#f3ede4] text-[#8c4d29]'
+    ? 'border-[#d7e5e1] bg-[#edf5f2] text-[#1f4f46]'
+    : 'border-[#eadfd2] bg-[#f7f2eb] text-[#8c4d29]'
 );
 
 const billingLinkLabel = computed(() => (isProPlan.value ? 'Activo' : 'Upgrade'));
-
-const billingCtaDescription = computed(() => {
-  if (!billingSummary.value) return 'Cargando plan, uso y opciones de upgrade.';
-  if (isProPlan.value) {
-    return `Plan Pro activo con ${billingSummary.value.usage.unitLimit} inmuebles disponibles.`;
-  }
-  if (!billingSummary.value.usage.canAddMoreUnits) {
-    return 'Has tocado el límite gratis. Sube a Pro para añadir más propiedades.';
-  }
-  return `Ahora mismo usas ${billingSummary.value.usage.unitCount} de ${billingSummary.value.usage.unitLimit} inmuebles del plan gratis.`;
-});
 
 const currentSectionDescription = computed(() => {
   if (route.path === '/apartments') return 'Inventario y estado de cada unidad.';
@@ -353,7 +322,6 @@ const currentSectionDescription = computed(() => {
   if (route.path === '/payments') return 'Cobros, vencimientos y movimientos.';
   if (route.path === '/incidents') return 'Incidencias y seguimiento operativo.';
   if (route.path === '/documents') return 'Contratos y recibos listos para localizar.';
-  if (route.path === '/communications') return 'Bandeja profesional con trazabilidad por contrato o propiedad.';
   if (route.path === '/billing') return 'Plan activo, uso y control de cobro.';
   return 'Resumen general de la operación.';
 });

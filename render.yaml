@@ -43,11 +43,23 @@ services:
         sync: false
       - key: SUPABASE_ANON_KEY
         sync: false
+      - key: CLERK_SECRET_KEY
+        sync: false
       - key: LANDLORD_NAME
         sync: false
       - key: LANDLORD_IDENTIFICATION
         sync: false
       - key: LANDLORD_ADDRESS
+        sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: STRIPE_PRICE_ID_PRO_MONTHLY
+        sync: false
+      - key: STRIPE_PRICE_ID_PRO_YEARLY
+        sync: false
+      - key: BILLING_CONTACT_EMAIL
         sync: false
 
   - type: static
@@ -66,3 +78,5 @@ services:
           type: web
           name: la-kers-api
           envVarKey: RENDER_EXTERNAL_URL
+      - key: VITE_CLERK_PUBLISHABLE_KEY
+        sync: false

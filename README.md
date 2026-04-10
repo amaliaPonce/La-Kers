@@ -1,6 +1,6 @@
 # LA-KERS
 
-SaaS inmobiliario con backend Express/TypeScript y frontend Vue 3. El producto incluye gestión de inmuebles, inquilinos, pagos, incidencias, documentos, billing y una bandeja profesional de comunicaciones para el plan PRO.
+SaaS inmobiliario con backend Express/TypeScript y frontend Vue 3. El producto incluye gestión de inmuebles, inquilinos, pagos, incidencias, documentos, billing y portal del inquilino autenticado.
 
 Este repositorio está preparado para handoff técnico. Si vas a compartirlo con otra persona, empieza por aquí y luego revisa [docs/handoff-guide.md](docs/handoff-guide.md).
 
@@ -46,7 +46,6 @@ Configura `backend/.env` con al menos:
 - `SUPABASE_URL`
 - `SUPABASE_SERVICE_ROLE_KEY`
 - `SUPABASE_ANON_KEY`
-- `CLERK_PUBLISHABLE_KEY`
 - `CLERK_SECRET_KEY`
 - `APP_BASE_URL`
 - `CORS_ALLOWED_ORIGINS`
@@ -86,14 +85,12 @@ Orden recomendado de ejecución en Supabase:
 1. `sql/schema.sql`
 2. `sql/20260327_clerk_owner_ids.sql`
 3. `sql/20260327_owner_subscriptions.sql`
-4. `sql/20260327_pro_communications.sql`
-5. `sql/20260327_tenant_portal_access.sql`
+4. `sql/20260327_tenant_portal_access.sql`
 
 Notas:
 
 - `sql/schema.sql` crea las tablas base como `units`, `tenant_persons`, `payments`, `incidents` y `contract_documents`.
 - `20260327_owner_subscriptions.sql` es necesaria para el gating por plan y billing.
-- `20260327_pro_communications.sql` habilita la bandeja profesional de comunicaciones.
 - `20260327_tenant_portal_access.sql` habilita acceso al portal de inquilino.
 
 ## Rutas importantes
@@ -109,7 +106,6 @@ Notas:
 - `/incidents`
 - `/documents`
 - `/billing`
-- `/communications`
 
 ### Tenant portal
 
@@ -125,24 +121,7 @@ Notas:
 - Contratos y documentos
 - Incidencias
 - Billing con plan `Freemium` y `Pro`
-- Comunicaciones PRO owner-side y tenant-side
 - Portal de inquilino autenticado con Clerk
-
-## Comunicaciones PRO
-
-El módulo de comunicaciones incluye:
-
-- conversaciones con `scope` general, propiedad o contrato
-- categorías y prioridad
-- mensajes leídos/no leídos
-- cierre y reapertura
-- SSE para actualización en tiempo real
-- auditoría y notificaciones
-- portal tenant para responder y abrir conversaciones
-
-Documentación funcional y de arquitectura:
-
-- [docs/communications-pro-architecture.md](docs/communications-pro-architecture.md)
 
 ## Flujo tenant portal
 
@@ -180,16 +159,15 @@ npm --workspace frontend run check
 Antes de desplegar:
 
 - revisa [docs/production-checklist.md](docs/production-checklist.md)
+- sigue [docs/api-production-runbook.md](docs/api-production-runbook.md)
 - si usas Render, revisa [docs/render-deploy.md](docs/render-deploy.md)
 
 ## Limitaciones actuales
 
-- Los adjuntos de comunicaciones están listos a nivel de modelo/API, pero el flujo principal actual está más centrado en links/documentos que en upload binario completo.
 - El portal tenant depende de Clerk + correspondencia real de email o linkage manual.
 - El árbol de trabajo local puede contener cambios no incluidos en el último commit funcional; para compartir una demo estable, usa commits ya publicados en `main`.
 
 ## Referencias de handoff
 
 - [docs/handoff-guide.md](docs/handoff-guide.md)
-- [docs/communications-pro-architecture.md](docs/communications-pro-architecture.md)
 - [docs/production-checklist.md](docs/production-checklist.md)
