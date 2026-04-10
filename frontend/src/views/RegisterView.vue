@@ -46,12 +46,28 @@
               </p>
             </div>
 
-            <article class="overflow-hidden rounded-[32px] border border-white/80 bg-white/84 shadow-[0_28px_70px_rgba(15,23,42,0.08)] backdrop-blur">
-              <img
-                class="h-[340px] w-full object-cover"
-                src="https://images.unsplash.com/photo-1460317442991-0ec209397118?auto=format&fit=crop&w=1200&q=80"
-                alt="Fachada residencial luminosa"
-              />
+            <article class="relative overflow-hidden rounded-[32px] border border-white/80 bg-[radial-gradient(circle_at_top_left,_rgba(31,79,70,0.18),_transparent_32%),linear-gradient(135deg,#fffdfa_0%,#eff6f2_42%,#f7efe6_100%)] p-6 shadow-[0_28px_70px_rgba(15,23,42,0.08)] backdrop-blur">
+              <div class="absolute right-0 top-0 h-40 w-40 rounded-full bg-[#1f4f46]/12 blur-3xl"></div>
+              <div class="absolute bottom-8 left-8 h-28 w-28 rounded-full bg-[#c96a37]/12 blur-2xl"></div>
+              <div class="relative grid h-[340px] content-end gap-4">
+                <div class="max-w-xs rounded-[28px] border border-white/70 bg-white/90 p-5 shadow-sm">
+                  <p class="text-[11px] font-semibold uppercase tracking-[0.3em] text-[#1f4f46]">Alta esencial</p>
+                  <p class="mt-3 text-2xl font-semibold text-slate-900">Empieza con el flujo base</p>
+                  <p class="mt-2 text-sm leading-6 text-slate-600">
+                    Primero inventario y pagos. Las funciones opcionales quedan desactivadas hasta que las necesites.
+                  </p>
+                </div>
+                <div class="grid gap-3 sm:grid-cols-2">
+                  <div class="rounded-3xl border border-white/70 bg-white/80 p-4">
+                    <p class="text-[11px] font-semibold uppercase tracking-[0.26em] text-[#8c4d29]">Gratis</p>
+                    <p class="mt-2 text-lg font-semibold text-slate-900">2 inmuebles</p>
+                  </div>
+                  <div class="rounded-3xl border border-white/70 bg-white/80 p-4">
+                    <p class="text-[11px] font-semibold uppercase tracking-[0.26em] text-[#8c4d29]">Manual</p>
+                    <p class="mt-2 text-lg font-semibold text-slate-900">Sin Stripe</p>
+                  </div>
+                </div>
+              </div>
             </article>
           </div>
         </section>

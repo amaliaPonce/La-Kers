@@ -10,7 +10,7 @@ Este repositorio está preparado para handoff técnico. Si vas a compartirlo con
 - Frontend: Vue 3 + Vite + Tailwind
 - Auth: Clerk
 - Database: Supabase Postgres
-- Billing: Stripe
+- Billing: manual por defecto, Stripe opcional
 
 ## Requisitos
 
@@ -18,7 +18,7 @@ Este repositorio está preparado para handoff técnico. Si vas a compartirlo con
 - npm 10 o superior
 - Proyecto de Supabase accesible
 - Proyecto de Clerk
-- Opcional: Stripe si quieres probar checkout/webhooks
+- Opcional: Stripe si quieres checkout/webhooks automáticos
 
 ## Arranque rápido
 
@@ -43,14 +43,18 @@ Servicios locales por defecto:
 Configura `backend/.env` con al menos:
 
 - `PORT=4000`
+- `MINIMAL_MODE=true`
 - `SUPABASE_URL`
 - `SUPABASE_SERVICE_ROLE_KEY`
-- `SUPABASE_ANON_KEY`
 - `CLERK_SECRET_KEY`
 - `APP_BASE_URL`
 - `CORS_ALLOWED_ORIGINS`
 - `TRUST_PROXY`
 - `ENABLE_CRON_JOBS`
+- `ENABLE_TENANT_PORTAL`
+- `ENABLE_DASHBOARD_REALTIME`
+- `CLERK_USER_CACHE_TTL_MS`
+- `BILLING_MODE`
 - `REQUEST_BODY_LIMIT`
 - `RATE_LIMIT_WINDOW_MS`
 - `RATE_LIMIT_MAX`
@@ -62,7 +66,7 @@ Configura `backend/.env` con al menos:
 
 Opcionales:
 
-- `DOCUMENT_STORAGE_PATH`
+- `SUPABASE_ANON_KEY`
 - `STRIPE_SECRET_KEY`
 - `STRIPE_WEBHOOK_SECRET`
 - `STRIPE_PRICE_ID_PRO_MONTHLY`
@@ -73,7 +77,10 @@ Opcionales:
 
 Configura `frontend/.env` con:
 
+- `VITE_MINIMAL_MODE=true`
 - `VITE_API_BASE=/api`
+- `VITE_ENABLE_TENANT_PORTAL=false`
+- `VITE_ENABLE_DASHBOARD_REALTIME=false`
 - `VITE_CLERK_PUBLISHABLE_KEY`
 
 En desarrollo, Vite ya proxifica `/api` hacia `http://localhost:4000`.
@@ -90,9 +97,23 @@ Orden recomendado de ejecución en Supabase:
 Notas:
 
 - `sql/schema.sql` crea las tablas base como `units`, `tenant_persons`, `payments`, `incidents` y `contract_documents`.
-- `20260327_owner_subscriptions.sql` es necesaria para el gating por plan y billing.
-- `20260327_tenant_portal_access.sql` habilita acceso al portal de inquilino.
+- `20260327_owner_subscriptions.sql` es recomendable si vas a persistir upgrades o control de plan.
+- `20260327_tenant_portal_access.sql` solo es necesaria si activas el portal de inquilino.
 - En producción ejecuta solo esas migraciones reproducibles. No ejecutes parches ad hoc, seeds de usuarios ni promociones manuales de plan.
+
+## Modo mínimo
+
+El repositorio queda configurado para arrancar en modo mínimo por defecto:
+
+- `BILLING_MODE=manual`: el sistema funciona sin Stripe y el upgrade pasa a flujo manual por email.
+- `ENABLE_CRON_JOBS=false`: evita trabajos en segundo plano innecesarios en instancias pequeñas.
+- `ENABLE_TENANT_PORTAL=false`: desactiva el portal tenant y sus consultas extra a Clerk/Supabase.
+- `ENABLE_DASHBOARD_REALTIME=false`: elimina SSE y refrescos en vivo para reducir conexiones y carga.
+- `MINIMAL_MODE=true`: hace que esos defaults sean conservadores hasta que los habilites explícitamente.
+
+Si más adelante quieres reactivar módulos, cambia esos flags y añade las credenciales correspondientes.
+
+En este modo ya no hace falta `DOCUMENT_STORAGE_PATH`: los PDFs de finalización de contrato se regeneran en memoria desde metadatos guardados en base de datos.
 
 ## Rutas importantes
 
@@ -122,7 +143,7 @@ Notas:
 - Contratos y documentos
 - Incidencias
 - Billing con plan `Freemium` y `Pro`
-- Portal de inquilino autenticado con Clerk
+- Portal de inquilino autenticado con Clerk, opcional en modo mínimo
 
 ## Flujo tenant portal
 
@@ -165,7 +186,8 @@ Antes de desplegar:
 
 ## Limitaciones actuales
 
-- El portal tenant depende de Clerk + correspondencia real de email o linkage manual.
+- El portal tenant depende de Clerk + correspondencia real de email o linkage manual cuando está activado.
+- El modo mínimo reduce automatizaciones y sincronización en vivo a cambio de menos dependencias y menos tráfico externo.
 - El árbol de trabajo local puede contener cambios no incluidos en el último commit funcional; para compartir una demo estable, usa commits ya publicados en `main`.
 
 ## Referencias de handoff

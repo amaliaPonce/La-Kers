@@ -1,4 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
+import { appConfig } from '../config/appConfig';
 import { ensureTenantPortalAccess, getClerkPortalRole } from '../services/tenantPortalService';
 
 export interface AuthenticatedRequest extends Request {
@@ -36,6 +37,10 @@ export async function authMiddleware(req: AuthenticatedRequest, res: Response, n
 
   try {
     if (requestedPortal === 'tenant') {
+      if (!appConfig.enableTenantPortal) {
+        return res.status(404).json({ message: 'El portal del inquilino está desactivado en este entorno' });
+      }
+
       const access = await ensureTenantPortalAccess(userId);
       req.authActor = {
         authUserId: userId,
@@ -49,9 +54,11 @@ export async function authMiddleware(req: AuthenticatedRequest, res: Response, n
       return next();
     }
 
-    const portalRole = await getClerkPortalRole(userId).catch(() => '');
-    if (portalRole === 'tenant') {
-      return res.status(403).json({ message: 'Esta cuenta solo tiene acceso al portal del inquilino' });
+    if (appConfig.enableTenantPortal) {
+      const portalRole = await getClerkPortalRole(userId).catch(() => '');
+      if (portalRole === 'tenant') {
+        return res.status(403).json({ message: 'Esta cuenta solo tiene acceso al portal del inquilino' });
+      }
     }
 
     req.authUser = { id: userId };

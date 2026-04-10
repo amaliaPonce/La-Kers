@@ -18,12 +18,11 @@
 - Keep `REQUEST_BODY_LIMIT` small unless a larger payload is strictly required.
 
 ## Storage and Data
-- Persist `backend/documents` or configure `DOCUMENT_STORAGE_PATH` to a durable volume.
 - Run the SQL scripts in this order before opening production:
   - `sql/schema.sql`
   - `sql/20260327_clerk_owner_ids.sql`
   - `sql/20260327_owner_subscriptions.sql`
-  - `sql/20260327_tenant_portal_access.sql`
+  - `sql/20260327_tenant_portal_access.sql` only if tenant portal is enabled
 - Do not run ad hoc SQL to promote users, toggle plans, or link accounts in production.
 - Do not store generated PDFs or logs in Git.
 - Rotate Supabase keys if any secret was ever committed or shared insecurely.
@@ -36,12 +35,12 @@
 - Confirm rate limits do not block expected internal traffic.
 
 ## Cron Jobs
-- If you deploy more than one backend replica, set `ENABLE_CRON_JOBS=true` on only one instance.
-- Set `ENABLE_CRON_JOBS=false` on the rest to avoid duplicated monthly payments and retention jobs.
+- Keep `ENABLE_CRON_JOBS=false` on the free deployment target.
+- If you later deploy more than one backend replica, enable cron on only one instance.
 - Do not scale horizontally until you have a shared strategy for cron and rate limiting.
 
 ## Operations
-- Ensure logs are collected from `backend/logs` or `logs` according to your process manager working directory.
+- Ensure your platform captures stdout/stderr logs from the backend process.
 - Add database backups in Supabase and confirm recovery steps.
 - Add uptime and error monitoring before opening the product to real users.
 - Keep a staging validation pass before each production release.

@@ -18,11 +18,15 @@
             </div>
           </div>
 
-          <UserButton :appearance="clerkUserButtonAppearance" />
+          <UserButton v-if="tenantPortalEnabled" :appearance="clerkUserButtonAppearance" />
         </div>
       </header>
 
-      <section v-if="loadError" class="mt-6 rounded-[28px] border border-rose-200 bg-rose-50 px-5 py-4 text-sm text-rose-700">
+      <section v-if="!tenantPortalEnabled" class="mt-6 rounded-[28px] border border-slate-200 bg-slate-50 px-5 py-4 text-sm text-slate-700">
+        El portal del inquilino está desactivado en modo mínimo.
+      </section>
+
+      <section v-else-if="loadError" class="mt-6 rounded-[28px] border border-rose-200 bg-rose-50 px-5 py-4 text-sm text-rose-700">
         {{ loadError }}
       </section>
 
@@ -88,6 +92,7 @@
 import { computed, onMounted, ref } from 'vue';
 import { UserButton } from '@clerk/vue';
 import SolidIcon from '../components/SolidIcon.vue';
+import { runtimeConfig } from '../config/runtimeConfig';
 import { clerkUserButtonAppearance } from '../services/clerkAppearance';
 import tenantApiClient from '../services/tenantApiClient';
 
@@ -115,6 +120,7 @@ type TenantPortalProfile = {
 
 const profile = ref<TenantPortalProfile | null>(null);
 const loadError = ref('');
+const tenantPortalEnabled = runtimeConfig.enableTenantPortal;
 const metrics = computed(() => [
   { id: 'unit', label: 'Unidad', value: profile.value?.unit?.name ?? 'Sin unidad', helper: 'Vivienda vinculada a tu expediente.' },
   { id: 'status', label: 'Estado', value: contractStatusLabel.value, helper: 'Situación actual del contrato.' },
@@ -149,6 +155,10 @@ async function refreshData() {
 }
 
 onMounted(() => {
+  if (!tenantPortalEnabled) {
+    return;
+  }
+
   void refreshData();
 });
 </script>

@@ -46,12 +46,28 @@
               </p>
             </div>
 
-            <article class="overflow-hidden rounded-[32px] border border-white/80 bg-white/84 shadow-[0_28px_70px_rgba(15,23,42,0.08)] backdrop-blur">
-              <img
-                class="h-[340px] w-full object-cover"
-                src="https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=1200&q=80"
-                alt="Interior luminoso de apartamento"
-              />
+            <article class="relative overflow-hidden rounded-[32px] border border-white/80 bg-[radial-gradient(circle_at_top_left,_rgba(201,106,55,0.2),_transparent_34%),linear-gradient(135deg,#fffdfa_0%,#f6efe5_42%,#e7efe9_100%)] p-6 shadow-[0_28px_70px_rgba(15,23,42,0.08)] backdrop-blur">
+              <div class="absolute -left-12 top-8 h-32 w-32 rounded-full bg-[#c96a37]/15 blur-2xl"></div>
+              <div class="absolute bottom-0 right-0 h-40 w-40 rounded-full bg-[#1f4f46]/12 blur-3xl"></div>
+              <div class="relative grid h-[340px] content-end gap-4">
+                <div class="max-w-xs rounded-[28px] border border-white/70 bg-white/90 p-5 shadow-sm">
+                  <p class="text-[11px] font-semibold uppercase tracking-[0.3em] text-[#8c4d29]">Acceso rápido</p>
+                  <p class="mt-3 text-2xl font-semibold text-slate-900">Panel listo para operar</p>
+                  <p class="mt-2 text-sm leading-6 text-slate-600">
+                    En modo mínimo prioriza cobros, incidencias y contratos sin dependencias visuales externas.
+                  </p>
+                </div>
+                <div class="grid gap-3 sm:grid-cols-2">
+                  <div class="rounded-3xl border border-white/70 bg-white/80 p-4">
+                    <p class="text-[11px] font-semibold uppercase tracking-[0.26em] text-[#1f4f46]">Cobros</p>
+                    <p class="mt-2 text-lg font-semibold text-slate-900">Seguimiento diario</p>
+                  </div>
+                  <div class="rounded-3xl border border-white/70 bg-white/80 p-4">
+                    <p class="text-[11px] font-semibold uppercase tracking-[0.26em] text-[#1f4f46]">Contratos</p>
+                    <p class="mt-2 text-lg font-semibold text-slate-900">Documentos localizados</p>
+                  </div>
+                </div>
+              </div>
             </article>
           </div>
         </section>

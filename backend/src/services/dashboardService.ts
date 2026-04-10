@@ -1,4 +1,5 @@
 import { supabaseAdmin } from '../config/supabaseClient';
+import { ensurePendingPaymentsForDate, markPendingPaymentsAsLate } from './paymentsService';
 
 type DashboardUnitRecord = {
   id?: string | null;
@@ -38,7 +39,11 @@ export async function getDashboardSummary(ownerId: string) {
   const today = toDayStart(new Date()) ?? new Date();
   const month = today.getMonth() + 1;
   const year = today.getFullYear();
+  const todayKey = `${today.getFullYear()}-${String(month).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
   const monthFormatter = new Intl.DateTimeFormat('es-ES', { month: 'short' });
+
+  await ensurePendingPaymentsForDate(todayKey, ownerId);
+  await markPendingPaymentsAsLate(todayKey, ownerId);
 
   const trendMonths = Array.from({ length: 6 }, (_, index) => {
     const monthsAgo = 5 - index;

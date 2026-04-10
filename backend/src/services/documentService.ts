@@ -1,13 +1,8 @@
-import path from 'path';
-import { promises as fs } from 'fs';
 import { appConfig } from '../config/appConfig';
 import { supabaseAdmin } from '../config/supabaseClient';
-import { ContractTerminationDocumentData, generateContractTerminationDocument } from '../utils/pdfGenerator';
+import { ContractTerminationDocumentData } from '../utils/pdfGenerator';
 
-const DOCUMENTS_STORAGE_PATH = process.env.DOCUMENT_STORAGE_PATH
-  ? path.resolve(process.env.DOCUMENT_STORAGE_PATH)
-  : path.resolve(process.cwd(), 'documents');
-const CONTRACTS_FOLDER = path.join(DOCUMENTS_STORAGE_PATH, 'contracts');
+const VIRTUAL_CONTRACT_STORAGE_PREFIX = 'virtual://contracts';
 
 const buildBaseUrl = () => {
   return appConfig.appBaseUrl;
@@ -25,15 +20,39 @@ export type DocumentCreationResult = {
   documentId: string;
 };
 
+export type ContractDocumentMetadata = {
+  finalizationDate?: string;
+  deliveryDate?: string;
+  depositAmount?: number;
+  depositStatus?: string;
+  generationPayload?: ContractTerminationDocumentData;
+};
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  Boolean(value) && typeof value === 'object' && !Array.isArray(value);
+
+export function buildVirtualContractStoragePath(contractId: string, timestamp = Date.now()) {
+  return `${VIRTUAL_CONTRACT_STORAGE_PREFIX}/${contractId}/${timestamp}.pdf`;
+}
+
+export function isVirtualContractStoragePath(storagePath?: string | null) {
+  return String(storagePath ?? '').startsWith(VIRTUAL_CONTRACT_STORAGE_PREFIX);
+}
+
+export function extractContractGenerationPayload(metadata: unknown): ContractTerminationDocumentData | null {
+  if (!isRecord(metadata) || !isRecord(metadata.generationPayload)) {
+    return null;
+  }
+
+  return metadata.generationPayload as ContractTerminationDocumentData;
+}
+
 export async function createContractTerminationDocument(
   contractId: string,
   documentData: ContractTerminationDocumentData
 ): Promise<DocumentCreationResult> {
-  const buffer = await generateContractTerminationDocument(documentData);
-  await fs.mkdir(CONTRACTS_FOLDER, { recursive: true });
   const fileName = `contrato-finalizacion-${contractId}-${Date.now()}.pdf`;
-  const storagePath = path.join(CONTRACTS_FOLDER, fileName);
-  await fs.writeFile(storagePath, buffer);
+  const storagePath = buildVirtualContractStoragePath(contractId);
 
   const documentUrl = buildContractDownloadUrl(contractId);
 
@@ -49,7 +68,8 @@ export async function createContractTerminationDocument(
         finalizationDate: documentData.contract.finalizationDate,
         deliveryDate: documentData.contract.deliveryDate,
         depositAmount: documentData.deposit.amount,
-        depositStatus: documentData.deposit.status
+        depositStatus: documentData.deposit.status,
+        generationPayload: documentData
       }
     })
     .select('id')

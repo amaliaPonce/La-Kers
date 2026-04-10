@@ -143,6 +143,7 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import EmptyPropertiesState from '../components/empty-states/EmptyPropertiesState.vue';
 import MetricCard from '../components/MetricCard.vue';
 import SolidIcon from '../components/SolidIcon.vue';
+import { runtimeConfig } from '../config/runtimeConfig';
 import { useOnboarding } from '../composables/useOnboarding';
 import apiClient from '../services/apiClient';
 
@@ -181,7 +182,9 @@ const summary = ref<DashboardSummary | null>(null);
 const payments = ref<PaymentRecord[]>([]);
 const incidents = ref<IncidentRecord[]>([]);
 const isLoading = ref(false);
-const realtimeStatus = ref<'connecting' | 'live' | 'offline'>('connecting');
+const realtimeStatus = ref<'manual' | 'connecting' | 'live' | 'offline'>(
+  runtimeConfig.enableDashboardRealtime ? 'connecting' : 'manual'
+);
 const { completeStep } = useOnboarding();
 
 let dashboardEventSource: EventSource | null = null;
@@ -293,6 +296,11 @@ const disconnectDashboardStream = () => {
 };
 
 const connectDashboardStream = () => {
+  if (!runtimeConfig.enableDashboardRealtime) {
+    realtimeStatus.value = 'manual';
+    return;
+  }
+
   disconnectDashboardStream();
 
   if (typeof EventSource === 'undefined') {
@@ -340,15 +348,17 @@ const startFallbackPolling = () => {
 const handleVisibilityChange = () => {
   if (document.visibilityState !== 'visible') return;
   void loadDashboard({ silent: true });
-  if (!dashboardEventSource) {
+  if (runtimeConfig.enableDashboardRealtime && !dashboardEventSource) {
     connectDashboardStream();
   }
 };
 
 onMounted(() => {
   void loadDashboard();
-  connectDashboardStream();
-  startFallbackPolling();
+  if (runtimeConfig.enableDashboardRealtime) {
+    connectDashboardStream();
+    startFallbackPolling();
+  }
   document.addEventListener('visibilitychange', handleVisibilityChange);
 });
 
@@ -438,6 +448,12 @@ watch(
 );
 const realtimeBadge = computed(() => {
   switch (realtimeStatus.value) {
+    case 'manual':
+      return {
+        label: 'Modo mínimo',
+        className: 'border-slate-200 bg-slate-50 text-slate-600',
+        dotClass: 'bg-slate-400'
+      };
     case 'live':
       return {
         label: 'Sincronización en vivo',

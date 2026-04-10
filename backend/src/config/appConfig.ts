@@ -23,6 +23,12 @@ const parseNumber = (value: string | undefined, fallback: number) => {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
 };
 
+const parseNonNegativeNumber = (value: string | undefined, fallback: number) => {
+  if (value === undefined) return fallback;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : fallback;
+};
+
 const parseOriginList = (value: string | undefined) =>
   (value ?? '')
     .split(',')
@@ -53,8 +59,12 @@ export type AppConfig = {
   isProduction: boolean;
   port: number;
   appBaseUrl: string;
+  minimalMode: boolean;
   trustProxy: boolean;
   enableCronJobs: boolean;
+  enableTenantPortal: boolean;
+  enableDashboardRealtime: boolean;
+  clerkUserCacheTtlMs: number;
   requestBodyLimit: string;
   allowedOrigins: string[];
   globalRateLimitWindowMs: number;
@@ -66,6 +76,7 @@ export type AppConfig = {
 export function createAppConfig(env: NodeJS.ProcessEnv): AppConfig {
   const nodeEnv = env.NODE_ENV?.trim() || 'development';
   const isProduction = nodeEnv === 'production';
+  const minimalMode = parseBoolean(env.MINIMAL_MODE, true);
   const appBaseUrlSource =
     env.APP_BASE_URL?.trim() ||
     env.RENDER_EXTERNAL_URL?.trim() ||
@@ -86,8 +97,15 @@ export function createAppConfig(env: NodeJS.ProcessEnv): AppConfig {
     isProduction,
     port: parseNumber(env.PORT, 4000),
     appBaseUrl,
+    minimalMode,
     trustProxy: parseBoolean(env.TRUST_PROXY, isProduction),
-    enableCronJobs: parseBoolean(env.ENABLE_CRON_JOBS, true),
+    enableCronJobs: parseBoolean(env.ENABLE_CRON_JOBS, !minimalMode),
+    enableTenantPortal: parseBoolean(env.ENABLE_TENANT_PORTAL, !minimalMode),
+    enableDashboardRealtime: parseBoolean(env.ENABLE_DASHBOARD_REALTIME, !minimalMode),
+    clerkUserCacheTtlMs: parseNonNegativeNumber(
+      env.CLERK_USER_CACHE_TTL_MS,
+      minimalMode ? 300_000 : 60_000
+    ),
     requestBodyLimit: env.REQUEST_BODY_LIMIT?.trim() || '1mb',
     allowedOrigins: effectiveAllowedOrigins.length ? effectiveAllowedOrigins : DEFAULT_DEV_ORIGINS,
     globalRateLimitWindowMs: parseNumber(env.RATE_LIMIT_WINDOW_MS, 15 * 60 * 1000),

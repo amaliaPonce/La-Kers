@@ -208,11 +208,18 @@
                 Usa el mismo correo que figura en tu contrato para enlazar tu expediente automáticamente.
               </p>
               <router-link
+                v-if="enableTenantPortal"
                 to="/tenant/sign-in"
                 class="mt-6 inline-flex rounded-full bg-[#1f4f46] px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-[#1f4f46]/15 transition hover:bg-[#163a33]"
               >
                 Ir al portal
               </router-link>
+              <div
+                v-else
+                class="mt-6 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-600"
+              >
+                El portal del inquilino está desactivado en modo mínimo.
+              </div>
             </div>
           </main>
         </template>
@@ -248,10 +255,12 @@ import { useBilling } from './composables/useBilling';
 import OnboardingChecklist from './components/onboarding/OnboardingChecklist.vue';
 import OnboardingModal from './components/onboarding/OnboardingModal.vue';
 import TooltipGuide from './components/onboarding/TooltipGuide.vue';
+import { runtimeConfig } from './config/runtimeConfig';
 import { clerkUserButtonAppearance } from './services/clerkAppearance';
 import brandLogo from './assets/logo.png';
 const route = useRoute();
-const hasClerkConfig = Boolean(import.meta.env.VITE_CLERK_PUBLISHABLE_KEY);
+const hasClerkConfig = runtimeConfig.hasClerkConfig;
+const enableTenantPortal = runtimeConfig.enableTenantPortal;
 const { user } = hasClerkConfig ? useUser() : { user: ref(null) };
 const {
   summary: billingSummary,

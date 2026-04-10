@@ -47,10 +47,26 @@ app.get('/ready', async (req, res) => {
   const readiness = await getReadinessStatus(process.env);
 
   if (!readiness.ready) {
-    return res.status(503).json(readiness);
+    return res.status(503).json({
+      ...readiness,
+      minimalMode: appConfig.minimalMode,
+      features: {
+        cronJobs: appConfig.enableCronJobs,
+        tenantPortal: appConfig.enableTenantPortal,
+        dashboardRealtime: appConfig.enableDashboardRealtime
+      }
+    });
   }
 
-  return res.send(readiness);
+  return res.send({
+    ...readiness,
+    minimalMode: appConfig.minimalMode,
+    features: {
+      cronJobs: appConfig.enableCronJobs,
+      tenantPortal: appConfig.enableTenantPortal,
+      dashboardRealtime: appConfig.enableDashboardRealtime
+    }
+  });
 });
 
 app.use(clerkMiddleware());

@@ -19,8 +19,8 @@ function getOwnerId(req: AuthenticatedRequest) {
 export const billingWebhookMiddleware = express.raw({ type: 'application/json' });
 
 export async function billingWebhookHandler(req: express.Request, res: express.Response) {
-  if (!stripeConfig.isConfigured) {
-    return res.status(503).json({ message: 'Stripe no está configurado en este entorno' });
+  if (stripeConfig.mode !== 'stripe') {
+    return res.status(202).json({ received: false, mode: stripeConfig.mode });
   }
 
   const rawBody = Buffer.isBuffer(req.body)

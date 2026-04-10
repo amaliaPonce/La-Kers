@@ -1,6 +1,3 @@
-import fs from 'fs';
-import path from 'path';
-
 type ErrorContext = {
   tag?: string;
   route?: string;
@@ -8,16 +5,8 @@ type ErrorContext = {
   userId?: string;
 };
 
-const LOG_FILE = path.resolve(process.cwd(), 'logs/error.log');
 const REDACTED_VALUE = '[REDACTED]';
 const SENSITIVE_KEY_PATTERN = /pass(word)?|token|authorization|secret|key|dni|nie|cif|identification|email/i;
-
-function ensureLogDirectory() {
-  const dir = path.dirname(LOG_FILE);
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
-  }
-}
 
 export function redactValue(value: unknown): unknown {
   if (Array.isArray(value)) {
@@ -55,15 +44,13 @@ export function serializeError(error: unknown) {
 }
 
 export function logError(error: unknown, context: ErrorContext = {}) {
-  ensureLogDirectory();
   const timestamp = new Date().toISOString();
-  const payload = context.payload ? JSON.stringify(redactValue(context.payload), null, 2) : undefined;
-  const lines = [
-    `---
-[${timestamp}] ${context.tag ?? 'ERROR'} ${context.route ? `@ ${context.route}` : ''}`.trim(),
-    context.userId ? `userId: ${context.userId}` : undefined,
-    payload ? `payload: ${payload}` : undefined,
-    `error: ${JSON.stringify(serializeError(error), null, 2)}`
-  ].filter(Boolean);
-  fs.appendFileSync(LOG_FILE, lines.join('\n') + '\n');
+  console.error('[la-kers:error]', {
+    at: timestamp,
+    tag: context.tag ?? 'ERROR',
+    route: context.route ?? null,
+    userId: context.userId ?? null,
+    payload: context.payload ? redactValue(context.payload) : null,
+    error: serializeError(error)
+  });
 }

@@ -1,11 +1,16 @@
 import { Router } from 'express';
 import { AuthenticatedRequest } from '../middleware/authMiddleware';
+import { appConfig } from '../config/appConfig';
 import { getDashboardSummary } from '../services/dashboardService';
 import { openDashboardStream } from '../services/dashboardRealtime';
 
 const router = Router();
 
 router.get('/stream', async (req: AuthenticatedRequest, res) => {
+  if (!appConfig.enableDashboardRealtime) {
+    return res.status(404).json({ message: 'La sincronización en tiempo real está desactivada' });
+  }
+
   const ownerId = req.authUser?.id;
   if (!ownerId) {
     return res.status(401).json({ message: 'Autenticación requerida' });

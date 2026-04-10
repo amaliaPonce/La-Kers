@@ -6,7 +6,6 @@ const baseEnv = {
   NODE_ENV: 'production',
   SUPABASE_URL: 'https://example.supabase.co',
   SUPABASE_SERVICE_ROLE_KEY: 'service-role',
-  SUPABASE_ANON_KEY: 'anon-key',
   CLERK_SECRET_KEY: 'clerk-secret',
   LANDLORD_NAME: 'La Kers',
   LANDLORD_IDENTIFICATION: 'B12345678',
@@ -17,7 +16,6 @@ test('getMissingRuntimeEnvKeys lists required runtime variables', () => {
   assert.deepEqual(getMissingRuntimeEnvKeys({ NODE_ENV: 'production' }), [
     'SUPABASE_URL',
     'SUPABASE_SERVICE_ROLE_KEY',
-    'SUPABASE_ANON_KEY',
     'CLERK_SECRET_KEY',
     'LANDLORD_NAME',
     'LANDLORD_IDENTIFICATION',
@@ -35,7 +33,6 @@ test('getReadinessStatus fails when critical env vars are missing', async () => 
   assert.deepEqual(status.missingKeys, [
     'SUPABASE_URL',
     'SUPABASE_SERVICE_ROLE_KEY',
-    'SUPABASE_ANON_KEY',
     'CLERK_SECRET_KEY',
     'LANDLORD_NAME',
     'LANDLORD_IDENTIFICATION',

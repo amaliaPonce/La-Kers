@@ -1,4 +1,5 @@
 import { Response } from 'express';
+import { appConfig } from '../config/appConfig';
 
 type DashboardStreamPayload = {
   at: string;
@@ -51,6 +52,14 @@ function broadcastToOwner(ownerId: string, event: string, payload: DashboardStre
 }
 
 export function openDashboardStream(ownerId: string, response: Response) {
+  if (!appConfig.enableDashboardRealtime) {
+    return () => {
+      if (!response.headersSent) {
+        response.status(404).json({ message: 'La sincronización en tiempo real está desactivada' });
+      }
+    };
+  }
+
   response.status(200);
   response.setHeader('Content-Type', 'text/event-stream');
   response.setHeader('Cache-Control', 'no-cache, no-transform');
@@ -80,6 +89,7 @@ export function openDashboardStream(ownerId: string, response: Response) {
 }
 
 export function notifyDashboardUpdated(ownerId: string, source: string) {
+  if (!appConfig.enableDashboardRealtime) return;
   broadcastToOwner(ownerId, 'dashboard-update', {
     at: new Date().toISOString(),
     source
@@ -87,6 +97,7 @@ export function notifyDashboardUpdated(ownerId: string, source: string) {
 }
 
 export function notifyAllDashboardsUpdated(source: string) {
+  if (!appConfig.enableDashboardRealtime) return;
   const payload = {
     at: new Date().toISOString(),
     source

@@ -235,9 +235,9 @@ export async function getOwnerBillingSummary(ownerId: string) {
       canAddMoreUnits: unitCount < effectivePlan.unitLimit
     },
     billing: {
-      mode: stripeConfig.isConfigured ? 'stripe' : 'manual',
-      checkoutAvailable: stripeConfig.isConfigured,
-      portalAvailable: stripeConfig.isConfigured && Boolean(subscription?.stripe_customer_id),
+      mode: stripeConfig.mode,
+      checkoutAvailable: stripeConfig.mode === 'stripe',
+      portalAvailable: stripeConfig.mode === 'stripe' && Boolean(subscription?.stripe_customer_id),
       manualActivationEmail: MANUAL_ACTIVATION_EMAIL,
       current: {
         planId: subscription?.plan_id ?? FREEMIUM_PLAN_ID,
@@ -296,9 +296,11 @@ async function ensureStripeCustomer(ownerId: string, subscription?: OwnerSubscri
 }
 
 export async function createCheckoutSession(ownerId: string, billingCycle: BillingCycle, origin?: string) {
-  if (!stripeConfig.isConfigured) {
+  if (stripeConfig.mode !== 'stripe') {
     const error = new Error(
-      `Stripe no está configurado. Faltan: ${stripeConfig.missingKeys.join(', ')}`
+      stripeConfig.requestedMode === 'manual'
+        ? 'La facturación automática está desactivada. Usa la activación manual.'
+        : `Stripe no está configurado. Faltan: ${stripeConfig.missingKeys.join(', ')}`
     );
     (error as any).status = 503;
     throw error;
@@ -350,8 +352,8 @@ export async function createCheckoutSession(ownerId: string, billingCycle: Billi
 }
 
 export async function createPortalSession(ownerId: string, origin?: string) {
-  if (!stripeConfig.isConfigured) {
-    const error = new Error('Stripe no está configurado');
+  if (stripeConfig.mode !== 'stripe') {
+    const error = new Error('La gestión automática de billing está desactivada en este entorno');
     (error as any).status = 503;
     throw error;
   }

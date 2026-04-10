@@ -20,7 +20,10 @@
         </section>
 
         <section class="min-w-0 w-full justify-self-stretch lg:justify-self-end">
-          <div v-if="!hasClerkConfig" class="mx-auto max-w-[520px] rounded-2xl border border-amber-200 bg-amber-50 px-4 py-4 text-sm text-amber-900">
+          <div v-if="!tenantPortalEnabled" class="mx-auto max-w-[520px] rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-700">
+            El portal del inquilino está desactivado en modo mínimo.
+          </div>
+          <div v-else-if="!hasClerkConfig" class="mx-auto max-w-[520px] rounded-2xl border border-amber-200 bg-amber-50 px-4 py-4 text-sm text-amber-900">
             Falta configurar `VITE_CLERK_PUBLISHABLE_KEY` en `frontend/.env`.
           </div>
           <div v-else class="clerk-shell">
@@ -42,9 +45,11 @@
 
 <script setup lang="ts">
 import { SignIn } from '@clerk/vue';
+import { runtimeConfig } from '../config/runtimeConfig';
 import { clerkAuthAppearance } from '../services/clerkAppearance';
 
-const hasClerkConfig = Boolean(import.meta.env.VITE_CLERK_PUBLISHABLE_KEY);
+const hasClerkConfig = runtimeConfig.hasClerkConfig;
+const tenantPortalEnabled = runtimeConfig.enableTenantPortal;
 </script>
 
 <style scoped>

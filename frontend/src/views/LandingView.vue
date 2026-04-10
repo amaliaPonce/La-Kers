@@ -95,13 +95,10 @@
           </div>
         </div>
 
-        <div class="relative h-full min-h-[420px] overflow-hidden rounded-[32px] border border-white/80 shadow-[0_24px_60px_rgba(15,23,42,0.08)]">
-          <img
-            :src="heroBannerImage"
-            class="absolute inset-0 h-full w-full object-cover"
-            alt="Fachada luminosa de edificio residencial"
-          />
-          <div class="absolute inset-0 bg-[linear-gradient(180deg,rgba(15,23,42,0.12),rgba(15,23,42,0.2)_34%,rgba(15,23,42,0.58)_100%)]"></div>
+        <div class="relative h-full min-h-[420px] overflow-hidden rounded-[32px] border border-white/80 bg-[radial-gradient(circle_at_top_left,_rgba(201,106,55,0.24),_transparent_28%),radial-gradient(circle_at_85%_0%,_rgba(31,79,70,0.18),_transparent_24%),linear-gradient(160deg,#fefcf8_0%,#efe8dd_34%,#d9e7e1_100%)] shadow-[0_24px_60px_rgba(15,23,42,0.08)]">
+          <div class="absolute left-8 top-8 h-32 w-32 rounded-full bg-white/35 blur-2xl"></div>
+          <div class="absolute right-10 top-16 h-24 w-24 rounded-[28px] border border-white/40 bg-white/20 backdrop-blur"></div>
+          <div class="absolute inset-0 bg-[linear-gradient(180deg,rgba(15,23,42,0.02),rgba(15,23,42,0.12)_34%,rgba(15,23,42,0.48)_100%)]"></div>
 
           <div class="relative flex h-full flex-col justify-end p-5 sm:p-6">
             <div class="ml-auto max-w-sm rounded-[28px] border border-white/10 bg-[#163d37] p-5 text-white shadow-xl">
@@ -316,7 +313,6 @@
 import brandLogo from '../assets/logo.png';
 
 const proActivationLink = 'mailto:contacto@la-kers.com?subject=Activar%20plan%20Pro%20La-Kers';
-const heroBannerImage = 'https://images.unsplash.com/photo-1460317442991-0ec209397118?auto=format&fit=crop&w=1400&q=80';
 
 const coreBenefits = [
   {

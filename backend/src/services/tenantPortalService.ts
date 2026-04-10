@@ -1,4 +1,5 @@
 import { clerkClient } from '@clerk/express';
+import { appConfig } from '../config/appConfig';
 import { supabaseAdmin } from '../config/supabaseClient';
 
 type TenantPortalAccessRecord = {
@@ -46,11 +47,42 @@ type ClerkUserRecord = {
   unsafeMetadata?: Record<string, unknown> | null;
 };
 
+type CachedClerkUser = {
+  expiresAt: number;
+  value: ClerkUserRecord;
+};
+
+const clerkUserCache = new Map<string, CachedClerkUser>();
+
 function normalizeEmail(value: string | null | undefined) {
   return String(value ?? '').trim().toLowerCase();
 }
 
+function assertTenantPortalEnabled() {
+  if (appConfig.enableTenantPortal) return;
+
+  const error = new Error('El portal del inquilino está desactivado en este entorno');
+  (error as any).status = 404;
+  throw error;
+}
+
+async function getCachedClerkUser(clerkUserId: string) {
+  const now = Date.now();
+  const cached = clerkUserCache.get(clerkUserId);
+  if (cached && cached.expiresAt > now) {
+    return cached.value;
+  }
+
+  const user = (await clerkClient.users.getUser(clerkUserId)) as ClerkUserRecord;
+  clerkUserCache.set(clerkUserId, {
+    value: user,
+    expiresAt: now + appConfig.clerkUserCacheTtlMs
+  });
+  return user;
+}
+
 async function getTenantPortalAccessByClerkUserId(clerkUserId: string) {
+  assertTenantPortalEnabled();
   const { data, error } = await supabaseAdmin
     .from('tenant_portal_access')
     .select('*')
@@ -70,6 +102,7 @@ async function getTenantPortalAccessByClerkUserId(clerkUserId: string) {
 }
 
 async function touchLastLogin(accessId: string) {
+  assertTenantPortalEnabled();
   const { error } = await supabaseAdmin
     .from('tenant_portal_access')
     .update({
@@ -81,18 +114,20 @@ async function touchLastLogin(accessId: string) {
 }
 
 async function getClerkPrimaryEmail(clerkUserId: string) {
-  const user = (await clerkClient.users.getUser(clerkUserId)) as ClerkUserRecord;
+  const user = await getCachedClerkUser(clerkUserId);
   const emailAddresses = Array.isArray(user.emailAddresses) ? user.emailAddresses : [];
   const primary = emailAddresses.find((email) => email.id === user.primaryEmailAddressId) ?? emailAddresses[0];
   return normalizeEmail(primary?.emailAddress);
 }
 
 export async function getClerkPortalRole(clerkUserId: string) {
-  const user = (await clerkClient.users.getUser(clerkUserId)) as ClerkUserRecord;
+  assertTenantPortalEnabled();
+  const user = await getCachedClerkUser(clerkUserId);
   return String(user.unsafeMetadata?.portalRole ?? '').trim().toLowerCase();
 }
 
 async function autoLinkTenantPortalAccess(clerkUserId: string) {
+  assertTenantPortalEnabled();
   const primaryEmail = await getClerkPrimaryEmail(clerkUserId);
   if (!primaryEmail) {
     const error = new Error('Tu cuenta no tiene un correo verificable para enlazar el portal de inquilino');
@@ -144,6 +179,7 @@ async function autoLinkTenantPortalAccess(clerkUserId: string) {
 }
 
 export async function ensureTenantPortalAccess(clerkUserId: string) {
+  assertTenantPortalEnabled();
   let access = await getTenantPortalAccessByClerkUserId(clerkUserId);
   if (!access) {
     access = await autoLinkTenantPortalAccess(clerkUserId);
@@ -154,6 +190,7 @@ export async function ensureTenantPortalAccess(clerkUserId: string) {
 }
 
 export async function getTenantPortalProfile(clerkUserId: string): Promise<TenantPortalProfile> {
+  assertTenantPortalEnabled();
   const access = await ensureTenantPortalAccess(clerkUserId);
   const { data, error } = await supabaseAdmin
     .from('tenant_persons')
