@@ -6,6 +6,7 @@ import { registerMonthlyPaymentCron } from './cron/monthlyPayments';
 import { registerDataRetentionCron } from './cron/dataRetention';
 
 const PORT = appConfig.port;
+const HOST = '0.0.0.0';
 
 if (appConfig.enableCronJobs) {
   registerMonthlyPaymentCron();
@@ -13,6 +14,6 @@ if (appConfig.enableCronJobs) {
   registerDataRetentionCron();
 }
 
-app.listen(PORT, () => {
-  console.log(`Server listening on http://localhost:${PORT}`);
+app.listen(PORT, HOST, () => {
+  console.log(`Server listening on ${HOST}:${PORT}`);
 });

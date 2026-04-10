@@ -4,7 +4,7 @@ services:
     runtime: node
     buildCommand: npm ci && npm --workspace backend run build
     startCommand: npm --workspace backend run start
-    healthCheckPath: /health
+    healthCheckPath: /ready
     disk:
       name: documents
       mountPath: /opt/render/project/src/backend/documents
