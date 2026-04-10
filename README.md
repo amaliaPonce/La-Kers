@@ -92,6 +92,7 @@ Notas:
 - `sql/schema.sql` crea las tablas base como `units`, `tenant_persons`, `payments`, `incidents` y `contract_documents`.
 - `20260327_owner_subscriptions.sql` es necesaria para el gating por plan y billing.
 - `20260327_tenant_portal_access.sql` habilita acceso al portal de inquilino.
+- En producción ejecuta solo esas migraciones reproducibles. No ejecutes parches ad hoc, seeds de usuarios ni promociones manuales de plan.
 
 ## Rutas importantes
 

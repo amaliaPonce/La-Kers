@@ -40,7 +40,8 @@ Ejecutar en Supabase:
 \i sql/20260327_tenant_portal_access.sql
 ```
 
-Si no usa `psql`, puede copiar y ejecutar los scripts manualmente en el SQL editor de Supabase en ese orden.
+Si no usa `psql`, debe ejecutar únicamente esas migraciones reproducibles en el SQL editor de Supabase y respetando ese orden.
+No debe aplicar SQL ad hoc para usuarios concretos, cambios manuales de plan ni seeds de producción.
 
 ### 3. Instalar y arrancar
 
@@ -61,7 +62,7 @@ URLs locales:
 1. Registrarse en `/sign-up`
 2. Crear unidad/inmueble
 3. Crear inquilino con email realista
-4. Asegurar que el owner tiene plan `pro`
+4. Si se quiere probar `Pro`, hacerlo por el flujo normal de billing y no mediante parches SQL manuales
 5. Revisar panel, documentos y billing
 
 ### Tenant

@@ -76,6 +76,7 @@ Ejecuta los scripts en este orden exacto:
 4. `sql/20260327_tenant_portal_access.sql`
 
 No dejes solo `schema.sql`. El producto actual depende también de billing y tenant portal.
+No ejecutes SQL fuera de esa lista en producción. Quedan explícitamente fuera parches manuales de usuarios, activaciones directas de plan y scripts locales no versionados como migraciones.
 
 ## 5. Haz el primer deploy
 

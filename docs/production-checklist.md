@@ -24,6 +24,7 @@
   - `sql/20260327_clerk_owner_ids.sql`
   - `sql/20260327_owner_subscriptions.sql`
   - `sql/20260327_tenant_portal_access.sql`
+- Do not run ad hoc SQL to promote users, toggle plans, or link accounts in production.
 - Do not store generated PDFs or logs in Git.
 - Rotate Supabase keys if any secret was ever committed or shared insecurely.
 
