@@ -8,7 +8,16 @@ import {
   type TenantListMode,
   type TenantPayload
 } from '../services/tenantsService';
+import {
+  getTenantContractProfile,
+  upsertTenantContractProfile
+} from '../services/tenantContractProfilesService';
 import { notifyDashboardUpdated } from '../services/dashboardRealtime';
+import {
+  normalizeTenantContractProfilePayload,
+  validateTenantContractProfilePayload,
+  type TenantContractProfilePayload
+} from '../utils/tenantContractProfile';
 
 const router = Router();
 
@@ -112,6 +121,26 @@ function resolveTenantError(error: unknown, fallbackMessage: string) {
   };
 }
 
+function resolveTenantContractProfileError(error: unknown, fallbackMessage: string) {
+  const resolved = resolveTenantError(error, fallbackMessage);
+  if (resolved.status !== 500) {
+    return resolved;
+  }
+
+  const code = String((error as { code?: string })?.code ?? '');
+  const rawMessage = String((error as { message?: string })?.message ?? '');
+  const normalizedMessage = rawMessage.toLowerCase();
+
+  if (code === '42P01' || normalizedMessage.includes('tenant_contract_profiles')) {
+    return {
+      status: 500,
+      message: 'Falta aplicar sql/20260413_tenant_contract_profiles.sql'
+    };
+  }
+
+  return resolved;
+}
+
 router.get('/', async (req: AuthenticatedRequest, res) => {
   const ownerId = req.authUser?.id;
   if (!ownerId) {
@@ -169,6 +198,44 @@ router.put('/:id', async (req: AuthenticatedRequest, res) => {
   } catch (error) {
     console.error(error);
     const resolved = resolveTenantError(error, 'No se pudo actualizar el inquilino');
+    res.status(resolved.status).json({ message: resolved.message });
+  }
+});
+
+router.get('/:id/contract-profile', async (req: AuthenticatedRequest, res) => {
+  try {
+    const ownerId = req.authUser?.id;
+    if (!ownerId) {
+      return res.status(401).json({ message: 'Autenticación requerida' });
+    }
+    const profile = await getTenantContractProfile(ownerId, req.params.id);
+    res.json(profile);
+  } catch (error) {
+    console.error(error);
+    const resolved = resolveTenantContractProfileError(error, 'No se pudieron cargar los datos de contrato');
+    res.status(resolved.status).json({ message: resolved.message });
+  }
+});
+
+router.put('/:id/contract-profile', async (req: AuthenticatedRequest, res) => {
+  const payload = normalizeTenantContractProfilePayload(req.body as Record<string, unknown>);
+  const errors = validateTenantContractProfilePayload(payload);
+
+  if (errors.length) {
+    return res.status(400).json({ errors });
+  }
+
+  try {
+    const ownerId = req.authUser?.id;
+    if (!ownerId) {
+      return res.status(401).json({ message: 'Autenticación requerida' });
+    }
+    const profile = await upsertTenantContractProfile(ownerId, req.params.id, payload as TenantContractProfilePayload);
+    notifyDashboardUpdated(ownerId, 'tenants.updated');
+    res.json(profile);
+  } catch (error) {
+    console.error(error);
+    const resolved = resolveTenantContractProfileError(error, 'No se pudieron guardar los datos de contrato');
     res.status(resolved.status).json({ message: resolved.message });
   }
 });

@@ -196,6 +196,66 @@
                 </p>
               </div>
 
+              <div class="mt-5 rounded-3xl border border-white/80 bg-white/80 p-4 shadow-sm">
+                <div class="flex items-start justify-between gap-3">
+                  <div>
+                    <p class="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-400">Datos de contrato</p>
+                    <p class="mt-2 text-base font-semibold text-slate-900">{{ contractProfileHeading }}</p>
+                    <p class="mt-1 text-sm leading-6 text-slate-600">{{ contractProfileSummary }}</p>
+                  </div>
+                  <span
+                    class="inline-flex min-h-8 items-center rounded-full border px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.24em]"
+                    :class="contractProfileBadgeClass"
+                  >
+                    {{ contractProfileBadgeLabel }}
+                  </span>
+                </div>
+
+                <div v-if="contractProfileLoadError" class="mt-3 rounded-2xl border border-rose-100 bg-rose-50 px-3 py-2 text-xs font-medium text-rose-700">
+                  {{ contractProfileLoadError }}
+                </div>
+
+                <div
+                  v-else-if="contractProfileSuccessMessage"
+                  class="mt-3 rounded-2xl border border-emerald-100 bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-700"
+                >
+                  {{ contractProfileSuccessMessage }}
+                </div>
+
+                <div class="mt-4 grid gap-3">
+                  <article class="rounded-[18px] border border-[#efe7dd] bg-[#fbf8f2] p-3">
+                    <p class="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">Empresa</p>
+                    <p class="mt-1.5 text-sm font-semibold text-slate-900">{{ detailTenantContractProfile?.company_name ?? 'Sin razón social' }}</p>
+                    <p class="mt-1 text-[11px] text-slate-500">{{ detailTenantContractProfile?.tax_id ?? 'Sin CIF/NIF' }}</p>
+                  </article>
+
+                  <article class="rounded-[18px] border border-[#efe7dd] bg-[#fbf8f2] p-3">
+                    <p class="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">Representante</p>
+                    <p class="mt-1.5 text-sm font-semibold text-slate-900">{{ detailTenantContractProfile?.legal_representative_name ?? 'Sin representante' }}</p>
+                    <p class="mt-1 text-[11px] text-slate-500">
+                      {{ detailTenantContractProfile?.legal_representative_role ?? detailTenantContractProfile?.legal_representative_id ?? 'Sin cargo ni documento' }}
+                    </p>
+                  </article>
+
+                  <article class="rounded-[18px] border border-[#efe7dd] bg-[#fbf8f2] p-3">
+                    <p class="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">Dirección fiscal</p>
+                    <p class="mt-1.5 text-sm font-semibold text-slate-900">{{ fiscalAddressLine }}</p>
+                    <p class="mt-1 text-[11px] text-slate-500">{{ fiscalAddressDetail }}</p>
+                  </article>
+                </div>
+
+                <div class="mt-4">
+                  <button
+                    type="button"
+                    class="rounded-2xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:border-primary hover:text-primary"
+                    :disabled="contractProfileLoading"
+                    @click="openContractProfileModal"
+                  >
+                    {{ contractProfileLoading ? 'Cargando...' : detailTenantContractProfile ? 'Editar datos de contrato' : 'Completar datos de contrato' }}
+                  </button>
+                </div>
+              </div>
+
               <div class="mt-6 flex flex-wrap gap-3">
                 <button
                   type="button"
@@ -257,6 +317,17 @@
       @finalized="handleContractFinalized"
     />
 
+    <TenantContractProfileModal
+      :visible="contractProfileModal.visible"
+      :tenant-name="detailTenant?.full_name ? String(detailTenant.full_name) : 'Inquilino'"
+      :loading="contractProfileLoading"
+      :saving="contractProfileSaving"
+      :server-error="contractProfileServerError"
+      :initial-values="detailTenantContractProfile"
+      @close="closeContractProfileModal"
+      @submit="handleContractProfileSubmit"
+    />
+
   </div>
 </template>
 
@@ -269,12 +340,14 @@ import TenantRow from '../components/TenantRow.vue';
 import TenantModal from '../components/TenantModal.vue';
 import TenantStatusBadge from '../components/TenantStatusBadge.vue';
 import FinalizeContractWizard from '../components/FinalizeContractWizard.vue';
+import TenantContractProfileModal from '../components/TenantContractProfileModal.vue';
 import { useOnboarding } from '../composables/useOnboarding';
 import apiClient from '../services/apiClient';
 import type { AxiosError } from 'axios';
 import type { Payment, PaymentStatus } from '../types/payment';
 import type { Incident, IncidentStatus } from '../types/incident';
 import type { TenantStatus, TenantWithMeta } from '../types/tenant';
+import type { TenantContractProfilePayload, TenantContractProfileRecord } from '../types/tenantContractProfile';
 
 type TenantFormValues = {
   id?: string;
@@ -314,6 +387,15 @@ const finalizeWizard = reactive({
   visible: false,
   tenant: null as TenantWithMeta | null
 });
+const contractProfileModal = reactive({
+  visible: false
+});
+const detailTenantContractProfile = ref<TenantContractProfileRecord | null>(null);
+const contractProfileLoading = ref(false);
+const contractProfileSaving = ref(false);
+const contractProfileLoadError = ref('');
+const contractProfileServerError = ref('');
+const contractProfileSuccessMessage = ref('');
 
 const tenantViewMode = ref<'active' | 'archived'>('active');
 const retentionNotes = [
@@ -476,6 +558,77 @@ const pendingPaymentCount = computed(() => detailTenantPendingPayments.value.len
 const openIncidentCount = computed(() => detailTenantOpenIncidents.value.length);
 const hasTenantReminders = computed(() => pendingPaymentCount.value > 0 || openIncidentCount.value > 0);
 
+const requiredContractProfileFields: Array<keyof TenantContractProfileRecord> = [
+  'company_name',
+  'tax_id',
+  'fiscal_address_line_1',
+  'fiscal_postal_code',
+  'fiscal_city',
+  'fiscal_country',
+  'legal_representative_name',
+  'legal_representative_id'
+];
+
+const hasContractProfileData = computed(() => {
+  const profile = detailTenantContractProfile.value;
+  if (!profile) return false;
+  return Object.values(profile).some((value) => typeof value === 'string' && value.trim());
+});
+
+const isContractProfileComplete = computed(() => {
+  const profile = detailTenantContractProfile.value;
+  if (!profile) return false;
+  return requiredContractProfileFields.every((field) => String(profile[field] ?? '').trim());
+});
+
+const contractProfileBadgeLabel = computed(() => {
+  if (!hasContractProfileData.value) return 'Pendiente';
+  return isContractProfileComplete.value ? 'Completo' : 'Parcial';
+});
+
+const contractProfileBadgeClass = computed(() => {
+  if (!hasContractProfileData.value) {
+    return 'border-amber-200 bg-amber-50 text-amber-700';
+  }
+  if (isContractProfileComplete.value) {
+    return 'border-emerald-200 bg-emerald-50 text-emerald-700';
+  }
+  return 'border-slate-200 bg-slate-100 text-slate-700';
+});
+
+const contractProfileHeading = computed(() => {
+  if (!hasContractProfileData.value) return 'Pendiente de completar';
+  return detailTenantContractProfile.value?.company_name ?? 'Datos fiscales guardados';
+});
+
+const contractProfileSummary = computed(() => {
+  if (contractProfileLoading.value) return 'Cargando datos de empresa y representante legal.';
+  if (!hasContractProfileData.value) return 'Todavía no hay datos fiscales guardados para este inquilino.';
+  if (!isContractProfileComplete.value) return 'Hay datos guardados, pero faltan campos obligatorios para contrato.';
+  return 'Los datos fiscales y de representante ya están listos para el contrato.';
+});
+
+const fiscalAddressLine = computed(() => {
+  const profile = detailTenantContractProfile.value;
+  if (!profile?.fiscal_address_line_1) return 'Sin dirección fiscal';
+  const extra = profile.fiscal_address_line_2 ? ` · ${profile.fiscal_address_line_2}` : '';
+  return `${profile.fiscal_address_line_1}${extra}`;
+});
+
+const fiscalAddressDetail = computed(() => {
+  const profile = detailTenantContractProfile.value;
+  const parts = [
+    profile?.fiscal_postal_code,
+    profile?.fiscal_city,
+    profile?.fiscal_province,
+    profile?.fiscal_country
+  ]
+    .map((value) => String(value ?? '').trim())
+    .filter(Boolean);
+
+  return parts.join(' · ') || 'Sin ciudad ni país fiscal';
+});
+
 const loadActiveTenants = async () => {
   try {
     const { data } = await apiClient.get('/tenants', {
@@ -485,6 +638,17 @@ const loadActiveTenants = async () => {
   } catch (error) {
     console.error(error);
   }
+};
+
+const buildContractProfileErrorMessage = (error: unknown, fallback: string) => {
+  const responseData = (error as AxiosError<{ errors?: string[]; message?: string }>)?.response?.data;
+  if (Array.isArray(responseData?.errors) && responseData.errors.length) {
+    return responseData.errors.join('\n');
+  }
+  if (responseData?.message) {
+    return responseData.message;
+  }
+  return fallback;
 };
 
 const loadArchivedTenants = async () => {
@@ -660,8 +824,40 @@ const openFinalizeWizard = (tenant: TenantWithMeta) => {
   finalizeWizard.visible = true;
 };
 
+const loadTenantContractProfile = async (tenantId?: string) => {
+  if (!tenantId) {
+    detailTenantContractProfile.value = null;
+    contractProfileLoadError.value = '';
+    return;
+  }
+
+  contractProfileLoading.value = true;
+  contractProfileLoadError.value = '';
+  detailTenantContractProfile.value = null;
+  const requestedTenantId = tenantId;
+
+  try {
+    const { data } = await apiClient.get(`/tenants/${tenantId}/contract-profile`);
+    if (detailTenant.value?.id === requestedTenantId) {
+      detailTenantContractProfile.value = data ?? null;
+    }
+  } catch (error) {
+    console.error(error);
+    if (detailTenant.value?.id === requestedTenantId) {
+      contractProfileLoadError.value = buildContractProfileErrorMessage(error, 'No se pudieron cargar los datos de contrato.');
+    }
+  } finally {
+    if (detailTenant.value?.id === requestedTenantId) {
+      contractProfileLoading.value = false;
+    }
+  }
+};
+
 const openDetailPanel = async (tenant: TenantWithMeta) => {
   detailTenant.value = tenant;
+  contractProfileSuccessMessage.value = '';
+  contractProfileServerError.value = '';
+  void loadTenantContractProfile(tenant.id);
   await nextTick();
   if (window.innerWidth < 1280) {
     detailPanelRef.value?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -685,6 +881,38 @@ const handleContractFinalized = async (tenantId: string) => {
   detailTenant.value = null;
 };
 
+const openContractProfileModal = () => {
+  contractProfileServerError.value = '';
+  contractProfileSuccessMessage.value = '';
+  contractProfileModal.visible = true;
+};
+
+const closeContractProfileModal = () => {
+  if (contractProfileSaving.value) return;
+  contractProfileModal.visible = false;
+  contractProfileServerError.value = '';
+};
+
+const handleContractProfileSubmit = async (payload: TenantContractProfilePayload) => {
+  const tenantId = detailTenant.value?.id;
+  if (!tenantId) return;
+
+  contractProfileSaving.value = true;
+  contractProfileServerError.value = '';
+  try {
+    const { data } = await apiClient.put(`/tenants/${tenantId}/contract-profile`, payload);
+    detailTenantContractProfile.value = data ?? null;
+    contractProfileSuccessMessage.value = 'Datos de contrato guardados.';
+    contractProfileModal.visible = false;
+    await refreshData();
+  } catch (error) {
+    console.error(error);
+    contractProfileServerError.value = buildContractProfileErrorMessage(error, 'No se pudieron guardar los datos de contrato.');
+  } finally {
+    contractProfileSaving.value = false;
+  }
+};
+
 const handleRowInteraction = (action: 'editar' | 'detalle' | 'pdf' | 'finalizar', tenant: TenantWithMeta) => {
   switch (action) {
     case 'editar':
@@ -705,6 +933,10 @@ const handleRowInteraction = (action: 'editar' | 'detalle' | 'pdf' | 'finalizar'
 
 const closeDetailPanel = () => {
   detailTenant.value = null;
+  detailTenantContractProfile.value = null;
+  contractProfileLoadError.value = '';
+  contractProfileServerError.value = '';
+  contractProfileSuccessMessage.value = '';
 };
 
 onMounted(() => {

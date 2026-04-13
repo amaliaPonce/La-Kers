@@ -92,12 +92,14 @@ Orden recomendado de ejecución en Supabase:
 1. `sql/schema.sql`
 2. `sql/20260327_clerk_owner_ids.sql`
 3. `sql/20260327_owner_subscriptions.sql`
-4. `sql/20260327_tenant_portal_access.sql`
+4. `sql/20260413_tenant_contract_profiles.sql`
+5. `sql/20260327_tenant_portal_access.sql`
 
 Notas:
 
-- `sql/schema.sql` crea las tablas base como `units`, `tenant_persons`, `payments`, `incidents` y `contract_documents`.
+- `sql/schema.sql` crea las tablas base como `units`, `tenant_persons`, `tenant_contract_profiles`, `payments`, `incidents` y `contract_documents`.
 - `20260327_owner_subscriptions.sql` es recomendable si vas a persistir upgrades o control de plan.
+- `20260413_tenant_contract_profiles.sql` añade la ficha de datos fiscales/contractuales 1:1 para cada inquilino.
 - `20260327_tenant_portal_access.sql` solo es necesaria si activas el portal de inquilino.
 - En producción ejecuta solo esas migraciones reproducibles. No ejecutes parches ad hoc, seeds de usuarios ni promociones manuales de plan.
 

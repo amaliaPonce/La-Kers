@@ -75,9 +75,10 @@ Ejecuta los scripts en este orden exacto:
 1. `sql/schema.sql`
 2. `sql/20260327_clerk_owner_ids.sql`
 3. `sql/20260327_owner_subscriptions.sql`
-4. `sql/20260327_tenant_portal_access.sql` solo si reactivas el portal tenant
+4. `sql/20260413_tenant_contract_profiles.sql`
+5. `sql/20260327_tenant_portal_access.sql` solo si reactivas el portal tenant
 
-No dejes solo `schema.sql`. El producto actual depende del control de plan y, si reactivas esa parte, también del tenant portal.
+No dejes solo `schema.sql`. El producto actual depende del control de plan, de la ficha fiscal del inquilino y, si reactivas esa parte, también del tenant portal.
 No ejecutes SQL fuera de esa lista en producción. Quedan explícitamente fuera parches manuales de usuarios, activaciones directas de plan y scripts locales no versionados como migraciones.
 
 ## 5. Haz el primer deploy
