@@ -30,7 +30,11 @@
               <SolidIcon name="dashboard" class="h-3.5 w-3.5 text-[#c96a37]" />
               <span>Vista operativa</span>
             </div>
-            <div class="inline-flex items-center gap-2 rounded-full border px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.3em]" :class="realtimeBadge.className">
+            <div
+              v-if="realtimeBadge.label"
+              class="inline-flex items-center gap-2 rounded-full border px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.3em]"
+              :class="realtimeBadge.className"
+            >
               <span class="h-2.5 w-2.5 rounded-full" :class="realtimeBadge.dotClass"></span>
               <span>{{ realtimeBadge.label }}</span>
             </div>
@@ -450,7 +454,7 @@ const realtimeBadge = computed(() => {
   switch (realtimeStatus.value) {
     case 'manual':
       return {
-        label: 'Modo mínimo',
+        label: '',
         className: 'border-slate-200 bg-slate-50 text-slate-600',
         dotClass: 'bg-slate-400'
       };
