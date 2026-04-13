@@ -1,15 +1,17 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Syne:wght@500;600;700;800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   html {
-    font-family: 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif;
+    font-family: 'Plus Jakarta Sans', sans-serif;
   }
 
   body {
     @apply bg-slate-100 text-slate-900;
-    font-family: 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif;
+    font-family: 'Plus Jakarta Sans', sans-serif;
   }
 
   button,
@@ -26,7 +28,7 @@
   h5,
   .font-display,
   .brand-wordmark {
-    font-family: 'Avenir Next Condensed', 'Arial Narrow', 'Avenir Next', sans-serif;
+    font-family: 'Syne', sans-serif;
     letter-spacing: -0.05em;
   }
 
@@ -69,5 +71,5 @@
 .cl-internal-1dauvpw,
 .cl-internal-1hp5nqm,
 .cl-formFieldAction {
-  font-family: 'Avenir Next', 'Segoe UI', 'Helvetica Neue', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
 }
