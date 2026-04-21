@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { AuthenticatedRequest } from '../middleware/authMiddleware';
 import { createApartment, deleteApartment, listApartments, updateApartment } from '../services/apartmentsService';
 import { notifyDashboardUpdated } from '../services/dashboardRealtime';
+import { captureServerException } from '../monitoring/sentry';
 
 const router = Router();
 
@@ -165,6 +166,20 @@ router.post('/', async (req: AuthenticatedRequest, res) => {
     res.status(201).json(apartment);
   } catch (error) {
     console.error(error);
+    captureServerException(error, {
+      tag: 'apartments.create_failed',
+      userId: req.authUser?.id,
+      route: req.path,
+      tags: {
+        feature: 'apartments',
+        action: 'create'
+      },
+      extra: {
+        apartmentId: null,
+        status: payload.status,
+        route: '/apartments'
+      }
+    });
     const resolved = resolveApartmentPersistenceError(error, 'No se pudo crear el apartamento');
     res.status(resolved.status).json({ message: resolved.message });
   }

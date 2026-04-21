@@ -4,7 +4,7 @@
       <div>
         <p class="text-xs font-semibold uppercase tracking-[0.4em] text-slate-500">Operaciones</p>
         <h1 class="text-3xl font-semibold text-slate-900">Incidencias</h1>
-        <p class="text-sm text-slate-500">Gestiona reparaciones, costes y seguimiento desde un solo sitio.</p>
+        <p class="text-sm text-slate-500">Revisa estado, coste y seguimiento.</p>
       </div>
       <button
         class="inline-flex items-center rounded-full bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-slate-900/30 transition hover:bg-slate-800"
@@ -16,7 +16,7 @@
     </header>
 
     <div v-if="loading" class="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-4 text-sm text-slate-500">
-      Cargando incidencias, apartamentos y contratos…
+      Cargando incidencias…
     </div>
 
     <section class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -40,7 +40,7 @@
           <select v-model="filters.state" class="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm">
             <option value="">Todos</option>
             <option value="ABIERTO">Abierta</option>
-            <option value="PENDIENTE_PROVEEDOR">Pendiente proveedor</option>
+            <option value="PENDIENTE_PROVEEDOR">Pendiente de proveedor</option>
             <option value="EN_PROGRESO">En progreso</option>
             <option value="RESUELTA">Resuelta</option>
           </select>
@@ -105,7 +105,7 @@
                 <th class="px-4 py-3">Estado</th>
                 <th class="px-4 py-3">Fecha</th>
                 <th class="px-4 py-3">Responsable</th>
-                <th class="px-4 py-3">Costo estimado</th>
+                <th class="px-4 py-3">Coste</th>
                 <th class="px-4 py-3">Acciones</th>
               </tr>
             </thead>
@@ -169,7 +169,7 @@
                 <div>
                   <h2 class="text-2xl font-semibold text-slate-900">{{ selectedIncident.title }}</h2>
                   <p class="mt-1 text-sm text-slate-500">
-                    {{ selectedIncident.apartmentName }} · {{ selectedIncident.tenantName ?? 'Inquilino asignado' }}
+                    {{ selectedIncident.apartmentName }} · {{ selectedIncident.tenantName ?? 'Sin inquilino asignado' }}
                   </p>
                 </div>
               </div>
@@ -205,7 +205,7 @@
                 <p class="mt-2 text-base font-semibold text-slate-900">{{ selectedIncident.responsible }}</p>
               </div>
               <div class="rounded-3xl border border-white/80 bg-white/80 p-4 shadow-sm">
-                <p class="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-400">Costo final</p>
+                <p class="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-400">Coste</p>
                 <p class="mt-2 text-base font-semibold text-slate-900">{{ selectedIncident.costDisplay }}</p>
               </div>
             </div>
@@ -279,7 +279,7 @@
             <p class="text-xs font-semibold uppercase tracking-[0.32em] text-slate-400">Ficha de incidencia</p>
             <h3 class="mt-3 text-xl font-semibold text-slate-900">Selecciona una incidencia para ver su detalle</h3>
             <p class="mt-2 text-sm leading-6 text-slate-500">
-              La ficha lateral concentra seguimiento, adjuntos y resolución sin sacarte del listado operativo.
+              Consulta seguimiento, adjuntos y estado desde el detalle.
             </p>
           </article>
         </transition>
@@ -342,7 +342,7 @@
               </select>
             </label>
             <label class="space-y-2 text-sm font-semibold text-slate-600">
-              Costo estimado
+              Coste estimado
               <input
                 v-model.number="modalForm.cost"
                 type="number"
@@ -355,7 +355,7 @@
           </div>
           <div class="space-y-2 text-sm text-slate-600">
             <p class="font-semibold text-slate-700">Adjuntar fotos, facturas o presupuestos</p>
-            <p class="text-xs text-slate-400">Los archivos se almacenan en el panel de detalle para referencia rápida.</p>
+            <p class="text-xs text-slate-400">Los archivos quedarán disponibles en el detalle.</p>
             <label
               class="flex cursor-pointer items-center gap-2 rounded-2xl border border-dashed border-slate-300 px-4 py-3 text-sm font-semibold text-primary transition hover:border-primary"
             >
@@ -394,6 +394,8 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue';
 import apiClient from '../services/apiClient';
+import { track } from '../lib/analytics';
+import { captureAppException } from '../lib/sentry';
 
 type IncidentRecord = {
   id: string;
@@ -474,15 +476,15 @@ const priorityOptions = [
 ];
 
 const responsibleOptions = [
-  'Equipo interno de mantenimiento',
-  'Proveedor externo asignado',
-  'Coordinador de facility',
-  'Supervisor de operaciones'
+  'Mantenimiento interno',
+  'Proveedor externo',
+  'Coordinación',
+  'Supervisión'
 ];
 
 const statusBadgeMap: Record<DisplayStatusKey, { label: string; bg: string; text: string; border: string }> = {
   ABIERTO: { label: 'Abierta', bg: 'bg-rose-100', text: 'text-rose-700', border: 'border-rose-200' },
-  PENDIENTE_PROVEEDOR: { label: 'Pendiente proveedor', bg: 'bg-sky-100', text: 'text-sky-700', border: 'border-sky-200' },
+  PENDIENTE_PROVEEDOR: { label: 'Pendiente de proveedor', bg: 'bg-sky-100', text: 'text-sky-700', border: 'border-sky-200' },
   EN_PROGRESO: { label: 'En progreso', bg: 'bg-amber-100', text: 'text-amber-700', border: 'border-amber-200' },
   RESUELTA: { label: 'Resuelta', bg: 'bg-emerald-100', text: 'text-emerald-700', border: 'border-emerald-200' }
 };
@@ -759,25 +761,25 @@ const metricCards = computed(() => {
       id: 'open',
       label: 'Incidencias abiertas',
       valueLabel: String(summaryValues.openCount),
-      helper: summaryValues.openCount ? `${summaryValues.openCount} tareas activas` : 'Sin movimientos en curso'
+      helper: summaryValues.openCount ? `${summaryValues.openCount} activas` : 'Sin incidencias abiertas'
     },
     {
       id: 'progress',
       label: 'En progreso',
       valueLabel: String(summaryValues.inProgressCount),
-      helper: summaryValues.inProgressCount ? 'En seguimiento constante' : 'Nada urgente'
+      helper: summaryValues.inProgressCount ? `${summaryValues.inProgressCount} en curso` : 'Sin incidencias en curso'
     },
     {
       id: 'resolved',
       label: 'Resueltas este mes',
       valueLabel: String(summaryValues.resolvedThisMonth),
-      helper: summaryValues.resolvedThisMonth ? 'Actualizado al instante' : 'Aún en revisión'
+      helper: summaryValues.resolvedThisMonth ? 'Actualizadas este mes' : 'Sin resueltas este mes'
     },
     {
       id: 'cost',
-      label: 'Coste total del mes',
+      label: 'Coste del mes',
       valueLabel: formatCurrency(summaryValues.costThisMonth),
-      helper: 'Incluye estimaciones y facturas cargadas'
+      helper: 'Estimaciones y costes registrados'
     }
   ];
 });
@@ -845,6 +847,7 @@ const markAsResolved = async () => {
   if (!selectedIncidentId.value) return;
   try {
     await apiClient.put(`/incidents/${selectedIncidentId.value}`, { status: 'CLOSED' });
+    track('incident_resolved', { source: 'incidents' });
     incidentOverrides[selectedIncidentId.value] = {
       ...incidentOverrides[selectedIncidentId.value],
       statusKey: 'RESUELTA'
@@ -852,6 +855,16 @@ const markAsResolved = async () => {
     await loadData();
   } catch (error) {
     console.error(error);
+    captureAppException(error, {
+      tags: {
+        feature: 'incidents',
+        action: 'resolve'
+      },
+      context: {
+        incidentId: selectedIncidentId.value,
+        route: '/incidents'
+      }
+    });
   }
 };
 
@@ -871,6 +884,7 @@ const handleCreate = async () => {
     const response = await apiClient.post('/incidents', payload);
     const created = response.data;
     if (created?.id) {
+      track('incident_created', { source: 'incidents' });
       incidentOverrides[created.id] = {
         type: modalForm.type,
         priority: modalForm.priority,
@@ -895,6 +909,17 @@ const handleCreate = async () => {
     showModal.value = false;
   } catch (error) {
     console.error(error);
+    captureAppException(error, {
+      tags: {
+        feature: 'incidents',
+        action: 'create'
+      },
+      context: {
+        unitId: modalForm.unit_id,
+        hasCost: modalForm.cost !== null,
+        route: '/incidents'
+      }
+    });
   } finally {
     isSaving.value = false;
     await loadData();

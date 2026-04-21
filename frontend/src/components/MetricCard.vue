@@ -24,7 +24,7 @@
           v-if="showRetrasoBadge"
           class="inline-flex rounded-full border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs font-semibold text-rose-600 shadow-sm"
         >
-          Riesgo activo
+          Revisar
         </span>
       </div>
     </div>

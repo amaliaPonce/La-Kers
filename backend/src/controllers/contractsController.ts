@@ -10,6 +10,7 @@ import {
 } from '../services/documentService';
 import { notifyDashboardUpdated } from '../services/dashboardRealtime';
 import { generateContractTerminationDocument } from '../utils/pdfGenerator';
+import { captureServerException } from '../monitoring/sentry';
 
 function resolveFinalizeContractError(error: unknown) {
   const status = Number((error as { status?: number })?.status);
@@ -133,6 +134,20 @@ export async function downloadContractPdfHandler(req: AuthenticatedRequest, res:
     return res.send(pdfBuffer);
   } catch (error) {
     console.error('[contracts/download-pdf]', error);
+    captureServerException(error, {
+      tag: 'contracts.download_pdf_failed',
+      userId: req.authUser?.id,
+      route: req.path,
+      tags: {
+        feature: 'documents',
+        action: 'open_contract_pdf'
+      },
+      extra: {
+        contractId,
+        kind: 'termination',
+        route: '/contracts/:contractId/pdf'
+      }
+    });
     res.status(500).json({ message: 'No se pudo descargar el documento del contrato' });
   }
 }

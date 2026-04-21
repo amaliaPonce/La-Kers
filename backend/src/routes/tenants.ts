@@ -9,6 +9,7 @@ import {
   type TenantPayload
 } from '../services/tenantsService';
 import { notifyDashboardUpdated } from '../services/dashboardRealtime';
+import { captureServerException } from '../monitoring/sentry';
 
 const router = Router();
 
@@ -145,6 +146,20 @@ router.post('/', async (req: AuthenticatedRequest, res) => {
     res.status(201).json(tenant);
   } catch (error) {
     console.error(error);
+    captureServerException(error, {
+      tag: 'tenants.create_failed',
+      userId: req.authUser?.id,
+      route: req.path,
+      tags: {
+        feature: 'tenants',
+        action: 'create'
+      },
+      extra: {
+        tenantId: null,
+        unitId: payload.unit_id ?? null,
+        route: '/tenants'
+      }
+    });
     const resolved = resolveTenantError(error, 'No se pudo crear el inquilino');
     res.status(resolved.status).json({ message: resolved.message });
   }

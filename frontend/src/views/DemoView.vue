@@ -19,6 +19,7 @@
           <router-link
             to="/sign-up"
             class="rounded-full bg-[#c96a37] px-4 py-2 text-white shadow-lg shadow-orange-950/10 transition hover:bg-[#b85d2d]"
+            @click="trackRegisterCta"
           >
             Crear cuenta
           </router-link>
@@ -282,11 +283,12 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import brandLogo from '../assets/logo.png';
 import StatusBadge from '../components/StatusBadge.vue';
 import TenantStatusBadge from '../components/TenantStatusBadge.vue';
 import PaymentStatusBadge from '../components/PaymentStatusBadge.vue';
+import { track } from '../lib/analytics';
 
 const landingDemoViews = [
   { id: 'apartments', label: 'Propiedades' },
@@ -492,6 +494,14 @@ const runLandingDemoPrimaryAction = () => {
 
   landingDemoEvent.value = `Se generaría el recibo PDF del pago de ${selectedRow.tenant}.`;
 };
+
+const trackRegisterCta = () => {
+  track('cta_register_clicked', { source: 'demo' });
+};
+
+onMounted(() => {
+  track('demo_viewed');
+});
 </script>
 
 <style scoped>

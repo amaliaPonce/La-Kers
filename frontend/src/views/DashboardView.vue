@@ -7,7 +7,7 @@
       <EmptyPropertiesState
         eyebrow="Dashboard"
         title="Aún no tienes propiedades"
-        description="Empieza creando tu primera propiedad para activar el panel."
+        description="Crea tu primera propiedad para empezar."
         cta-label="Ir a propiedades"
         cta-to="/apartments"
       />
@@ -17,7 +17,7 @@
           Resumen financiero
         </p>
         <p class="mt-2 text-sm leading-7 text-slate-600">
-          Cuando registres pagos, aquí verás el resumen financiero.
+          Aquí verás el resumen cuando registres pagos.
         </p>
       </div>
     </section>
@@ -28,7 +28,7 @@
           <div class="flex flex-wrap items-center gap-3">
             <div class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.35em] text-slate-700">
               <SolidIcon name="dashboard" class="h-3.5 w-3.5 text-[#c96a37]" />
-              <span>Vista operativa</span>
+              <span>Resumen</span>
             </div>
             <div
               v-if="realtimeBadge.label"
@@ -43,7 +43,7 @@
           <div class="max-w-3xl">
             <h1 class="text-3xl font-semibold text-slate-900 sm:text-5xl">Dashboard</h1>
             <p class="mt-3 max-w-2xl text-sm leading-7 text-slate-600 sm:text-base">
-              Ve cobros, unidades libres y pagos atrasados sin leer de más.
+              Resumen de cobros, ocupación e incidencias.
             </p>
           </div>
         </div>
@@ -72,10 +72,10 @@
           <div class="space-y-1">
             <div class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.3em] text-[#1f4f46]">
               <SolidIcon name="wallet" class="h-3.5 w-3.5" />
-              <span>Distribución mensual</span>
+              <span>Mes actual</span>
             </div>
-            <h2 class="text-2xl font-semibold text-slate-900">Cómo se reparte el mes</h2>
-            <p class="text-sm text-slate-500">Lo cobrado, lo pendiente y la parte ya caída en mora.</p>
+            <h2 class="text-2xl font-semibold text-slate-900">Distribución del mes</h2>
+            <p class="text-sm text-slate-500">Cobrado, pendiente y en mora.</p>
           </div>
 
           <div class="mt-6 space-y-4">
@@ -105,10 +105,10 @@
           <div class="space-y-1">
             <div class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.3em] text-[#8c4d29]">
               <SolidIcon name="spark" class="h-3.5 w-3.5" />
-              <span>Resumen rápido</span>
+              <span>Hoy</span>
             </div>
-            <h2 class="text-2xl font-semibold text-slate-900">Lo importante hoy</h2>
-            <p class="text-sm text-slate-500">Tres señales claras para decidir el siguiente paso.</p>
+            <h2 class="text-2xl font-semibold text-slate-900">Lo importante</h2>
+            <p class="text-sm text-slate-500">Señales principales del panel.</p>
           </div>
 
           <div class="mt-6 grid gap-3">
@@ -482,7 +482,7 @@ const breakdownItems = computed(() => [
   {
     id: 'paid',
     label: 'Cobrado',
-    detail: collectionRate.value >= 80 ? 'Ritmo sano para este punto del mes' : 'Conviene seguir empujando cobros',
+    detail: collectionRate.value >= 80 ? 'Buen ritmo este mes' : 'Cobro por revisar',
     value: formatCurrency(paidValue.value),
     share: collectionRate.value,
     shareLabel: `${formatPercent(collectionRate.value)} del objetivo`,
@@ -492,8 +492,8 @@ const breakdownItems = computed(() => [
     id: 'pending',
     label: 'Pendiente',
     detail: pendingCount.value
-      ? `${pendingCount.value} ${pendingCount.value === 1 ? 'pago pendiente' : 'pagos pendientes'} todavía en ventana`
-      : 'No quedan pagos pendientes en ventana',
+      ? `${pendingCount.value} ${pendingCount.value === 1 ? 'pago pendiente' : 'pagos pendientes'}`
+      : 'Sin pagos pendientes',
     value: formatCurrency(pendingValue.value),
     share: pendingRate.value,
     shareLabel: `${formatPercent(pendingRate.value)} del objetivo`,
@@ -503,8 +503,8 @@ const breakdownItems = computed(() => [
     id: 'late',
     label: 'En mora',
     detail: overdueCount.value
-      ? `${overdueCount.value} ${overdueCount.value === 1 ? 'caso fuera de plazo' : 'casos fuera de plazo'}`
-      : 'Sin retrasos acumulados',
+      ? `${overdueCount.value} ${overdueCount.value === 1 ? 'pago en retraso' : 'pagos en retraso'}`
+      : 'Sin retrasos',
     value: formatCurrency(lateValue.value),
     share: lateRate.value,
     shareLabel: `${formatPercent(lateRate.value)} del objetivo`,
@@ -540,30 +540,30 @@ const dashboardHighlights = computed(() => [
     id: 'collection',
     title: 'Cobro',
     value: formatPercent(collectionRate.value),
-    badge: collectionRate.value >= 80 ? 'Bien' : 'Seguir',
+    badge: collectionRate.value >= 80 ? 'Correcto' : 'Revisar',
     body:
       collectionRate.value >= 80
-        ? 'Buen ritmo de cobro este mes.'
+        ? 'Buen ritmo de cobro.'
         : collectionRate.value > 0
-          ? 'Cobro bajo. Conviene insistir esta semana.'
-          : 'Aún no entra dinero este mes.',
+          ? 'Cobro por debajo de lo previsto.'
+          : 'Sin cobros registrados este mes.',
     tone: (collectionRate.value >= 80 ? 'success' : 'warning') as HighlightTone
   },
   {
     id: 'availability',
     title: 'Libres',
     value: String(availableUnits.value),
-    badge: availableUnits.value ? 'Mover' : 'Lleno',
+    badge: availableUnits.value ? 'Disponible' : 'Completo',
     body: availableUnits.value
       ? `Hay ${availableUnits.value} ${availableUnits.value === 1 ? 'unidad libre' : 'unidades libres'} para alquilar.`
-      : 'Ahora mismo todo está ocupado.',
+      : 'No hay unidades libres.',
     tone: (availableUnits.value ? 'warning' : 'success') as HighlightTone
   },
   {
     id: 'overdue',
     title: 'Atrasos',
     value: String(overdueCount.value),
-    badge: overdueCount.value ? 'Urgente' : 'Limpio',
+    badge: overdueCount.value ? 'Atención' : 'Al día',
     body: overdueCount.value
       ? `Hay ${overdueCount.value} ${overdueCount.value === 1 ? 'pago atrasado' : 'pagos atrasados'} por ${formatCurrency(overdueAmount.value)}.`
       : 'No hay pagos atrasados.',

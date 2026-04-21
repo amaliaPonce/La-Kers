@@ -10,12 +10,14 @@ import dashboardRouter from './routes/dashboard';
 import contractsRouter from './routes/contracts';
 import tenantPortalRouter from './routes/tenantPortal';
 import billingRouter, { billingWebhookHandler, billingWebhookMiddleware } from './routes/billing';
-import { authMiddleware } from './middleware/authMiddleware';
+import { AuthenticatedRequest, authMiddleware } from './middleware/authMiddleware';
 import { appConfig, isOriginAllowed } from './config/appConfig';
 import { createRateLimiter } from './middleware/rateLimit';
 import { applySecurityHeaders } from './middleware/securityHeaders';
 import { logError } from './utils/errorLogger';
 import { getReadinessStatus } from './utils/readiness';
+import * as Sentry from '@sentry/node';
+import { applySentryRequestContext } from './monitoring/sentry';
 
 const app = express();
 
@@ -71,6 +73,10 @@ app.get('/ready', async (req, res) => {
 
 app.use(clerkMiddleware());
 app.use(authMiddleware);
+app.use((req, res, next) => {
+  applySentryRequestContext(req as AuthenticatedRequest);
+  next();
+});
 
 app.use('/apartments', apartmentsRouter);
 app.use('/tenants', tenantsRouter);
@@ -81,6 +87,7 @@ app.use('/contracts', contractsRouter);
 app.use('/documents', documentsRouter);
 app.use('/tenant-portal', tenantPortalRouter);
 app.use('/billing', billingRouter);
+Sentry.setupExpressErrorHandler(app);
 app.use((err: unknown, req: express.Request, res: express.Response, next: express.NextFunction) => {
   logError(err, {
     tag: 'server.error',

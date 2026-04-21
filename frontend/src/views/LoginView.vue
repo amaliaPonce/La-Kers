@@ -98,11 +98,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import { SignIn } from '@clerk/vue';
 import brandLogo from '../assets/logo.png';
 import { clerkAuthAppearance } from '../services/clerkAppearance';
+import { setAuthIntent } from '../lib/authTracking';
 
 const route = useRoute();
 const hasClerkConfig = Boolean(import.meta.env.VITE_CLERK_PUBLISHABLE_KEY);
@@ -112,6 +113,10 @@ const returnPath = computed(() =>
     ? route.query.redirect
     : '/dashboard'
 );
+
+onMounted(() => {
+  setAuthIntent('login');
+});
 </script>
 
 <style scoped>

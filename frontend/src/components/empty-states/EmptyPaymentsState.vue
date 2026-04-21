@@ -53,7 +53,7 @@ const props = withDefaults(
   {
     eyebrow: 'Cobros',
     title: 'Todavía no hay pagos',
-    description: 'Cuando registres pagos, aquí verás el resumen financiero.',
+    description: 'Cuando registres cobros, aquí verás el resumen del mes.',
     ctaLabel: 'Ir a inquilinos',
     ctaTo: '/tenants'
   }

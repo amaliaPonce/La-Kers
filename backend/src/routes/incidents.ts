@@ -7,6 +7,7 @@ import {
   updateIncident
 } from '../services/incidentsService';
 import { notifyDashboardUpdated } from '../services/dashboardRealtime';
+import { captureServerException } from '../monitoring/sentry';
 
 const router = Router();
 const allowedStatus = ['OPEN', 'IN_PROGRESS', 'CLOSED'];
@@ -82,6 +83,20 @@ router.post('/', async (req: AuthenticatedRequest, res) => {
     res.status(201).json(incident);
   } catch (error) {
     console.error(error);
+    captureServerException(error, {
+      tag: 'incidents.create_failed',
+      userId: req.authUser?.id,
+      route: req.path,
+      tags: {
+        feature: 'incidents',
+        action: 'create'
+      },
+      extra: {
+        incidentId: null,
+        unitId: payload.unit_id,
+        route: '/incidents'
+      }
+    });
     const status = (error as any).status ?? 500;
     res.status(status).json({ message: 'No se pudo crear la incidencia' });
   }
@@ -119,6 +134,20 @@ router.put('/:id', async (req: AuthenticatedRequest, res) => {
     res.json(incident);
   } catch (error) {
     console.error(error);
+    captureServerException(error, {
+      tag: payload.status === 'CLOSED' ? 'incidents.resolve_failed' : 'incidents.update_failed',
+      userId: req.authUser?.id,
+      route: req.path,
+      tags: {
+        feature: 'incidents',
+        action: payload.status === 'CLOSED' ? 'resolve' : 'update'
+      },
+      extra: {
+        incidentId: req.params.id,
+        status: payload.status ?? null,
+        route: '/incidents'
+      }
+    });
     const status = (error as any).status ?? 500;
     res.status(status).json({ message: 'No se pudo actualizar la incidencia' });
   }

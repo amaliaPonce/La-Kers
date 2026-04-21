@@ -1,4 +1,5 @@
 import 'dotenv/config';
+import './monitoring/sentry';
 import app from './app';
 import { appConfig } from './config/appConfig';
 import { registerLatePaymentCron } from './cron/latePayments';

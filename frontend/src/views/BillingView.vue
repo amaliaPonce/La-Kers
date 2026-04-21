@@ -5,13 +5,13 @@
         <div class="space-y-5">
           <div class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.35em] text-slate-700">
             <SolidIcon name="coin" class="h-3.5 w-3.5 text-[#c96a37]" />
-            <span>Gratis vs Pro</span>
+            <span>Planes</span>
           </div>
 
           <div class="max-w-3xl">
-            <h1 class="text-3xl font-semibold text-slate-900 sm:text-5xl">Plan y Billing</h1>
+            <h1 class="text-3xl font-semibold text-slate-900 sm:text-5xl">Plan y facturación</h1>
             <p class="mt-3 max-w-2xl text-sm leading-7 text-slate-600 sm:text-base">
-              Aquí se ve de forma explícita qué incluye cada plan, cuál tienes activo y cuándo toca pasar de gratis a Pro.
+              Consulta el plan activo, el uso y cuándo conviene ampliar capacidad.
             </p>
           </div>
 
@@ -38,13 +38,13 @@
                 <div>
                   <p class="text-lg font-semibold text-slate-900">Gratis</p>
                   <p class="mt-1 text-3xl font-semibold text-slate-900">0 €</p>
-                  <p class="mt-2 text-sm leading-6 text-slate-500">Entrada sin tarjeta para validar el flujo y gestionar una cartera muy pequeña.</p>
+                  <p class="mt-2 text-sm leading-6 text-slate-500">Hasta 2 inmuebles sin coste.</p>
                 </div>
                 <span
                   class="rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em]"
                   :class="isProActive ? 'bg-slate-100 text-slate-500' : 'bg-[#f3ede4] text-[#8c4d29]'"
                 >
-                  {{ isProActive ? 'Base' : 'Plan actual' }}
+                  {{ isProActive ? 'Incluido' : 'Plan actual' }}
                 </span>
               </div>
 
@@ -61,13 +61,13 @@
                 <div>
                   <p class="text-lg font-semibold">Pro</p>
                   <p class="mt-1 text-3xl font-semibold">{{ formatPrice(990) }}/mes</p>
-                  <p class="mt-2 text-sm leading-6 text-emerald-100/85">Escala la misma operativa diaria sin quedarte bloqueado por capacidad.</p>
+                  <p class="mt-2 text-sm leading-6 text-emerald-100/85">Más capacidad para seguir dando de alta inmuebles.</p>
                 </div>
                 <span
                   class="rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em]"
                   :class="isProActive ? 'bg-white text-[#1f4f46]' : 'bg-white/10 text-emerald-50'"
                 >
-                  {{ isProActive ? 'Plan actual' : 'Upgrade' }}
+                  {{ isProActive ? 'Plan actual' : 'Disponible' }}
                 </span>
               </div>
 
@@ -136,10 +136,10 @@
         <div class="space-y-1">
           <div class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.3em] text-[#1f4f46]">
             <SolidIcon name="wallet" class="h-3.5 w-3.5" />
-            <span>Diferencias reales</span>
+            <span>Comparativa</span>
           </div>
-          <h2 class="text-2xl font-semibold text-slate-900">Qué cambia de verdad entre gratis y Pro</h2>
-          <p class="text-sm text-slate-500">La separación operativa se centra en la capacidad y en la continuidad de uso.</p>
+          <h2 class="text-2xl font-semibold text-slate-900">Comparativa de planes</h2>
+          <p class="text-sm text-slate-500">Capacidad y facturación.</p>
         </div>
 
         <div class="mt-6 overflow-hidden rounded-[28px] border border-slate-200">
@@ -168,10 +168,10 @@
         <div class="space-y-1">
           <div class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.3em] text-[#8c4d29]">
             <SolidIcon name="refresh" class="h-3.5 w-3.5" />
-            <span>Acciones</span>
+            <span>Gestión</span>
           </div>
-          <h2 class="text-2xl font-semibold text-slate-900">Siguiente paso</h2>
-          <p class="text-sm text-slate-500">Activa Pro o gestiona la suscripción actual desde aquí.</p>
+          <h2 class="text-2xl font-semibold text-slate-900">Gestionar plan</h2>
+          <p class="text-sm text-slate-500">Activa Pro o abre el portal de facturación.</p>
         </div>
 
         <div class="mt-6 grid gap-4">
@@ -179,7 +179,7 @@
             <div class="flex items-start justify-between gap-4">
               <div>
                 <p class="text-sm font-semibold text-slate-900">Plan Pro mensual</p>
-                <p class="mt-1 text-sm text-slate-500">Pensado para subir de capacidad sin compromiso anual.</p>
+                <p class="mt-1 text-sm text-slate-500">Pago mensual.</p>
               </div>
               <p class="text-xl font-semibold text-slate-900">{{ formatPrice(990) }}</p>
             </div>
@@ -197,7 +197,7 @@
             <div class="flex items-start justify-between gap-4">
               <div>
                 <p class="text-sm font-semibold text-slate-900">Plan Pro anual</p>
-                <p class="mt-1 text-sm text-slate-500">Mismo límite Pro con pago anual y menor fricción de renovación.</p>
+                <p class="mt-1 text-sm text-slate-500">Mismo límite con pago anual.</p>
               </div>
               <p class="text-xl font-semibold text-slate-900">{{ formatPrice(9900) }}</p>
             </div>
@@ -234,6 +234,8 @@ import { useRoute } from 'vue-router';
 import { useBilling } from '../composables/useBilling';
 import SolidIcon from '../components/SolidIcon.vue';
 import apiClient from '../services/apiClient';
+import { track } from '../lib/analytics';
+import { captureAppException } from '../lib/sentry';
 
 const route = useRoute();
 const { summary, isPro: isProActive, loadSummary } = useBilling();
@@ -242,15 +244,15 @@ const feedbackMessage = ref('');
 const feedbackTone = ref<'success' | 'warning' | 'error'>('success');
 
 const freePlanFeatures = [
-  'Hasta 2 inmuebles para validar el producto sin pagar.',
+  'Hasta 2 inmuebles.',
   'Acceso a propiedades, pagos, incidencias y documentos.',
-  'Bloqueo automático al intentar superar la capacidad gratis.'
+  'Bloqueo automático al superar el límite.'
 ];
 
 const proPlanFeatures = [
-  'Hasta 25 inmuebles sin cambiar la operativa diaria.',
-  'Upgrade mensual o anual desde el área de billing.',
-  'Más margen para crecer sin frenar nuevas altas.'
+  'Hasta 25 inmuebles.',
+  'Alta mensual o anual desde esta pantalla.',
+  'Más capacidad para nuevas altas.'
 ];
 
 const comparisonRows = [
@@ -265,7 +267,7 @@ const comparisonRows = [
     label: 'Alta inicial',
     description: 'Cómo entra un nuevo propietario al producto.',
     free: 'Sin tarjeta',
-    pro: 'Upgrade',
+    pro: 'Activación',
     highlight: false
   },
   {
@@ -278,8 +280,8 @@ const comparisonRows = [
   {
     label: 'Momento ideal',
     description: 'Cuándo tiene sentido quedarse o pasar al siguiente nivel.',
-    free: 'Validación',
-    pro: 'Escala',
+    free: 'Inicio',
+    pro: 'Crecimiento',
     highlight: false
   }
 ];
@@ -306,9 +308,9 @@ const usageDetail = computed(() => {
   const current = summary.value;
   if (!current) return 'Cargando uso del plan.';
   if (current.usage.canAddMoreUnits) {
-    return `Te quedan ${current.usage.remainingUnits} inmuebles disponibles antes de bloquear nuevas altas.`;
+    return `Te quedan ${current.usage.remainingUnits} inmuebles disponibles.`;
   }
-  return 'Has alcanzado el límite actual. La siguiente alta exige pasar a Pro.';
+  return 'Has alcanzado el límite actual. La siguiente alta requiere Pro.';
 });
 
 const statusLabel = computed(() => {
@@ -339,18 +341,18 @@ const cycleLabel = computed(() => {
 
 const upgradeTimingTitle = computed(() => {
   if (!summary.value) return 'Cargando recomendación.';
-  if (isProActive.value) return 'No necesitas cambiar de plan ahora.';
-  if (isAtLimit.value) return 'Ahora mismo ya toca pasar a Pro.';
-  if ((summary.value.usage.remainingUnits ?? 0) <= 1) return 'Conviene prepararlo ya.';
-  return 'Todavía puedes seguir en gratis.';
+  if (isProActive.value) return 'No necesitas cambiar de plan.';
+  if (isAtLimit.value) return 'Conviene activar Pro.';
+  if ((summary.value.usage.remainingUnits ?? 0) <= 1) return 'Queda poco margen.';
+  return 'Puedes seguir en gratis.';
 });
 
 const upgradeTimingBody = computed(() => {
   if (!summary.value) return 'En cuanto cargue la cuenta verás la recomendación.';
-  if (isProActive.value) return 'Tu cuenta ya tiene capacidad ampliada y portal de gestión si Stripe está disponible.';
-  if (isAtLimit.value) return 'El siguiente inmueble quedará bloqueado hasta activar Pro.';
-  if ((summary.value.usage.remainingUnits ?? 0) <= 1) return 'Te queda muy poco margen en gratis. Si prevés otra alta, evita fricción activando Pro.';
-  return 'Mientras no llegues a 2 inmuebles puedes seguir validando el producto sin coste.';
+  if (isProActive.value) return 'Tu cuenta ya tiene capacidad ampliada.';
+  if (isAtLimit.value) return 'El siguiente inmueble requerirá activar Pro.';
+  if ((summary.value.usage.remainingUnits ?? 0) <= 1) return 'Si prevés otra alta, conviene activar Pro.';
+  return 'Puedes seguir en gratis mientras no superes el límite.';
 });
 
 const monthlyButtonLabel = computed(() =>
@@ -383,9 +385,14 @@ const buildManualActivationLink = (billingCycle: 'monthly' | 'yearly') => {
 const startCheckout = async (billingCycle: 'monthly' | 'yearly') => {
   if (isProActive.value) {
     feedbackTone.value = 'warning';
-    feedbackMessage.value = 'La cuenta ya tiene Pro activo. Usa el portal de facturación para gestionarlo.';
+    feedbackMessage.value = 'La cuenta ya tiene el plan Pro activo. Usa el portal de facturación para gestionarlo.';
     return;
   }
+
+  track('pro_upgrade_clicked', {
+    source: 'billing',
+    billingCycle
+  });
 
   if (!summary.value?.billing.checkoutAvailable) {
     window.location.href = buildManualActivationLink(billingCycle);
@@ -404,6 +411,16 @@ const startCheckout = async (billingCycle: 'monthly' | 'yearly') => {
     throw new Error('Stripe no devolvió una URL de checkout');
   } catch (error) {
     console.error(error);
+    captureAppException(error, {
+      tags: {
+        feature: 'billing',
+        action: 'checkout'
+      },
+      context: {
+        billingCycle,
+        route: '/billing'
+      }
+    });
     feedbackTone.value = 'error';
     feedbackMessage.value = axios.isAxiosError(error)
       ? String(error.response?.data?.message ?? 'No se pudo abrir Stripe Checkout.')
@@ -426,6 +443,15 @@ const openPortal = async () => {
     throw new Error('Stripe no devolvió una URL de portal');
   } catch (error) {
     console.error(error);
+    captureAppException(error, {
+      tags: {
+        feature: 'billing',
+        action: 'portal'
+      },
+      context: {
+        route: '/billing'
+      }
+    });
     feedbackTone.value = 'error';
     feedbackMessage.value = axios.isAxiosError(error)
       ? String(error.response?.data?.message ?? 'No se pudo abrir el portal de Stripe.')
@@ -436,6 +462,7 @@ const openPortal = async () => {
 };
 
 onMounted(() => {
+  track('billing_opened', { source: 'billing_view' });
   const checkoutState = String(route.query.checkout ?? '');
   if (checkoutState === 'success') {
     feedbackTone.value = 'success';

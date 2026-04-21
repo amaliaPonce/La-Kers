@@ -44,8 +44,8 @@
                     <img :src="brandLogo" alt="La-Kers" class="h-8 w-auto object-contain" />
                   </span>
                   <div>
-                    <p class="text-[11px] font-semibold uppercase tracking-[0.28em] text-[#1f4f46]">Zona autenticada</p>
-                    <p class="mt-1 text-sm text-slate-500">Gestión diaria con Clerk</p>
+                    <p class="text-[11px] font-semibold uppercase tracking-[0.28em] text-[#1f4f46]">Panel</p>
+                    <p class="mt-1 text-sm text-slate-500">Operación diaria</p>
                   </div>
                 </div>
 
@@ -81,35 +81,25 @@
                 <div v-for="section in sidebarSections" :key="section.title" class="space-y-3">
                   <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">{{ section.title }}</p>
                   <div class="space-y-1">
-                    <component
-                      :is="item.path ? 'router-link' : 'button'"
+                    <router-link
                       v-for="item in section.items"
                       :key="item.label"
                       :to="item.path"
-                      :type="item.path ? undefined : 'button'"
                       class="flex w-full items-center justify-between gap-3 rounded-2xl px-3 py-2.5 text-left text-xs font-medium transition"
                       :class="item.active
                         ? 'bg-[#1f4f46] text-white'
-                        : item.path
-                          ? 'text-slate-600 hover:bg-white hover:text-slate-900'
-                          : 'text-slate-400'"
+                        : 'text-slate-600 hover:bg-white hover:text-slate-900'"
                     >
                       <span class="flex items-center gap-3">
                         <span
                           class="flex h-9 w-9 items-center justify-center rounded-xl"
-                          :class="item.active ? 'bg-white/12 text-white' : item.path ? 'bg-white text-[#8c4d29]' : 'bg-[#f3ede4] text-slate-400'"
+                          :class="item.active ? 'bg-white/12 text-white' : 'bg-white text-[#8c4d29]'"
                         >
                           <SolidIcon :name="item.icon" class="h-4 w-4" />
                         </span>
                         <span class="leading-5">{{ item.label }}</span>
                       </span>
-                      <span
-                        v-if="!item.path"
-                        class="rounded-full bg-[#f3ede4] px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400"
-                      >
-                        Próx.
-                      </span>
-                    </component>
+                    </router-link>
                   </div>
                 </div>
               </nav>
@@ -127,7 +117,7 @@
                     >
                       <SolidIcon name="coin" class="h-3.5 w-3.5" />
                     </span>
-                    <span>Billing</span>
+                    <span>Plan</span>
                   </span>
                   <span class="text-[10px] font-semibold uppercase tracking-[0.12em]" :class="route.path === '/billing' ? 'text-white/75' : 'text-slate-400'">
                     {{ billingLinkLabel }}
@@ -258,6 +248,13 @@ import TooltipGuide from './components/onboarding/TooltipGuide.vue';
 import { runtimeConfig } from './config/runtimeConfig';
 import { clerkUserButtonAppearance } from './services/clerkAppearance';
 import brandLogo from './assets/logo.png';
+import { track } from './lib/analytics';
+import { consumeAuthIntent } from './lib/authTracking';
+import {
+  clearSentryUserContext,
+  hashValue,
+  updateSentryUserContext
+} from './lib/sentry';
 const route = useRoute();
 const hasClerkConfig = runtimeConfig.hasClerkConfig;
 const enableTenantPortal = runtimeConfig.enableTenantPortal;
@@ -286,30 +283,21 @@ const resolveActive = (path) => route.path === path;
 const sidebarSections = computed(() => {
   return [
     {
-      title: 'Lo básico',
+      title: 'Panel',
       items: [
-        { label: 'Tablero', path: '/dashboard', icon: 'dashboard', active: resolveActive('/dashboard') },
+        { label: 'Dashboard', path: '/dashboard', icon: 'dashboard', active: resolveActive('/dashboard') },
         { label: 'Propiedades', path: '/apartments', icon: 'building', active: resolveActive('/apartments') },
         { label: 'Inquilinos', path: '/tenants', icon: 'users', active: resolveActive('/tenants') },
-        { label: 'Sistema de pagos', path: '/payments', icon: 'wallet', active: resolveActive('/payments') },
+        { label: 'Pagos', path: '/payments', icon: 'wallet', active: resolveActive('/payments') },
         { label: 'Incidencias', path: '/incidents', icon: 'warning', active: resolveActive('/incidents') },
         { label: 'Documentos', path: '/documents', icon: 'calendar', active: resolveActive('/documents') }
-      ]
-    },
-    {
-      title: 'El resto',
-      items: [
-        { label: 'Contactos', icon: 'users', active: false },
-        { label: 'Candidatos', icon: 'users', active: false },
-        { label: 'Herramientas', icon: 'spark', active: false },
-        { label: 'Basura', icon: 'warning', active: false }
       ]
     }
   ];
 });
 
 const currentSectionTitle = computed(() => {
-  if (route.path === '/billing') return 'Plan y Billing';
+  if (route.path === '/billing') return 'Plan y facturación';
   const found = quickNavItems.value.find((item) => item.path === route.path);
   return found?.label ?? 'Panel de gestión';
 });
@@ -323,15 +311,15 @@ const planBadgeClass = computed(() =>
     : 'border-[#eadfd2] bg-[#f7f2eb] text-[#8c4d29]'
 );
 
-const billingLinkLabel = computed(() => (isProPlan.value ? 'Activo' : 'Upgrade'));
+const billingLinkLabel = computed(() => (isProPlan.value ? 'Activo' : 'Ver'));
 
 const currentSectionDescription = computed(() => {
   if (route.path === '/apartments') return 'Inventario y estado de cada unidad.';
   if (route.path === '/tenants') return 'Seguimiento de inquilinos y contratos.';
   if (route.path === '/payments') return 'Cobros, vencimientos y movimientos.';
   if (route.path === '/incidents') return 'Incidencias y seguimiento operativo.';
-  if (route.path === '/documents') return 'Contratos y recibos listos para localizar.';
-  if (route.path === '/billing') return 'Plan activo, uso y control de cobro.';
+  if (route.path === '/documents') return 'Contratos y recibos en un solo lugar.';
+  if (route.path === '/billing') return 'Plan activo, uso y facturación.';
   return 'Resumen general de la operación.';
 });
 
@@ -339,6 +327,7 @@ const showAmbientBackground = computed(() => !route.meta.hideNavbar);
 const currentOnboardingRoute = computed(() =>
   String(route.meta.onboardingRoute ?? route.name ?? '')
 );
+let sentryUserContextVersion = 0;
 
 watch(
   [() => route.meta.public, () => user.value?.id],
@@ -349,6 +338,51 @@ watch(
     }
 
     loadSummary().catch((error) => console.error(error));
+  },
+  { immediate: true }
+);
+
+watch(
+  () => user.value?.id,
+  (userId, previousUserId) => {
+    if (!userId || userId === previousUserId) return;
+
+    const authIntent = consumeAuthIntent();
+    if (authIntent === 'signup') {
+      track('signup_completed');
+    }
+    if (authIntent === 'login') {
+      track('login_completed');
+    }
+  }
+);
+
+watch(
+  [
+    () => user.value?.id,
+    () => user.value?.primaryEmailAddress?.emailAddress,
+    () => billingSummary.value?.plan.id,
+    () => Boolean(route.meta.tenantPortal)
+  ],
+  async ([userId, email, planId, isTenantPortal]) => {
+    const currentVersion = ++sentryUserContextVersion;
+
+    if (!userId) {
+      clearSentryUserContext();
+      return;
+    }
+
+    const emailHash = await hashValue(email);
+    if (currentVersion !== sentryUserContextVersion) {
+      return;
+    }
+
+    updateSentryUserContext({
+      id: userId,
+      emailHash,
+      plan: planId === 'pro' ? 'pro' : 'free',
+      portal: isTenantPortal ? 'tenant' : 'owner'
+    });
   },
   { immediate: true }
 );

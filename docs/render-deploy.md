@@ -83,7 +83,7 @@ Este repo queda preparado para desplegarse en Render Free con el blueprint de [r
    - `la-kers-api` como `Web Service`
    - `la-kers-web` como `Static Site`
 5. Revisa que el backend quede con estos valores:
-   - Build Command: `npm ci && npm --workspace backend run build`
+   - Build Command: `npm ci --include=dev && npm --workspace backend run build`
    - Start Command: `npm --workspace backend run start`
    - Health Check Path: `/ready`
 6. Revisa que el frontend quede con estos valores:
@@ -98,7 +98,9 @@ Este repo queda preparado para desplegarse en Render Free con el blueprint de [r
     - `sql/schema.sql`
     - `sql/20260327_clerk_owner_ids.sql`
     - `sql/20260327_owner_subscriptions.sql`
+    - `sql/20260413_tenant_contract_profiles.sql`
     - `sql/20260327_tenant_portal_access.sql` solo si reactivas el portal tenant
+    - si la base ya existia antes de abril de 2026, esta migracion incremental es obligatoria aunque el deploy de Render salga en verde
 11. Cuando el deploy termine, valida estas URLs:
     - `https://TU-API.onrender.com/ready`
     - `https://TU-API.onrender.com/health`

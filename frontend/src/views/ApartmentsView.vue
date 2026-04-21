@@ -5,7 +5,7 @@
         <div>
           <p class="text-xs uppercase tracking-[0.35em] text-slate-500">Control de unidades</p>
           <h1 class="text-3xl font-semibold text-slate-900">Apartamentos</h1>
-          <p class="text-sm text-slate-500">Métricas clave y rentas consolidadas para tener el pulso de tu portafolio.</p>
+          <p class="text-sm text-slate-500">Resumen de unidades y rentas.</p>
         </div>
         <button
           type="button"
@@ -19,7 +19,7 @@
           <svg class="h-4 w-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M8 3v10m5-5H3" />
           </svg>
-          {{ canCreateApartment ? 'Nuevo apartamento' : 'Necesitas Pro para añadir más' }}
+          {{ canCreateApartment ? 'Nuevo apartamento' : 'Activa Pro para añadir más' }}
         </button>
       </div>
       <div
@@ -50,7 +50,7 @@
                 v-else-if="isNearLimit"
                 class="rounded-full bg-amber-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-amber-700"
               >
-                Queda poco margen
+                Poco margen
               </span>
             </div>
             <h2 class="mt-3 text-xl font-semibold text-slate-900">{{ apartmentPlanHeadline }}</h2>
@@ -75,7 +75,7 @@
                 class="rounded-full bg-[#1f4f46] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#173c36]"
                 @click="router.push('/billing')"
               >
-                Ver planes
+                Ver plan
               </button>
               <button
                 v-else
@@ -83,7 +83,7 @@
                 class="rounded-full border border-[#cfe3dc] bg-white px-4 py-2 text-sm font-semibold text-[#1f4f46] transition hover:border-[#b7d4c9]"
                 @click="router.push('/billing')"
               >
-                Gestionar Pro
+                Gestionar plan
               </button>
             </div>
           </div>
@@ -94,13 +94,13 @@
           label="Disponibles"
           :value="statusSummary.AVAILABLE"
           accent="emerald"
-          subtext="Listas para nuevos contratos"
+          subtext="Disponibles para alquilar"
         />
         <CompactMetricCard
           label="Ocupados"
           :value="statusSummary.OCCUPIED"
           accent="rose"
-          subtext="Ingresos activos"
+          subtext="Con contrato activo"
         />
         <CompactMetricCard
           label="Renta mensual potencial"
@@ -112,7 +112,7 @@
           label="Renta mensual activa"
           :value="formatCurrency(monthlyActive)"
           accent="emerald"
-          subtext="Solo apartamentos ocupados"
+          subtext="Solo unidades ocupadas"
         />
       </div>
     </section>
@@ -122,7 +122,7 @@
         <div>
           <p class="text-xs uppercase tracking-wide text-slate-500">Lista principal</p>
           <h2 class="text-2xl font-semibold text-slate-900">Gestión de apartamentos</h2>
-          <p class="text-sm text-slate-500">Filtra, ordena y dispara acciones rápidas con una interfaz clara.</p>
+          <p class="text-sm text-slate-500">Filtra y revisa el estado de cada unidad.</p>
         </div>
         <span class="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">Total {{ totalApartments }}</span>
       </div>
@@ -169,7 +169,7 @@
             class="flex flex-col items-center justify-center gap-2 rounded-3xl border border-dashed border-slate-200/80 bg-slate-50/60 p-6 text-center text-slate-500"
           >
             <p class="text-lg font-semibold text-slate-800">No hay apartamentos que coincidan</p>
-            <p class="text-sm">Ajusta los filtros o crea un nuevo apartamento para empezar a ver métricas aquí.</p>
+            <p class="text-sm">Ajusta los filtros o crea un apartamento.</p>
           </div>
         </div>
 
@@ -234,7 +234,7 @@
                     class="rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em]"
                     :class="selectedApartmentHasContractProfile ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-500'"
                   >
-                    {{ selectedApartmentHasContractProfile ? 'Perfil propio' : 'Fallback general' }}
+                    {{ selectedApartmentHasContractProfile ? 'Perfil propio' : 'Perfil general' }}
                   </span>
                 </div>
                 <div v-if="selectedApartmentHasContractProfile" class="mt-3 space-y-2 text-sm text-slate-600">
@@ -242,7 +242,7 @@
                   <p><span class="font-semibold text-slate-900">Domicilio:</span> {{ selectedContractProfileAddress }}</p>
                 </div>
                 <p v-else class="mt-3 text-sm leading-6 text-slate-600">
-                  Este apartamento todavía no tiene un titular contractual propio. Los PDFs usarán la configuración general del arrendador.
+                  Este apartamento no tiene perfil propio. Los PDF usarán la configuración general del arrendador.
                 </p>
               </div>
 
@@ -272,7 +272,7 @@
               <p class="text-xs font-semibold uppercase tracking-[0.32em] text-slate-400">Ficha del apartamento</p>
               <h3 class="mt-3 text-xl font-semibold text-slate-900">Selecciona una unidad para ver su detalle</h3>
               <p class="mt-2 text-sm leading-6 text-slate-500">
-                La ficha queda visible aquí mientras revisas la lista, para comparar sin perder contexto.
+                La ficha permanece visible mientras navegas.
               </p>
             </article>
           </transition>
@@ -305,6 +305,8 @@ import EmptyPropertiesState from '../components/empty-states/EmptyPropertiesStat
 import StatusBadge from '../components/StatusBadge.vue';
 import { useOnboarding } from '../composables/useOnboarding';
 import apiClient from '../services/apiClient';
+import { track } from '../lib/analytics';
+import { captureAppException } from '../lib/sentry';
 
 const router = useRouter();
 const {
@@ -455,27 +457,27 @@ const canCreateApartment = computed(() => billingSummary.value?.usage.canAddMore
 const apartmentPlanHeadline = computed(() => {
   if (!billingSummary.value) return 'Cargando estado del plan.';
   if (isProPlan.value) {
-    return 'Tu cartera ya está operando con margen Pro.';
+    return 'Plan Pro activo.';
   }
   if (isAtLimit.value) {
-    return 'Has agotado la capacidad del plan gratis.';
+    return 'Límite del plan gratis alcanzado.';
   }
   if (isNearLimit.value) {
-    return 'Estás muy cerca del tope del plan gratis.';
+    return 'Queda poco margen en el plan gratis.';
   }
-  return 'Todavía estás dentro del plan gratis.';
+  return 'Plan gratis en uso.';
 });
 
 const apartmentPlanMessage = computed(() => {
   if (!billingSummary.value) return 'En cuanto cargue el billing verás el uso y el límite aplicable.';
   const { unitCount, unitLimit, remainingUnits } = billingSummary.value.usage;
   if (isProPlan.value) {
-    return `Ahora usas ${unitCount} de ${unitLimit} inmuebles disponibles. Puedes seguir creciendo sin tocar el límite gratis.`;
+    return `Ahora usas ${unitCount} de ${unitLimit} inmuebles disponibles.`;
   }
   if (isAtLimit.value) {
-    return `Ya usas ${unitCount} de ${unitLimit} inmuebles. La siguiente alta queda bloqueada hasta activar Pro.`;
+    return `Ya usas ${unitCount} de ${unitLimit} inmuebles. La siguiente alta requiere activar Pro.`;
   }
-  return `Ahora mismo usas ${unitCount} de ${unitLimit} inmuebles y te quedan ${remainingUnits} huecos antes de necesitar Pro.`;
+  return `Ahora usas ${unitCount} de ${unitLimit} inmuebles. Te quedan ${remainingUnits} disponibles antes de necesitar Pro.`;
 });
 
 const monthlyPotential = computed(() => {
@@ -590,6 +592,7 @@ const handleModalSubmit = async (payload: {
   try {
     if (modalMode.value === 'create') {
       await apiClient.post('/apartments', payload);
+      track('property_created', { source: 'apartments' });
     } else if (payload.id) {
       await apiClient.put(`/apartments/${payload.id}`, payload);
     }
@@ -597,6 +600,19 @@ const handleModalSubmit = async (payload: {
     await refreshData();
   } catch (error) {
     console.error(error);
+    if (modalMode.value === 'create') {
+      captureAppException(error, {
+        tags: {
+          feature: 'apartments',
+          action: 'create'
+        },
+        context: {
+          apartmentId: payload.id ?? null,
+          status: payload.status,
+          route: '/apartments'
+        }
+      });
+    }
     if (axios.isAxiosError(error)) {
       modalServerError.value =
         typeof error.response?.data?.message === 'string'
@@ -632,6 +648,7 @@ const handleDelete = async (apartment: Record<string, unknown>) => {
 
   try {
     await apiClient.delete(`/apartments/${apartment.id}`);
+    track('property_deleted', { source: 'apartments' });
     if (selectedApartment.value?.id === apartment.id) {
       selectedApartment.value = null;
     }

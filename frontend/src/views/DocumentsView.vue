@@ -5,10 +5,10 @@
         <div>
           <p class="text-xs font-semibold uppercase tracking-[0.35em] text-slate-500">Documentación</p>
           <h1 class="text-3xl font-semibold text-slate-900">Contratos y recibos</h1>
-          <p class="text-sm text-slate-500">Localiza PDFs operativos sin salir del panel ni rebuscar en carpetas separadas.</p>
+          <p class="text-sm text-slate-500">Consulta contratos y recibos desde un solo lugar.</p>
         </div>
         <div class="rounded-2xl border border-[#d8e4de] bg-[#f3faf6] px-4 py-3 text-sm text-[#1f4f46]">
-          {{ documents.length ? `${documents.length} documentos listos` : 'Aún no hay documentos generados' }}
+          {{ documents.length ? `${documents.length} documentos` : 'No hay documentos todavía' }}
         </div>
       </div>
 
@@ -104,7 +104,7 @@
 
           <div v-if="!filteredDocuments.length" class="px-5 py-10 text-center">
             <p class="text-lg font-semibold text-slate-900">No hay documentos que coincidan</p>
-            <p class="mt-2 text-sm text-slate-500">Ajusta los filtros o genera actividad nueva desde pagos e inquilinos.</p>
+            <p class="mt-2 text-sm text-slate-500">Ajusta los filtros.</p>
           </div>
         </div>
       </section>
@@ -182,7 +182,7 @@
             <p class="text-xs font-semibold uppercase tracking-[0.32em] text-slate-400">Ficha del documento</p>
             <h3 class="mt-3 text-xl font-semibold text-slate-900">Selecciona un documento para ver su detalle</h3>
             <p class="mt-2 text-sm leading-6 text-slate-500">
-              Aquí quedan localizados contratos y recibos con acceso directo al PDF y al flujo que los originó.
+              Consulta el detalle y abre el PDF desde aquí.
             </p>
           </article>
         </transition>
@@ -196,6 +196,8 @@ import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue';
 import type { AxiosError } from 'axios';
 import apiClient from '../services/apiClient';
 import type { Payment } from '../types/payment';
+import { track } from '../lib/analytics';
+import { captureAppException } from '../lib/sentry';
 
 type TenantRecord = Record<string, unknown> & {
   id?: string;
@@ -282,7 +284,19 @@ const openContract = async (tenantId: string) => {
       transformResponse: [(datum) => datum]
     });
     openPdfBlob(buildPdfBlob(response.data));
+    track('contract_pdf_opened', { source: 'documents', kind: 'rental' });
   } catch (error) {
+    captureAppException(error, {
+      tags: {
+        feature: 'documents',
+        action: 'open_contract_pdf'
+      },
+      context: {
+        tenantId,
+        kind: 'rental',
+        route: '/documents'
+      }
+    });
     handleDownloadError('openContract', error, 'No se pudo abrir el contrato.');
   }
 };
@@ -294,7 +308,18 @@ const openReceipt = async (paymentId: string) => {
       transformResponse: [(datum) => datum]
     });
     openPdfBlob(buildPdfBlob(response.data));
+    track('receipt_pdf_opened', { source: 'documents' });
   } catch (error) {
+    captureAppException(error, {
+      tags: {
+        feature: 'documents',
+        action: 'open_receipt_pdf'
+      },
+      context: {
+        paymentId,
+        route: '/documents'
+      }
+    });
     handleDownloadError('openReceipt', error, 'No se pudo abrir el recibo.');
   }
 };
@@ -318,10 +343,10 @@ const documents = computed<DocumentItem[]>(() => {
         stateLabel: 'Activo',
         stateClasses: 'border-emerald-200 bg-emerald-50 text-emerald-700',
         dateLabel: `Inicio ${formatDate(String(tenant.contract_start ?? ''))}`,
-        context: 'Contrato operativo listo para consulta o descarga desde la ficha documental.',
+        context: 'Contrato activo disponible para consulta o descarga.',
         ctaLabel: 'Abrir contrato',
         relatedRoute: '/tenants',
-        relatedLabel: 'Ir a contratos',
+        relatedLabel: 'Ir a inquilinos',
         searchText: `${tenantName} ${unitLabel} ${tenant.contract_start ?? ''} contrato activo`.toLowerCase()
       };
     }),
@@ -342,10 +367,10 @@ const documents = computed<DocumentItem[]>(() => {
         stateLabel: 'Archivado',
         stateClasses: 'border-slate-200 bg-slate-100 text-slate-600',
         dateLabel: `Archivado ${formatDate(String(tenant.archived_at ?? tenant.contract_end ?? ''))}`,
-        context: 'Contrato histórico conservado para consultas posteriores o revisión de cierre.',
+        context: 'Contrato archivado disponible para consulta.',
         ctaLabel: 'Abrir contrato',
         relatedRoute: '/tenants',
-        relatedLabel: 'Ir a contratos',
+        relatedLabel: 'Ir a inquilinos',
         searchText: `${tenantName} ${unitLabel} ${tenant.archived_at ?? ''} contrato archivado`.toLowerCase()
       };
     })
@@ -371,7 +396,7 @@ const documents = computed<DocumentItem[]>(() => {
         stateLabel: 'Cobrado',
         stateClasses: 'border-[#ead8ca] bg-[#fff4ea] text-[#8c4d29]',
         dateLabel: `Pago ${formatDate(payment.paid_date ?? payment.due_date)}`,
-        context: 'Recibo disponible para pagos confirmados, listo para abrir o compartir.',
+        context: 'Recibo disponible para descarga.',
         ctaLabel: 'Abrir recibo',
         relatedRoute: '/payments',
         relatedLabel: 'Ir a pagos',
@@ -404,13 +429,13 @@ const metricCards = computed(() => [
     id: 'contracts-active',
     label: 'Contratos activos',
     value: String(activeTenants.value.length),
-    helper: 'Documentación viva vinculada a inquilinos actuales'
+    helper: 'Vinculados a inquilinos activos'
   },
   {
     id: 'contracts-archived',
     label: 'Archivados',
     value: String(archivedTenants.value.length),
-    helper: 'Histórico localizado para cierres y consultas'
+    helper: 'Histórico disponible'
   },
   {
     id: 'receipts-ready',
@@ -422,7 +447,7 @@ const metricCards = computed(() => [
     id: 'documents-total',
     label: 'Total localizado',
     value: String(documents.value.length),
-    helper: 'Contratos y recibos accesibles desde una sola vista'
+    helper: 'Todo en una sola vista'
   }
 ]);
 

@@ -3,7 +3,7 @@
     <section class="space-y-6 rounded-3xl border border-slate-100 bg-white/80 p-6 shadow-sm backdrop-blur">
       <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p class="text-xs font-semibold text-slate-500">Centro de cobros</p>
+          <p class="text-xs font-semibold text-slate-500">Cobros</p>
           <h1 class="text-3xl font-semibold text-slate-900">Pagos</h1>
         </div>
         <p class="text-sm text-slate-500">Última actualización {{ lastUpdatedLabel }}</p>
@@ -75,7 +75,7 @@
 
               <div class="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
                 <div class="rounded-3xl border border-white/80 bg-white/80 p-4 shadow-sm">
-                  <p class="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-400">Monto</p>
+                  <p class="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-400">Importe</p>
                   <p class="mt-2 text-2xl font-semibold text-slate-900">{{ formatCurrency(selectedPayment.amount ?? 0) }}</p>
                 </div>
                 <div class="rounded-3xl border border-white/80 bg-white/80 p-4 shadow-sm">
@@ -83,7 +83,7 @@
                   <p class="mt-2 text-base font-semibold text-slate-900">{{ formatDate(selectedPayment.due_date) }}</p>
                 </div>
                 <div class="rounded-3xl border border-white/80 bg-white/80 p-4 shadow-sm">
-                  <p class="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-400">Estado de mora</p>
+                  <p class="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-400">Estado</p>
                   <p
                     class="mt-2 text-base font-semibold"
                     :class="{
@@ -110,20 +110,20 @@
               </div>
 
               <div class="mt-5 rounded-3xl border border-white/80 bg-white/80 p-4 shadow-sm">
-                <p class="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-400">Seguimiento</p>
+                <p class="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-400">Estado del cobro</p>
                 <p class="mt-2 text-base font-semibold text-slate-900">
-                  {{ selectedPayment.status === 'PAID' ? 'Pago liquidado' : 'Cobro en seguimiento' }}
+                  {{ selectedPayment.status === 'PAID' ? 'Pago cobrado' : 'Pendiente de cobro' }}
                 </p>
                 <p class="mt-1 text-sm leading-6 text-slate-600">
-                  {{ selectedDaysLate > 0 ? `Retraso acumulado de ${selectedDaysLate} días.` : `Periodo ${formatMonthLabel(createMonthKey(selectedPayment.year, selectedPayment.month))}.` }}
+                  {{ selectedDaysLate > 0 ? `Retraso de ${selectedDaysLate} días.` : `Periodo ${formatMonthLabel(createMonthKey(selectedPayment.year, selectedPayment.month))}.` }}
                 </p>
               </div>
 
               <div class="mt-5 rounded-3xl border border-white/80 bg-white/80 p-4 shadow-sm">
                 <div class="flex items-start justify-between gap-3">
                   <div>
-                    <p class="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-400">Histórico del inquilino</p>
-                    <p class="mt-2 text-base font-semibold text-slate-900">Cómo ha pagado en periodos anteriores</p>
+                    <p class="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-400">Histórico</p>
+                    <p class="mt-2 text-base font-semibold text-slate-900">Pagos anteriores</p>
                   </div>
                   <p class="text-xs font-semibold text-slate-500">{{ selectedTenantHistory.length }} registros</p>
                 </div>
@@ -172,7 +172,7 @@
                   </article>
                 </div>
                 <p v-else class="mt-4 text-sm text-slate-500">
-                  Aún no hay pagos anteriores para construir un histórico útil.
+                  No hay pagos anteriores.
                 </p>
               </div>
 
@@ -205,7 +205,7 @@
               <p class="text-xs font-semibold uppercase tracking-[0.32em] text-slate-400">Ficha del pago</p>
               <h3 class="mt-3 text-xl font-semibold text-slate-900">Selecciona un cobro para ver su detalle</h3>
               <p class="mt-2 text-sm leading-6 text-slate-500">
-                La ficha mantiene el contexto visible mientras revisas el histórico y activas acciones rápidas.
+                Consulta el detalle sin salir del listado.
               </p>
             </article>
           </transition>
@@ -273,7 +273,7 @@
       <EmptyPaymentsState
         eyebrow="Pagos"
         title="Todavía no hay pagos"
-        description="Cuando registres pagos, aquí verás el resumen financiero."
+        description="Cuando registres cobros, aquí verás el resumen del mes."
         cta-label="Ir a inquilinos"
         cta-to="/tenants"
       />
@@ -363,6 +363,8 @@ import PaymentSummaryBar from '../components/PaymentSummaryBar.vue';
 import PaymentStatusBadge from '../components/PaymentStatusBadge.vue';
 import { useOnboarding } from '../composables/useOnboarding';
 import { Payment, PaymentMethod, PaymentStatus } from '../types/payment';
+import { track } from '../lib/analytics';
+import { captureAppException } from '../lib/sentry';
 
 type FilterState = PaymentStatus | 'ALL';
 const MS_PER_DAY = 1000 * 60 * 60 * 24;
@@ -490,13 +492,13 @@ const metricCards = computed(() => [
   {
     label: 'Total pendiente',
     value: formatCurrency(outstandingPending.value),
-    subLabel: 'Cartera abierta',
+    subLabel: 'Pendiente y retrasado',
     accent: 'amber'
   },
   {
     label: 'Total retrasado',
     value: formatCurrency(summaryTotals.value.late),
-    subLabel: 'Prioridad roja',
+    subLabel: 'Requiere revisión',
     accent: 'rose'
   }
 ]);
@@ -622,7 +624,7 @@ const loadPayments = async () => {
     lastLoadedAt.value = new Date();
   } catch (error) {
     console.error(error);
-    setToast('No se pudo cargar los pagos. Intenta nuevamente.');
+    setToast('No se pudieron cargar los pagos. Inténtalo de nuevo.');
   } finally {
     isLoading.value = false;
   }
@@ -666,12 +668,27 @@ const confirmMarkPaid = async () => {
     }
     closeMarkPaidModal(true);
     completeStep('paymentAdded');
+    track('payment_marked_paid', {
+      source: 'payments',
+      paymentMethod: paymentMethodDraft.value
+    });
     setToast('Pago actualizado correctamente.');
     if (selectedPayment.value?.id === id && matchedIndex >= 0) {
       selectedPayment.value = payments.value[matchedIndex];
     }
   } catch (error) {
     console.error(error);
+    captureAppException(error, {
+      tags: {
+        feature: 'payments',
+        action: 'mark_paid'
+      },
+      context: {
+        paymentId: id,
+        paymentMethod: paymentMethodDraft.value,
+        route: '/payments'
+      }
+    });
     setToast('No fue posible registrar el pago.');
   } finally {
     isSavingPaymentMethod.value = false;
@@ -694,9 +711,20 @@ const downloadReceipt = async (id: string) => {
     link.click();
     link.remove();
     URL.revokeObjectURL(url);
+    track('receipt_pdf_opened', { source: 'payments' });
     setToast('Recibo preparado para descarga.');
   } catch (error) {
     console.error(error);
+    captureAppException(error, {
+      tags: {
+        feature: 'documents',
+        action: 'open_receipt_pdf'
+      },
+      context: {
+        paymentId: id,
+        route: '/payments'
+      }
+    });
     setToast('No se pudo generar el recibo.');
   }
 };

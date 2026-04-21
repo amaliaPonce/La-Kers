@@ -5,7 +5,7 @@
         <div>
           <p class="text-xs font-semibold uppercase tracking-[0.35em] text-slate-500">Inquilinos</p>
           <h1 class="text-3xl font-semibold text-slate-900">Control de contratos</h1>
-          <p class="text-sm text-slate-500">Monitorea fechas críticas y responde con acciones inmediatas.</p>
+          <p class="text-sm text-slate-500">Revisa contratos, vencimientos y alertas.</p>
         </div>
         <button
           type="button"
@@ -25,7 +25,7 @@
         <TenantMetricCard
           label="Próximos a vencer"
           :value="metrics.upcoming"
-          subtext="Evento en 30 días"
+          subtext="Próximos 30 días"
           accent="amber"
         />
         <TenantMetricCard label="Contratos vencidos" :value="metrics.expired" accent="rose" />
@@ -53,12 +53,12 @@
             :class="tenantViewMode === 'archived' ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-200 text-slate-600'"
             @click="tenantViewMode = 'archived'"
           >
-            Antiguos
+            Archivados
           </button>
         </div>
       </div>
       <div class="mt-3 flex items-center justify-between gap-2">
-        <p class="text-sm text-slate-500">{{ displayedTenants.length }} contratos visibles</p>
+        <p class="text-sm text-slate-500">{{ displayedTenants.length }} contratos</p>
       </div>
 
       <div class="mt-5 grid gap-6 xl:grid-cols-[minmax(0,2.15fr)_minmax(260px,300px)] xl:items-start">
@@ -72,7 +72,7 @@
             v-if="tenantViewMode === 'archived'"
             class="rounded-2xl border border-dashed border-slate-200 bg-slate-50/70 p-4 text-sm text-slate-600"
           >
-            <p class="text-xs uppercase tracking-[0.4em] text-slate-400">Retenciones</p>
+            <p class="text-xs uppercase tracking-[0.4em] text-slate-400">Conservación</p>
             <ul class="mt-3 space-y-2">
               <li v-for="note in retentionNotes" :key="note.title">
                 <span class="font-semibold text-slate-900">{{ note.title }}:</span> {{ note.detail }}
@@ -230,7 +230,7 @@
               <p class="text-xs font-semibold uppercase tracking-[0.32em] text-slate-400">Ficha del inquilino</p>
               <h3 class="mt-3 text-xl font-semibold text-slate-900">Selecciona un contrato para ver su detalle</h3>
               <p class="mt-2 text-sm leading-6 text-slate-500">
-                La ficha queda fija al lado del listado para revisar pagos, incidencias y fechas sin salir de la tabla.
+                Consulta pagos, incidencias y fechas desde el detalle.
               </p>
             </article>
           </transition>
@@ -275,6 +275,8 @@ import type { AxiosError } from 'axios';
 import type { Payment, PaymentStatus } from '../types/payment';
 import type { Incident, IncidentStatus } from '../types/incident';
 import type { TenantStatus, TenantWithMeta } from '../types/tenant';
+import { track } from '../lib/analytics';
+import { captureAppException } from '../lib/sentry';
 
 type TenantFormValues = {
   id?: string;
@@ -587,15 +589,28 @@ const handleTenantSubmit = async (payload: TenantFormValues) => {
   try {
     if (tenantModalState.mode === 'edit' && payload.id) {
       await apiClient.put(`/tenants/${payload.id}`, payload);
+      track('tenant_updated', { source: 'tenants' });
       detailTenant.value = null;
     } else {
       await apiClient.post('/tenants', payload);
+      track('tenant_created', { source: 'tenants' });
       highlightNewTenant(`${payload.full_name}-${payload.contract_end}-${payload.unit_id}`);
     }
     await refreshData();
     requestSucceeded = true;
   } catch (error) {
     console.error(error);
+    captureAppException(error, {
+      tags: {
+        feature: 'tenants',
+        action: tenantModalState.mode
+      },
+      context: {
+        tenantId: payload.id ?? null,
+        unitId: payload.unit_id,
+        route: '/tenants'
+      }
+    });
     window.alert(buildTenantSubmitErrorMessage(error, tenantModalState.mode));
   } finally {
     saving.value = false;
@@ -636,7 +651,19 @@ const downloadContractTerminationPdf = async (tenantId?: string) => {
     });
     const blob = buildPdfBlob(response.data);
     openPdfBlob(blob);
+    track('contract_pdf_opened', { source: 'tenants', kind: 'termination' });
   } catch (error) {
+    captureAppException(error, {
+      tags: {
+        feature: 'documents',
+        action: 'open_contract_pdf'
+      },
+      context: {
+        tenantId,
+        kind: 'termination',
+        route: '/tenants'
+      }
+    });
     handleDownloadError('downloadContractTerminationPdf', error, 'Documento de finalización no encontrado.');
   }
 };
@@ -650,7 +677,19 @@ const downloadRentalContractPdf = async (tenantId?: string) => {
     });
     const blob = buildPdfBlob(response.data);
     openPdfBlob(blob);
+    track('contract_pdf_opened', { source: 'tenants', kind: 'rental' });
   } catch (error) {
+    captureAppException(error, {
+      tags: {
+        feature: 'documents',
+        action: 'open_contract_pdf'
+      },
+      context: {
+        tenantId,
+        kind: 'rental',
+        route: '/tenants'
+      }
+    });
     handleDownloadError('downloadRentalContractPdf', error, 'Contrato de alquiler no encontrado.');
   }
 };

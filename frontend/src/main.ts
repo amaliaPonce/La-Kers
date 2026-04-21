@@ -2,11 +2,15 @@ import { createApp } from 'vue';
 import { clerkPlugin } from '@clerk/vue';
 import App from './App.vue';
 import router from './router';
+import { installUmamiScript } from './lib/analytics';
+import { initSentry } from './lib/sentry';
 import './index.css';
 
 const clerkPublishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY ?? '';
 
 const app = createApp(App);
+installUmamiScript();
+initSentry(app, router);
 if (clerkPublishableKey) {
   app.use(clerkPlugin, {
     publishableKey: clerkPublishableKey,
