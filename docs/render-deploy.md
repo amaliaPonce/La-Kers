@@ -41,7 +41,7 @@ Este repo queda preparado para desplegarse en Render Free con el blueprint de [r
 
 - `VITE_CLERK_PUBLISHABLE_KEY`
 
-### Opcionales si activas billing con Stripe
+### Obligatorias para billing con Stripe
 
 - `STRIPE_SECRET_KEY`
 - `STRIPE_WEBHOOK_SECRET`
@@ -59,7 +59,7 @@ Este repo queda preparado para desplegarse en Render Free con el blueprint de [r
 - `ENABLE_CRON_JOBS=false`
 - `ENABLE_TENANT_PORTAL=false`
 - `ENABLE_DASHBOARD_REALTIME=false`
-- `BILLING_MODE=manual`
+- `BILLING_MODE=stripe`
 - `REQUEST_BODY_LIMIT=1mb`
 - `RATE_LIMIT_WINDOW_MS=900000`
 - `RATE_LIMIT_MAX=300`
@@ -92,7 +92,7 @@ Este repo queda preparado para desplegarse en Render Free con el blueprint de [r
 7. Introduce los secretos obligatorios:
    - backend: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `CLERK_SECRET_KEY`, `LANDLORD_NAME`, `LANDLORD_IDENTIFICATION`, `LANDLORD_ADDRESS`
    - frontend: `VITE_CLERK_PUBLISHABLE_KEY`
-8. Si vas a usar Stripe, introduce también: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_ID_PRO_MONTHLY`, `STRIPE_PRICE_ID_PRO_YEARLY`, `BILLING_CONTACT_EMAIL`
+8. Introduce también las variables de Stripe: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_ID_PRO_MONTHLY`, `STRIPE_PRICE_ID_PRO_YEARLY`, `BILLING_CONTACT_EMAIL`
 9. Lanza el deploy del blueprint.
 10. En Supabase SQL Editor ejecuta, en este orden exacto:
     - `sql/schema.sql`

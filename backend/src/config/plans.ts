@@ -3,6 +3,7 @@ export type PlanDefinition = {
   name: string;
   description: string;
   unitLimit: number;
+  isUnlimited: boolean;
   monthlyPriceCents: number;
   yearlyPriceCents: number;
 };
@@ -13,17 +14,19 @@ export const PRO_PLAN_ID = 'pro';
 export const planDefinitions: Record<string, PlanDefinition> = {
   [FREEMIUM_PLAN_ID]: {
     id: FREEMIUM_PLAN_ID,
-    name: 'Freemium',
-    description: 'Hasta 2 inmuebles.',
-    unitLimit: 2,
+    name: 'Starter',
+    description: 'Ideal para empezar a ordenar tu operativa.',
+    unitLimit: 3,
+    isUnlimited: false,
     monthlyPriceCents: 0,
     yearlyPriceCents: 0
   },
   [PRO_PLAN_ID]: {
     id: PRO_PLAN_ID,
     name: 'Pro',
-    description: 'Hasta 25 inmuebles.',
-    unitLimit: 25,
+    description: 'Para propietarios que no quieren límites.',
+    unitLimit: 999,
+    isUnlimited: true,
     monthlyPriceCents: 990,
     yearlyPriceCents: 9900
   }

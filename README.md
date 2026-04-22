@@ -10,7 +10,7 @@ Este repositorio está preparado para handoff técnico. Si vas a compartirlo con
 - Frontend: Vue 3 + Vite + Tailwind
 - Auth: Clerk
 - Database: Supabase Postgres
-- Billing: manual por defecto, Stripe opcional
+- Billing: Stripe Checkout + webhooks
 
 ## Requisitos
 
@@ -18,7 +18,7 @@ Este repositorio está preparado para handoff técnico. Si vas a compartirlo con
 - npm 10 o superior
 - Proyecto de Supabase accesible
 - Proyecto de Clerk
-- Opcional: Stripe si quieres checkout/webhooks automáticos
+- Stripe para checkout/webhooks automáticos de Pro
 
 ## Arranque rápido
 
@@ -64,7 +64,7 @@ Configura `backend/.env` con al menos:
 - `LANDLORD_IDENTIFICATION`
 - `LANDLORD_ADDRESS`
 
-Opcionales:
+Adicionales si usas el valor por defecto `BILLING_MODE=stripe`:
 
 - `SUPABASE_ANON_KEY`
 - `STRIPE_SECRET_KEY`
@@ -105,13 +105,13 @@ Notas:
 
 El repositorio queda configurado para arrancar en modo mínimo por defecto:
 
-- `BILLING_MODE=manual`: el sistema funciona sin Stripe y el upgrade pasa a flujo manual por email.
+- `BILLING_MODE=stripe`: activa Stripe como flujo normal de upgrade a Pro.
 - `ENABLE_CRON_JOBS=false`: evita trabajos en segundo plano innecesarios en instancias pequeñas.
 - `ENABLE_TENANT_PORTAL=false`: desactiva el portal tenant y sus consultas extra a Clerk/Supabase.
 - `ENABLE_DASHBOARD_REALTIME=false`: elimina SSE y refrescos en vivo para reducir conexiones y carga.
 - `MINIMAL_MODE=true`: hace que esos defaults sean conservadores hasta que los habilites explícitamente.
 
-Si más adelante quieres reactivar módulos, cambia esos flags y añade las credenciales correspondientes.
+Si de forma excepcional necesitas desactivar billing automático, cambia `BILLING_MODE=manual`.
 
 En este modo ya no hace falta `DOCUMENT_STORAGE_PATH`: los PDFs de finalización de contrato se regeneran en memoria desde metadatos guardados en base de datos.
 

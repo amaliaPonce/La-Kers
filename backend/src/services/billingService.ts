@@ -33,10 +33,19 @@ type OwnerSubscriptionRecord = {
 type StripeCheckoutSession = {
   id?: string;
   url?: string;
-  customer?: string | null;
-  subscription?: string | null;
+  status?: string | null;
+  payment_status?: string | null;
+  customer?: string | StripeCustomer | null;
+  subscription?: string | StripeSubscription | null;
   client_reference_id?: string | null;
   metadata?: Record<string, string | undefined> | null;
+  line_items?: {
+    data?: Array<{
+      price?: {
+        id?: string | null;
+      } | null;
+    }> | null;
+  } | null;
 };
 
 type StripeCustomer = {
@@ -51,7 +60,7 @@ type StripeSubscriptionItem = {
 
 type StripeSubscription = {
   id?: string;
-  customer?: string | null;
+  customer?: string | StripeCustomer | null;
   status?: string | null;
   metadata?: Record<string, string | undefined> | null;
   current_period_end?: number | null;
@@ -128,14 +137,32 @@ function getBillingReturnBaseUrl(origin?: string) {
   return 'http://localhost:5173';
 }
 
-async function stripeRequest<T>(path: string, body: URLSearchParams) {
+function getStripeResourceId(value?: string | { id?: string | null } | null) {
+  if (!value) return null;
+  if (typeof value === 'string') {
+    const normalized = value.trim();
+    return normalized || null;
+  }
+  const normalized = String(value.id ?? '').trim();
+  return normalized || null;
+}
+
+async function stripeRequest<T>(
+  path: string,
+  options: {
+    method?: 'GET' | 'POST';
+    body?: URLSearchParams;
+  } = {}
+) {
+  const method = options.method ?? 'POST';
   const response = await fetch(`https://api.stripe.com${path}`, {
-    method: 'POST',
+    method,
     headers: {
       Authorization: `Bearer ${stripeConfig.secretKey}`,
-      'Content-Type': 'application/x-www-form-urlencoded'
+      'Stripe-Version': stripeConfig.apiVersion,
+      ...(method === 'POST' ? { 'Content-Type': 'application/x-www-form-urlencoded' } : {})
     },
-    body
+    body: method === 'POST' ? options.body : undefined
   });
 
   const data = await response.json().catch(() => ({}));
@@ -274,7 +301,7 @@ async function ensureStripeCustomer(ownerId: string, subscription?: OwnerSubscri
   body.set('metadata[owner_id]', ownerId);
   body.set('description', `La-Kers owner ${ownerId}`);
 
-  const customer = await stripeRequest<StripeCustomer>('/v1/customers', body);
+  const customer = await stripeRequest<StripeCustomer>('/v1/customers', { body });
   const stripeCustomerId = String(customer.id ?? '').trim();
 
   if (!stripeCustomerId) {
@@ -318,7 +345,7 @@ export async function createCheckoutSession(ownerId: string, billingCycle: Billi
       ? stripeConfig.priceIdProYearly
       : stripeConfig.priceIdProMonthly;
   const baseUrl = getBillingReturnBaseUrl(origin);
-  const successUrl = `${baseUrl}/billing?checkout=success`;
+  const successUrl = `${baseUrl}/billing?checkout=success&session_id={CHECKOUT_SESSION_ID}`;
   const cancelUrl = `${baseUrl}/billing?checkout=cancelled`;
   const body = new URLSearchParams();
   const stripeCustomerId = await ensureStripeCustomer(ownerId, subscription);
@@ -336,14 +363,15 @@ export async function createCheckoutSession(ownerId: string, billingCycle: Billi
   body.set('subscription_data[metadata][billing_cycle]', billingCycle);
   body.set('customer', stripeCustomerId);
 
-  const session = await stripeRequest<StripeCheckoutSession>('/v1/checkout/sessions', body);
+  const session = await stripeRequest<StripeCheckoutSession>('/v1/checkout/sessions', { body });
 
   await upsertOwnerSubscription(ownerId, {
     plan_id: PRO_PLAN_ID,
     billing_cycle: billingCycle,
     subscription_status: subscription?.subscription_status ?? 'inactive',
-    stripe_customer_id: session.customer ?? stripeCustomerId,
-    stripe_subscription_id: session.subscription ?? subscription?.stripe_subscription_id ?? null,
+    stripe_customer_id: getStripeResourceId(session.customer) ?? stripeCustomerId,
+    stripe_subscription_id:
+      getStripeResourceId(session.subscription) ?? subscription?.stripe_subscription_id ?? null,
     stripe_price_id: priceId,
     stripe_checkout_session_id: session.id ?? null
   });
@@ -369,7 +397,7 @@ export async function createPortalSession(ownerId: string, origin?: string) {
   body.set('customer', subscription.stripe_customer_id);
   body.set('return_url', `${getBillingReturnBaseUrl(origin)}/billing`);
 
-  return stripeRequest<{ id?: string; url?: string }>('/v1/billing_portal/sessions', body);
+  return stripeRequest<{ id?: string; url?: string }>('/v1/billing_portal/sessions', { body });
 }
 
 export async function upsertOwnerSubscription(ownerId: string, payload: Partial<OwnerSubscriptionRecord>) {
@@ -419,6 +447,128 @@ export function verifyStripeWebhookSignature(payload: Buffer, signatureHeader?: 
   });
 }
 
+async function fetchStripeSubscription(stripeSubscriptionId: string) {
+  const normalized = stripeSubscriptionId.trim();
+  if (!normalized) return null;
+  return stripeRequest<StripeSubscription>(`/v1/subscriptions/${encodeURIComponent(normalized)}`, {
+    method: 'GET'
+  });
+}
+
+async function fetchStripeCheckoutSession(stripeCheckoutSessionId: string) {
+  const normalized = stripeCheckoutSessionId.trim();
+  if (!normalized) return null;
+  const query = new URLSearchParams();
+  query.append('expand[]', 'subscription');
+  query.append('expand[]', 'line_items.data.price');
+  return stripeRequest<StripeCheckoutSession>(
+    `/v1/checkout/sessions/${encodeURIComponent(normalized)}?${query.toString()}`,
+    { method: 'GET' }
+  );
+}
+
+function resolveStripePriceId(options: {
+  session?: StripeCheckoutSession | null;
+  subscription?: StripeSubscription | null;
+  existingRecord?: OwnerSubscriptionRecord | null;
+}) {
+  const subscriptionPriceId = options.subscription?.items?.data?.[0]?.price?.id ?? null;
+  if (subscriptionPriceId) return subscriptionPriceId;
+
+  const sessionPriceId = options.session?.line_items?.data?.[0]?.price?.id ?? null;
+  if (sessionPriceId) return sessionPriceId;
+
+  return options.existingRecord?.stripe_price_id ?? null;
+}
+
+function resolveStripeCheckoutStatus(options: {
+  session?: StripeCheckoutSession | null;
+  subscription?: StripeSubscription | null;
+  existingRecord?: OwnerSubscriptionRecord | null;
+}) {
+  if (options.subscription?.status) {
+    return normalizeSubscriptionStatus(options.subscription.status);
+  }
+  if (options.session?.payment_status === 'paid') {
+    return 'active';
+  }
+  return normalizeSubscriptionStatus(options.existingRecord?.subscription_status);
+}
+
+async function syncOwnerSubscriptionWithStripeCheckoutSession(
+  ownerId: string,
+  session: StripeCheckoutSession
+) {
+  const stripeCheckoutSessionId = String(session.id ?? '').trim();
+  const stripeCustomerId = getStripeResourceId(session.customer);
+  const stripeSubscriptionId = getStripeResourceId(session.subscription);
+  const existingRecord = await findSubscriptionByStripeIds({
+    stripeCustomerId,
+    stripeSubscriptionId
+  });
+
+  const subscription =
+    typeof session.subscription === 'string'
+      ? await fetchStripeSubscription(session.subscription)
+      : (session.subscription ?? null);
+  const stripePriceId = resolveStripePriceId({
+    session,
+    subscription,
+    existingRecord
+  });
+  const billingCycle =
+    resolveBillingCycleFromPriceId(stripePriceId) ??
+    (session.metadata?.billing_cycle === 'yearly' ? 'yearly' : 'monthly');
+  const subscriptionStatus = resolveStripeCheckoutStatus({
+    session,
+    subscription,
+    existingRecord
+  });
+
+  await upsertOwnerSubscription(ownerId, {
+    plan_id: resolvePlanIdFromPriceId(stripePriceId),
+    billing_cycle: billingCycle,
+    subscription_status: subscriptionStatus,
+    stripe_customer_id: stripeCustomerId ?? existingRecord?.stripe_customer_id ?? null,
+    stripe_subscription_id: stripeSubscriptionId ?? existingRecord?.stripe_subscription_id ?? null,
+    stripe_price_id: stripePriceId,
+    stripe_checkout_session_id: stripeCheckoutSessionId || existingRecord?.stripe_checkout_session_id || null,
+    current_period_end:
+      normalizeCurrentPeriodEnd(subscription?.current_period_end) ??
+      existingRecord?.current_period_end ??
+      null
+  });
+}
+
+export async function confirmCheckoutSession(ownerId: string, stripeCheckoutSessionId: string) {
+  if (stripeConfig.mode !== 'stripe') {
+    const error = new Error(
+      stripeConfig.requestedMode === 'manual'
+        ? 'La facturación automática está desactivada en este entorno.'
+        : `Stripe no está configurado. Faltan: ${stripeConfig.missingKeys.join(', ')}`
+    );
+    (error as any).status = 503;
+    throw error;
+  }
+
+  const session = await fetchStripeCheckoutSession(stripeCheckoutSessionId);
+  if (!session?.id) {
+    const error = new Error('No se encontró la sesión de checkout de Stripe');
+    (error as any).status = 404;
+    throw error;
+  }
+
+  const sessionOwnerId = String(session.client_reference_id ?? session.metadata?.owner_id ?? '').trim();
+  if (!sessionOwnerId || sessionOwnerId !== ownerId) {
+    const error = new Error('La sesión de checkout no pertenece a esta cuenta');
+    (error as any).status = 403;
+    throw error;
+  }
+
+  await syncOwnerSubscriptionWithStripeCheckoutSession(ownerId, session);
+  return getOwnerBillingSummary(ownerId);
+}
+
 export async function handleStripeWebhookEvent(event: { type?: string; data?: { object?: any } }) {
   const type = String(event.type ?? '');
   const object = event.data?.object;
@@ -428,21 +578,9 @@ export async function handleStripeWebhookEvent(event: { type?: string; data?: { 
   if (type === 'checkout.session.completed') {
     const session = object as StripeCheckoutSession;
     const ownerId = String(session.client_reference_id ?? session.metadata?.owner_id ?? '').trim();
-    const billingCycle = session.metadata?.billing_cycle === 'yearly' ? 'yearly' : 'monthly';
     if (!ownerId) return;
 
-    await upsertOwnerSubscription(ownerId, {
-      plan_id: PRO_PLAN_ID,
-      billing_cycle: billingCycle,
-      subscription_status: 'active',
-      stripe_customer_id: session.customer ?? null,
-      stripe_subscription_id: session.subscription ?? null,
-      stripe_price_id:
-        billingCycle === 'yearly'
-          ? stripeConfig.priceIdProYearly
-          : stripeConfig.priceIdProMonthly,
-      stripe_checkout_session_id: session.id ?? null
-    });
+    await syncOwnerSubscriptionWithStripeCheckoutSession(ownerId, session);
     return;
   }
 
@@ -456,7 +594,7 @@ export async function handleStripeWebhookEvent(event: { type?: string; data?: { 
     const stripePriceId = firstItem?.price?.id ?? null;
     const ownerIdFromMetadata = String(subscription.metadata?.owner_id ?? '').trim();
     const existingRecord = await findSubscriptionByStripeIds({
-      stripeCustomerId: subscription.customer ?? null,
+      stripeCustomerId: getStripeResourceId(subscription.customer),
       stripeSubscriptionId: subscription.id ?? null
     });
     const ownerId = ownerIdFromMetadata || existingRecord?.owner_id || '';
@@ -476,7 +614,8 @@ export async function handleStripeWebhookEvent(event: { type?: string; data?: { 
       plan_id: planId,
       billing_cycle: billingCycle,
       subscription_status: status,
-      stripe_customer_id: subscription.customer ?? existingRecord?.stripe_customer_id ?? null,
+      stripe_customer_id:
+        getStripeResourceId(subscription.customer) ?? existingRecord?.stripe_customer_id ?? null,
       stripe_subscription_id: subscription.id ?? existingRecord?.stripe_subscription_id ?? null,
       stripe_price_id: stripePriceId,
       current_period_end: normalizeCurrentPeriodEnd(subscription.current_period_end)

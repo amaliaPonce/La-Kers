@@ -47,7 +47,7 @@ Se crean dos servicios:
 
 - `VITE_CLERK_PUBLISHABLE_KEY`
 
-### Backend opcionales pero necesarias si activas billing automático
+### Backend necesarias para billing automático
 
 - `STRIPE_SECRET_KEY`
 - `STRIPE_WEBHOOK_SECRET`
@@ -64,7 +64,7 @@ Se crean dos servicios:
 - `ENABLE_CRON_JOBS=false`
 - `ENABLE_TENANT_PORTAL=false`
 - `ENABLE_DASHBOARD_REALTIME=false`
-- `BILLING_MODE=manual`
+- `BILLING_MODE=stripe`
 - `CORS_ALLOWED_ORIGINS` apuntando al frontend público
 - `VITE_API_BASE` apuntando a la API pública
 

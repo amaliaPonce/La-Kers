@@ -46,11 +46,9 @@
               </p>
             </div>
 
-            <article class="relative overflow-hidden rounded-[32px] border border-white/80 bg-[radial-gradient(circle_at_top_left,_rgba(31,79,70,0.18),_transparent_32%),linear-gradient(135deg,#fffdfa_0%,#eff6f2_42%,#f7efe6_100%)] p-6 shadow-[0_28px_70px_rgba(15,23,42,0.08)] backdrop-blur">
-              <div class="absolute right-0 top-0 h-40 w-40 rounded-full bg-[#1f4f46]/12 blur-3xl"></div>
-              <div class="absolute bottom-8 left-8 h-28 w-28 rounded-full bg-[#c96a37]/12 blur-2xl"></div>
+            <article class="relative">
               <div class="relative grid h-[340px] content-end gap-4">
-                <div class="max-w-xs rounded-[28px] border border-white/70 bg-white/90 p-5 shadow-sm">
+                <div class="max-w-xs rounded-[28px] border-2 border-[#1f4f46] bg-[#dff3ea] p-5 shadow-[8px_8px_0_0_rgba(31,79,70,0.12)]">
                   <p class="text-[11px] font-semibold uppercase tracking-[0.3em] text-[#1f4f46]">Alta esencial</p>
                   <p class="mt-3 text-2xl font-semibold text-slate-900">Empieza con el flujo base</p>
                   <p class="mt-2 text-sm leading-6 text-slate-600">
@@ -58,13 +56,13 @@
                   </p>
                 </div>
                 <div class="grid gap-3 sm:grid-cols-2">
-                  <div class="rounded-3xl border border-white/70 bg-white/80 p-4">
-                    <p class="text-[11px] font-semibold uppercase tracking-[0.26em] text-[#8c4d29]">Gratis</p>
-                    <p class="mt-2 text-lg font-semibold text-slate-900">2 inmuebles</p>
+                  <div class="rounded-3xl border-2 border-[#d9982c] bg-[#ffecc4] p-4 shadow-[6px_6px_0_0_rgba(217,152,44,0.12)]">
+                    <p class="text-[11px] font-semibold uppercase tracking-[0.26em] text-[#8c4d29]">Starter</p>
+                    <p class="mt-2 text-lg font-semibold text-slate-900">3 inmuebles</p>
                   </div>
-                  <div class="rounded-3xl border border-white/70 bg-white/80 p-4">
-                    <p class="text-[11px] font-semibold uppercase tracking-[0.26em] text-[#8c4d29]">Manual</p>
-                    <p class="mt-2 text-lg font-semibold text-slate-900">Sin Stripe</p>
+                  <div class="rounded-3xl border-2 border-[#c96a37] bg-[#fff1e7] p-4 shadow-[6px_6px_0_0_rgba(201,106,55,0.12)]">
+                    <p class="text-[11px] font-semibold uppercase tracking-[0.26em] text-[#8c4d29]">Cobros</p>
+                    <p class="mt-2 text-lg font-semibold text-slate-900">Seguimiento manual</p>
                   </div>
                 </div>
               </div>
@@ -127,12 +125,27 @@ onMounted(() => {
   display: flex;
   justify-content: center;
   width: 100%;
+  max-width: 680px;
   overflow: visible;
 }
 
+.clerk-shell :deep(.cl-rootBox),
 .clerk-shell :deep(.cl-cardBox) {
   width: 100%;
-  max-width: 520px;
+  max-width: 680px;
+}
+
+.clerk-shell :deep(.cl-card) {
+  border-width: 2px;
+  border-color: #ead8ca;
+  background: linear-gradient(180deg, rgba(255, 250, 244, 0.98), rgba(248, 245, 239, 0.96));
+  box-shadow:
+    10px 10px 0 0 rgba(140, 77, 41, 0.08),
+    0 30px 80px rgba(15, 23, 42, 0.08);
+}
+
+.clerk-shell :deep(.cl-headerTitle) {
+  letter-spacing: -0.04em;
 }
 
 .clerk-shell :deep(.cl-formFieldInput::placeholder),

@@ -19,6 +19,7 @@ export type BillingSummary = {
     name: string;
     description: string;
     unitLimit: number;
+    isUnlimited: boolean;
     monthlyPriceCents: number;
     yearlyPriceCents: number;
   };
@@ -65,16 +66,17 @@ let pendingRequest: Promise<BillingSummary | null> | null = null;
 const getFallbackSummary = (): BillingSummary => ({
   plan: {
     id: 'freemium',
-    name: 'Gratis',
-    description: 'Hasta 2 inmuebles.',
-    unitLimit: 2,
+    name: 'Starter',
+    description: 'Ideal para empezar a ordenar tu operativa.',
+    unitLimit: 3,
+    isUnlimited: false,
     monthlyPriceCents: 0,
     yearlyPriceCents: 0
   },
   usage: {
     unitCount: 0,
-    unitLimit: 2,
-    remainingUnits: 2,
+    unitLimit: 3,
+    remainingUnits: 3,
     canAddMoreUnits: true
   },
   billing: {
@@ -141,6 +143,7 @@ export const useBilling = () => {
   };
 
   const usagePercentage = computed(() => {
+    if (state.summary?.plan.isUnlimited) return 100;
     const unitLimit = state.summary?.usage.unitLimit ?? 0;
     const unitCount = state.summary?.usage.unitCount ?? 0;
     if (!unitLimit) return 0;

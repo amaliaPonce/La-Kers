@@ -2,6 +2,7 @@ import express, { Router } from 'express';
 import { AuthenticatedRequest } from '../middleware/authMiddleware';
 import {
   BillingCycle,
+  confirmCheckoutSession,
   createCheckoutSession,
   createPortalSession,
   getOwnerBillingSummary,
@@ -94,6 +95,35 @@ router.post('/checkout', async (req: AuthenticatedRequest, res) => {
     });
     const status = (error as any).status ?? 500;
     res.status(status).json({ message: (error as Error).message || 'No se pudo iniciar el checkout' });
+  }
+});
+
+router.get('/checkout-session/:sessionId', async (req: AuthenticatedRequest, res) => {
+  const ownerId = getOwnerId(req);
+  if (!ownerId) {
+    return res.status(401).json({ message: 'Autenticación requerida' });
+  }
+
+  try {
+    const summary = await confirmCheckoutSession(ownerId, req.params.sessionId);
+    res.json(summary);
+  } catch (error) {
+    console.error(error);
+    captureServerException(error, {
+      tag: 'billing.checkout_session_failed',
+      userId: req.authUser?.id,
+      route: req.path,
+      tags: {
+        feature: 'billing',
+        action: 'checkout_session'
+      },
+      extra: {
+        stripeCheckoutSessionId: req.params.sessionId,
+        route: '/billing/checkout-session/:sessionId'
+      }
+    });
+    const status = (error as any).status ?? 500;
+    res.status(status).json({ message: (error as Error).message || 'No se pudo confirmar el checkout' });
   }
 });
 

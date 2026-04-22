@@ -19,7 +19,7 @@
           <svg class="h-4 w-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M8 3v10m5-5H3" />
           </svg>
-          {{ canCreateApartment ? 'Nuevo apartamento' : 'Activa Pro para añadir más' }}
+          {{ canCreateApartment ? 'Nuevo apartamento' : 'Activa Pro sin límites' }}
         </button>
       </div>
       <div
@@ -38,7 +38,7 @@
                 class="rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em]"
                 :class="isProPlan ? 'bg-[#1f4f46] text-white' : 'bg-[#f3ede4] text-[#8c4d29]'"
               >
-                {{ isProPlan ? 'Plan Pro' : 'Plan gratis' }}
+                {{ isProPlan ? 'Plan Pro' : 'Plan Starter' }}
               </span>
               <span
                 v-if="isAtLimit"
@@ -59,7 +59,7 @@
           <div class="min-w-0 lg:w-[320px]">
             <div class="flex items-center justify-between gap-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
               <span>Uso actual</span>
-              <span>{{ billingSummary.usage.unitCount }} / {{ billingSummary.usage.unitLimit }}</span>
+              <span>{{ planUsageLabel }}</span>
             </div>
             <div class="mt-2 h-2.5 overflow-hidden rounded-full bg-white/90">
               <div
@@ -453,6 +453,13 @@ const statusSummary = computed(() => {
 const totalApartments = computed(() => apartments.value.length);
 const hasApartments = computed(() => totalApartments.value > 0);
 const canCreateApartment = computed(() => billingSummary.value?.usage.canAddMoreUnits ?? true);
+const planUsageLabel = computed(() => {
+  if (!billingSummary.value) return '...';
+  if (billingSummary.value.plan.isUnlimited) {
+    return `${billingSummary.value.usage.unitCount} inmuebles`;
+  }
+  return `${billingSummary.value.usage.unitCount} / ${billingSummary.value.usage.unitLimit}`;
+});
 
 const apartmentPlanHeadline = computed(() => {
   if (!billingSummary.value) return 'Cargando estado del plan.';
@@ -460,24 +467,24 @@ const apartmentPlanHeadline = computed(() => {
     return 'Plan Pro activo.';
   }
   if (isAtLimit.value) {
-    return 'Límite del plan gratis alcanzado.';
+    return 'Has alcanzado el límite de Starter.';
   }
   if (isNearLimit.value) {
-    return 'Queda poco margen en el plan gratis.';
+    return 'Queda poco margen en Starter.';
   }
-  return 'Plan gratis en uso.';
+  return 'Starter en uso.';
 });
 
 const apartmentPlanMessage = computed(() => {
   if (!billingSummary.value) return 'En cuanto cargue el billing verás el uso y el límite aplicable.';
   const { unitCount, unitLimit, remainingUnits } = billingSummary.value.usage;
   if (isProPlan.value) {
-    return `Ahora usas ${unitCount} de ${unitLimit} inmuebles disponibles.`;
+    return `Gestionas ${unitCount} inmuebles sin techo visible y puedes seguir creciendo sin cambiar de herramienta.`;
   }
   if (isAtLimit.value) {
-    return `Ya usas ${unitCount} de ${unitLimit} inmuebles. La siguiente alta requiere activar Pro.`;
+    return `Ya usas ${unitCount} de ${unitLimit} inmuebles en Starter. La siguiente alta requiere activar Pro.`;
   }
-  return `Ahora usas ${unitCount} de ${unitLimit} inmuebles. Te quedan ${remainingUnits} disponibles antes de necesitar Pro.`;
+  return `Ahora usas ${unitCount} de ${unitLimit} inmuebles en Starter. Te quedan ${remainingUnits} disponibles antes de necesitar Pro.`;
 });
 
 const monthlyPotential = computed(() => {

@@ -64,7 +64,7 @@
                   <div v-if="billingSummary" class="mt-3">
                     <div class="flex items-center justify-between gap-3 text-[10px] font-medium text-slate-400">
                       <span>{{ planBadgeLabel }}</span>
-                      <span>{{ billingSummary.usage.unitCount }} / {{ billingSummary.usage.unitLimit }}</span>
+                      <span>{{ planUsageLabel }}</span>
                     </div>
                     <div class="mt-2 h-1.5 overflow-hidden rounded-full bg-[#efe7dd]/80">
                       <div
@@ -107,8 +107,10 @@
               <div class="mt-auto border-t border-[#eadfd2] pt-4">
                 <router-link
                   to="/billing"
-                  class="flex items-center justify-between rounded-2xl border border-[#e1d7cb] bg-white/80 px-3 py-2.5 text-xs font-medium text-slate-600 transition hover:border-[#cdbba8] hover:text-slate-900"
-                  :class="route.path === '/billing' ? 'border-[#1f4f46] bg-[#1f4f46] text-white' : ''"
+                  class="flex items-center justify-between rounded-2xl border px-3 py-2.5 text-xs font-medium transition"
+                  :class="route.path === '/billing'
+                    ? 'border-[#1f4f46] bg-[#1f4f46] text-white hover:bg-[#173c36]'
+                    : 'border-[#e1d7cb] bg-white/80 text-slate-600 hover:border-[#cdbba8] hover:text-slate-900'"
                 >
                   <span class="flex items-center gap-3">
                     <span
@@ -146,8 +148,10 @@
                   <div class="flex items-center gap-2">
                     <router-link
                       to="/billing"
-                      class="inline-flex items-center gap-2 rounded-full border border-[#d8cec2] bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-[#cdbba8] hover:text-slate-900"
-                      :class="route.path === '/billing' ? 'border-[#1f4f46] bg-[#1f4f46] text-white' : ''"
+                      class="inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition"
+                      :class="route.path === '/billing'
+                        ? 'border-[#1f4f46] bg-[#1f4f46] text-white hover:bg-[#173c36]'
+                        : 'border-[#d8cec2] bg-white text-slate-700 hover:border-[#cdbba8] hover:text-slate-900'"
                     >
                       <SolidIcon name="coin" class="h-4 w-4" />
                       <span class="hidden sm:inline">Plan</span>
@@ -303,7 +307,14 @@ const currentSectionTitle = computed(() => {
 });
 
 const accountTitle = computed(() => user.value?.primaryEmailAddress?.emailAddress ?? user.value?.fullName ?? 'Cuenta activa');
-const planBadgeLabel = computed(() => (isProPlan.value ? 'Pro' : 'Gratis'));
+const planBadgeLabel = computed(() => (isProPlan.value ? 'Pro' : 'Starter'));
+const planUsageLabel = computed(() => {
+  if (!billingSummary.value) return '...';
+  if (billingSummary.value.plan.isUnlimited) {
+    return `${billingSummary.value.usage.unitCount} inmuebles`;
+  }
+  return `${billingSummary.value.usage.unitCount} / ${billingSummary.value.usage.unitLimit}`;
+});
 
 const planBadgeClass = computed(() =>
   isProPlan.value
