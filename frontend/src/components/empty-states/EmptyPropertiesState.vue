@@ -52,7 +52,7 @@ const props = withDefaults(
   {
     eyebrow: 'Espacio vacío',
     title: 'Aún no tienes propiedades',
-    description: 'Empieza creando tu primera propiedad para activar el panel.',
+    description: 'Crea tu primera propiedad para empezar.',
     ctaLabel: 'Crear primera propiedad',
     ctaTo: '/apartments'
   }

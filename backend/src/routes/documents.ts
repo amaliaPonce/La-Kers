@@ -4,6 +4,7 @@ import { AuthenticatedRequest } from '../middleware/authMiddleware';
 import { supabaseAdmin } from '../config/supabaseClient';
 import { landlordConfig } from '../config/landlordConfig';
 import { resolveContractLandlordProfile } from '../utils/contractLandlordProfile';
+import { captureServerException } from '../monitoring/sentry';
 
 const router = Router();
 
@@ -235,6 +236,19 @@ router.post('/receipt/:paymentId', async (req: AuthenticatedRequest, res) => {
     res.send(pdfBuffer);
   } catch (error) {
     console.error('[documents/receipt]', error);
+    captureServerException(error, {
+      tag: 'documents.receipt_failed',
+      userId: req.authUser?.id,
+      route: req.path,
+      tags: {
+        feature: 'documents',
+        action: 'open_receipt_pdf'
+      },
+      extra: {
+        paymentId: req.params.paymentId,
+        route: '/documents/receipt'
+      }
+    });
     res.status(500).json({ message: 'No se pudo generar el comprobante' });
   }
 });
@@ -263,6 +277,19 @@ router.get('/tenant-contract/:tenantId', async (req: AuthenticatedRequest, res) 
     res.send(pdfBuffer);
   } catch (error) {
     console.error('[documents/tenant-contract]', error);
+    captureServerException(error, {
+      tag: 'documents.contract_failed',
+      userId: req.authUser?.id,
+      route: req.path,
+      tags: {
+        feature: 'documents',
+        action: 'open_contract_pdf'
+      },
+      extra: {
+        tenantId: req.params.tenantId,
+        route: '/documents/tenant-contract'
+      }
+    });
     res.status(500).json({ message: 'No se pudo generar el contrato' });
   }
 });

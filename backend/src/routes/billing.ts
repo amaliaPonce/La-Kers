@@ -2,6 +2,7 @@ import express, { Router } from 'express';
 import { AuthenticatedRequest } from '../middleware/authMiddleware';
 import {
   BillingCycle,
+  confirmCheckoutSession,
   createCheckoutSession,
   createPortalSession,
   getOwnerBillingSummary,
@@ -9,6 +10,7 @@ import {
   verifyStripeWebhookSignature
 } from '../services/billingService';
 import { stripeConfig } from '../config/stripeConfig';
+import { captureServerException } from '../monitoring/sentry';
 
 const router = Router();
 
@@ -78,8 +80,50 @@ router.post('/checkout', async (req: AuthenticatedRequest, res) => {
     });
   } catch (error) {
     console.error(error);
+    captureServerException(error, {
+      tag: 'billing.checkout_failed',
+      userId: req.authUser?.id,
+      route: req.path,
+      tags: {
+        feature: 'billing',
+        action: 'checkout'
+      },
+      extra: {
+        billingCycle,
+        route: '/billing/checkout'
+      }
+    });
     const status = (error as any).status ?? 500;
     res.status(status).json({ message: (error as Error).message || 'No se pudo iniciar el checkout' });
+  }
+});
+
+router.get('/checkout-session/:sessionId', async (req: AuthenticatedRequest, res) => {
+  const ownerId = getOwnerId(req);
+  if (!ownerId) {
+    return res.status(401).json({ message: 'Autenticación requerida' });
+  }
+
+  try {
+    const summary = await confirmCheckoutSession(ownerId, req.params.sessionId);
+    res.json(summary);
+  } catch (error) {
+    console.error(error);
+    captureServerException(error, {
+      tag: 'billing.checkout_session_failed',
+      userId: req.authUser?.id,
+      route: req.path,
+      tags: {
+        feature: 'billing',
+        action: 'checkout_session'
+      },
+      extra: {
+        stripeCheckoutSessionId: req.params.sessionId,
+        route: '/billing/checkout-session/:sessionId'
+      }
+    });
+    const status = (error as any).status ?? 500;
+    res.status(status).json({ message: (error as Error).message || 'No se pudo confirmar el checkout' });
   }
 });
 
@@ -97,6 +141,18 @@ router.post('/portal', async (req: AuthenticatedRequest, res) => {
     });
   } catch (error) {
     console.error(error);
+    captureServerException(error, {
+      tag: 'billing.portal_failed',
+      userId: req.authUser?.id,
+      route: req.path,
+      tags: {
+        feature: 'billing',
+        action: 'portal'
+      },
+      extra: {
+        route: '/billing/portal'
+      }
+    });
     const status = (error as any).status ?? 500;
     res.status(status).json({ message: (error as Error).message || 'No se pudo abrir el portal de Stripe' });
   }

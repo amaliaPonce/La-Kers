@@ -21,7 +21,7 @@ export const clerkAuthAppearance: Appearance = {
     fontFamilyButtons: "'Plus Jakarta Sans', sans-serif"
   },
   elements: {
-    cardBox: 'w-full',
+    cardBox: 'w-full max-w-[620px]',
     card: 'rounded-[32px] border border-white/80 bg-white/94 p-6 shadow-[0_28px_70px_rgba(15,23,42,0.10)] backdrop-blur sm:p-8',
     headerTitle: 'text-3xl font-semibold text-slate-900',
     headerSubtitle: 'mt-3 text-sm leading-7 text-slate-500',

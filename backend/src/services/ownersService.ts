@@ -52,6 +52,7 @@ export function buildPlanPayload(plan: PlanDefinition) {
     name: plan.name,
     description: plan.description,
     unitLimit: plan.unitLimit,
+    isUnlimited: plan.isUnlimited,
     monthlyPriceCents: plan.monthlyPriceCents,
     yearlyPriceCents: plan.yearlyPriceCents
   };

@@ -1,15 +1,15 @@
 <template>
   <div class="space-y-6 pb-10">
-    <section class="rounded-3xl border border-slate-100 bg-white p-6 shadow-lg">
+    <section class="rounded-3xl border border-[#eadfd2] bg-white p-6 shadow-lg">
       <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
-          <p class="text-xs font-semibold uppercase tracking-[0.35em] text-slate-500">Inquilinos</p>
+          <p class="text-xs font-semibold uppercase tracking-[0.35em] text-[#8c4d29]">Inquilinos</p>
           <h1 class="text-3xl font-semibold text-slate-900">Control de contratos</h1>
-          <p class="text-sm text-slate-500">Monitorea fechas críticas y responde con acciones inmediatas.</p>
+          <p class="text-sm text-slate-500">Revisa contratos, vencimientos y alertas.</p>
         </div>
         <button
           type="button"
-          class="inline-flex items-center gap-2 rounded-2xl bg-black px-5 py-2 text-sm font-semibold text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-slate-800"
+          class="inline-flex items-center gap-2 rounded-2xl bg-[#c96a37] px-5 py-2 text-sm font-semibold text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-[#b85d2d]"
           data-onboarding="create-tenant"
           @click="openTenantModal('create')"
         >
@@ -25,15 +25,15 @@
         <TenantMetricCard
           label="Próximos a vencer"
           :value="metrics.upcoming"
-          subtext="Evento en 30 días"
+          subtext="Próximos 30 días"
           accent="amber"
         />
         <TenantMetricCard label="Contratos vencidos" :value="metrics.expired" accent="rose" />
       </div>
     </section>
 
-    <section class="rounded-[32px] border border-slate-200 bg-white p-5 shadow-sm">
-      <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4">
+    <section class="rounded-[32px] border border-[#eadfd2] bg-white p-5 shadow-sm">
+      <div class="flex flex-wrap items-center justify-between gap-3 border-b border-[#efe7dd] pb-4">
         <div>
           <p class="text-xs font-semibold uppercase tracking-[0.4em] text-slate-400">Lista principal</p>
           <h2 class="text-2xl font-semibold text-slate-900">Inquilinos</h2>
@@ -42,7 +42,7 @@
           <button
             type="button"
             class="rounded-2xl border px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] transition"
-            :class="tenantViewMode === 'active' ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-200 text-slate-600'"
+            :class="tenantViewMode === 'active' ? 'border-[#1f4f46] bg-[#1f4f46] text-white' : 'border-[#d8cec2] bg-white text-[#8c4d29]'"
             @click="tenantViewMode = 'active'"
           >
             Activos
@@ -50,15 +50,15 @@
           <button
             type="button"
             class="rounded-2xl border px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] transition"
-            :class="tenantViewMode === 'archived' ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-200 text-slate-600'"
+            :class="tenantViewMode === 'archived' ? 'border-[#1f4f46] bg-[#1f4f46] text-white' : 'border-[#d8cec2] bg-white text-[#8c4d29]'"
             @click="tenantViewMode = 'archived'"
           >
-            Antiguos
+            Archivados
           </button>
         </div>
       </div>
       <div class="mt-3 flex items-center justify-between gap-2">
-        <p class="text-sm text-slate-500">{{ displayedTenants.length }} contratos visibles</p>
+        <p class="text-sm text-slate-500">{{ displayedTenants.length }} contratos</p>
       </div>
 
       <div class="mt-5 grid gap-6 xl:grid-cols-[minmax(0,2.15fr)_minmax(260px,300px)] xl:items-start">
@@ -70,9 +70,9 @@
           />
           <div
             v-if="tenantViewMode === 'archived'"
-            class="rounded-2xl border border-dashed border-slate-200 bg-slate-50/70 p-4 text-sm text-slate-600"
+            class="rounded-2xl border border-dashed border-[#d8cec2] bg-[#fbf8f2] p-4 text-sm text-slate-600"
           >
-            <p class="text-xs uppercase tracking-[0.4em] text-slate-400">Retenciones</p>
+            <p class="text-xs uppercase tracking-[0.4em] text-slate-400">Conservación</p>
             <ul class="mt-3 space-y-2">
               <li v-for="note in retentionNotes" :key="note.title">
                 <span class="font-semibold text-slate-900">{{ note.title }}:</span> {{ note.detail }}
@@ -133,7 +133,7 @@
                   <TenantStatusBadge :status="detailTenant.status" />
                   <button
                     type="button"
-                    class="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 transition hover:border-primary hover:text-primary"
+                  class="rounded-full border border-[#d8cec2] px-3 py-1 text-xs font-semibold text-[#8c4d29] transition hover:border-[#c96a37] hover:text-[#8c4d29]"
                     @click="closeDetailPanel"
                   >
                     Cerrar
@@ -145,11 +145,11 @@
                 <RouterLink
                   v-if="pendingPaymentCount > 0"
                   to="/payments"
-                  class="inline-flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.3em] text-amber-700 transition hover:border-amber-300 hover:bg-amber-100"
+                  class="inline-flex items-center gap-2 rounded-full border border-[#e7cf8c] bg-[#fff7df] px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.3em] text-[#8a6518] transition hover:border-[#d9982c] hover:bg-[#fff1cc]"
                 >
-                  <span class="h-2.5 w-2.5 rounded-full bg-amber-500" aria-hidden="true"></span>
+                  <span class="h-2.5 w-2.5 rounded-full bg-[#d9982c]" aria-hidden="true"></span>
                   Pagos pendientes
-                  <span class="text-[0.55rem] font-semibold text-amber-600">({{ pendingPaymentCount }})</span>
+                  <span class="text-[0.55rem] font-semibold text-[#8a6518]">({{ pendingPaymentCount }})</span>
                 </RouterLink>
                 <RouterLink
                   v-if="openIncidentCount > 0"
@@ -179,7 +179,7 @@
                   <p class="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-400">Seguimiento</p>
                   <p
                     class="mt-2 text-base font-semibold"
-                    :class="detailTenant.status === 'VENCIDO' ? 'text-rose-600' : detailTenant.status === 'PRÓXIMO A VENCER' ? 'text-amber-600' : 'text-emerald-600'"
+                    :class="detailTenant.status === 'VENCIDO' ? 'text-rose-600' : detailTenant.status === 'PRÓXIMO A VENCER' ? 'text-[#8a6518]' : 'text-[#1f4f46]'"
                   >
                     {{ detailTenant.daysLabel }}
                   </p>
@@ -259,14 +259,14 @@
               <div class="mt-6 flex flex-wrap gap-3">
                 <button
                   type="button"
-                  class="rounded-2xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:border-primary hover:text-primary"
+                  class="rounded-2xl border border-[#d8cec2] px-4 py-2 text-sm font-semibold text-[#8c4d29] transition hover:border-[#c96a37] hover:text-[#8c4d29]"
                   @click="openTenantModal('edit', detailTenant)"
                 >
                   Editar
                 </button>
                 <button
                   type="button"
-                  class="rounded-2xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:border-primary hover:text-primary"
+                  class="rounded-2xl border border-[#d8cec2] px-4 py-2 text-sm font-semibold text-[#8c4d29] transition hover:border-[#c96a37] hover:text-[#8c4d29]"
                   @click="downloadRentalContractPdf(detailTenant.id)"
                 >
                   Descargar contrato
@@ -285,12 +285,12 @@
             <article
               v-else
               key="tenant-empty-detail"
-              class="rounded-[32px] border border-dashed border-slate-200 bg-slate-50/80 p-6 shadow-sm xl:min-h-[320px]"
+              class="rounded-[32px] border border-dashed border-[#d8cec2] bg-[#fbf8f2] p-6 shadow-sm xl:min-h-[320px]"
             >
               <p class="text-xs font-semibold uppercase tracking-[0.32em] text-slate-400">Ficha del inquilino</p>
               <h3 class="mt-3 text-xl font-semibold text-slate-900">Selecciona un contrato para ver su detalle</h3>
               <p class="mt-2 text-sm leading-6 text-slate-500">
-                La ficha queda fija al lado del listado para revisar pagos, incidencias y fechas sin salir de la tabla.
+                Consulta pagos, incidencias y fechas desde el detalle.
               </p>
             </article>
           </transition>
@@ -348,6 +348,8 @@ import type { Payment, PaymentStatus } from '../types/payment';
 import type { Incident, IncidentStatus } from '../types/incident';
 import type { TenantStatus, TenantWithMeta } from '../types/tenant';
 import type { TenantContractProfilePayload, TenantContractProfileRecord } from '../types/tenantContractProfile';
+import { track } from '../lib/analytics';
+import { captureAppException } from '../lib/sentry';
 
 type TenantFormValues = {
   id?: string;
@@ -751,15 +753,28 @@ const handleTenantSubmit = async (payload: TenantFormValues) => {
   try {
     if (tenantModalState.mode === 'edit' && payload.id) {
       await apiClient.put(`/tenants/${payload.id}`, payload);
+      track('tenant_updated', { source: 'tenants' });
       detailTenant.value = null;
     } else {
       await apiClient.post('/tenants', payload);
+      track('tenant_created', { source: 'tenants' });
       highlightNewTenant(`${payload.full_name}-${payload.contract_end}-${payload.unit_id}`);
     }
     await refreshData();
     requestSucceeded = true;
   } catch (error) {
     console.error(error);
+    captureAppException(error, {
+      tags: {
+        feature: 'tenants',
+        action: tenantModalState.mode
+      },
+      context: {
+        tenantId: payload.id ?? null,
+        unitId: payload.unit_id,
+        route: '/tenants'
+      }
+    });
     window.alert(buildTenantSubmitErrorMessage(error, tenantModalState.mode));
   } finally {
     saving.value = false;
@@ -800,7 +815,19 @@ const downloadContractTerminationPdf = async (tenantId?: string) => {
     });
     const blob = buildPdfBlob(response.data);
     openPdfBlob(blob);
+    track('contract_pdf_opened', { source: 'tenants', kind: 'termination' });
   } catch (error) {
+    captureAppException(error, {
+      tags: {
+        feature: 'documents',
+        action: 'open_contract_pdf'
+      },
+      context: {
+        tenantId,
+        kind: 'termination',
+        route: '/tenants'
+      }
+    });
     handleDownloadError('downloadContractTerminationPdf', error, 'Documento de finalización no encontrado.');
   }
 };
@@ -814,7 +841,19 @@ const downloadRentalContractPdf = async (tenantId?: string) => {
     });
     const blob = buildPdfBlob(response.data);
     openPdfBlob(blob);
+    track('contract_pdf_opened', { source: 'tenants', kind: 'rental' });
   } catch (error) {
+    captureAppException(error, {
+      tags: {
+        feature: 'documents',
+        action: 'open_contract_pdf'
+      },
+      context: {
+        tenantId,
+        kind: 'rental',
+        route: '/tenants'
+      }
+    });
     handleDownloadError('downloadRentalContractPdf', error, 'Contrato de alquiler no encontrado.');
   }
 };

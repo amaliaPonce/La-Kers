@@ -121,8 +121,16 @@ const currencyFormatter = new Intl.NumberFormat('es-ES', {
 
 const tenantName = computed(() => props.payment.tenant_persons?.full_name ?? '—');
 const tenantHint = computed(() => {
-  const id = props.payment.tenant_persons?.id;
-  return id ? `ID ${id.slice(0, 6)}` : 'Información mínima';
+  if (props.payment.status === 'PAID') {
+    return 'Pago cobrado';
+  }
+  if (daysLate.value > 0) {
+    return `Vencido ${dueLabel.value}`;
+  }
+  if (dueDate.value) {
+    return `Vence ${dueLabel.value}`;
+  }
+  return 'Sin fecha de vencimiento';
 });
 
 const apartmentLabel = computed(() => props.payment.units?.name ?? 'Sin apartamento');

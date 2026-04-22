@@ -23,7 +23,7 @@ services:
       - key: ENABLE_DASHBOARD_REALTIME
         value: false
       - key: BILLING_MODE
-        value: manual
+        value: stripe
       - key: REQUEST_BODY_LIMIT
         value: 1mb
       - key: RATE_LIMIT_WINDOW_MS

@@ -14,21 +14,13 @@ export type StripeConfig = {
   missingKeys: string[];
 };
 
-function parseBoolean(value: string | undefined, fallback: boolean) {
-  if (value === undefined) return fallback;
-  const normalized = value.trim().toLowerCase();
-  if (['1', 'true', 'yes', 'on'].includes(normalized)) return true;
-  if (['0', 'false', 'no', 'off'].includes(normalized)) return false;
-  return fallback;
-}
-
 function parseBillingMode(env: NodeJS.ProcessEnv): BillingMode {
   const requested = env.BILLING_MODE?.trim().toLowerCase();
   if (requested === 'manual' || requested === 'stripe') {
     return requested;
   }
 
-  return parseBoolean(env.MINIMAL_MODE, true) ? 'manual' : 'stripe';
+  return 'stripe';
 }
 
 export function createStripeConfig(env: NodeJS.ProcessEnv): StripeConfig {
@@ -54,7 +46,7 @@ export function createStripeConfig(env: NodeJS.ProcessEnv): StripeConfig {
     webhookSecret,
     priceIdProMonthly,
     priceIdProYearly,
-    apiVersion: '2024-06-20',
+    apiVersion: '2026-02-25.clover',
     isConfigured,
     missingKeys: requestedMode === 'stripe' ? rawMissingKeys : []
   };

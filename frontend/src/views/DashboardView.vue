@@ -2,33 +2,33 @@
   <div class="space-y-6 pb-10">
     <section
       v-if="showEmptyDashboard"
-      class="rounded-[36px] border border-slate-200 bg-white p-6 shadow-sm sm:p-8"
+      class="rounded-[36px] border border-[#eadfd2] bg-white p-6 shadow-sm sm:p-8"
     >
       <EmptyPropertiesState
         eyebrow="Dashboard"
         title="Aún no tienes propiedades"
-        description="Empieza creando tu primera propiedad para activar el panel."
+        description="Crea tu primera propiedad para empezar."
         cta-label="Ir a propiedades"
         cta-to="/apartments"
       />
 
-      <div class="mt-5 rounded-[28px] border border-slate-200 bg-slate-50 p-5">
-        <p class="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-400">
+      <div class="mt-5 rounded-[28px] border border-[#eadfd2] bg-[#fbf8f2] p-5">
+        <p class="text-[11px] font-semibold uppercase tracking-[0.28em] text-[#8c4d29]">
           Resumen financiero
         </p>
         <p class="mt-2 text-sm leading-7 text-slate-600">
-          Cuando registres pagos, aquí verás el resumen financiero.
+          Aquí verás el resumen cuando registres pagos.
         </p>
       </div>
     </section>
 
     <template v-else>
-      <section class="rounded-[36px] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+      <section class="rounded-[36px] border border-[#eadfd2] bg-white p-6 shadow-sm sm:p-8">
         <div class="space-y-5">
           <div class="flex flex-wrap items-center gap-3">
-            <div class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.35em] text-slate-700">
+            <div class="inline-flex items-center gap-2 rounded-full border border-[#d6c7bb] bg-white/85 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.35em] text-[#8c4d29]">
               <SolidIcon name="dashboard" class="h-3.5 w-3.5 text-[#c96a37]" />
-              <span>Vista operativa</span>
+              <span>Resumen</span>
             </div>
             <div
               v-if="realtimeBadge.label"
@@ -43,7 +43,7 @@
           <div class="max-w-3xl">
             <h1 class="text-3xl font-semibold text-slate-900 sm:text-5xl">Dashboard</h1>
             <p class="mt-3 max-w-2xl text-sm leading-7 text-slate-600 sm:text-base">
-              Ve cobros, unidades libres y pagos atrasados sin leer de más.
+              Resumen de cobros, ocupación e incidencias.
             </p>
           </div>
         </div>
@@ -68,21 +68,21 @@
       </section>
 
       <section class="grid gap-6 xl:grid-cols-[1.08fr_0.92fr]">
-        <article class="rounded-[36px] border border-slate-200 bg-white p-6 shadow-sm">
+        <article class="rounded-[36px] border border-[#eadfd2] bg-white p-6 shadow-sm">
           <div class="space-y-1">
-            <div class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.3em] text-[#1f4f46]">
+            <div class="inline-flex items-center gap-2 rounded-full border border-[#d6c7bb] bg-white/85 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.3em] text-[#1f4f46]">
               <SolidIcon name="wallet" class="h-3.5 w-3.5" />
-              <span>Distribución mensual</span>
+              <span>Mes actual</span>
             </div>
-            <h2 class="text-2xl font-semibold text-slate-900">Cómo se reparte el mes</h2>
-            <p class="text-sm text-slate-500">Lo cobrado, lo pendiente y la parte ya caída en mora.</p>
+            <h2 class="text-2xl font-semibold text-slate-900">Distribución del mes</h2>
+            <p class="text-sm text-slate-500">Cobrado, pendiente y en mora.</p>
           </div>
 
           <div class="mt-6 space-y-4">
             <div
               v-for="item in breakdownItems"
               :key="item.id"
-              class="rounded-[28px] border border-slate-200 bg-slate-50 p-5"
+              class="rounded-[28px] border border-[#eadfd2] bg-[#fbf8f2] p-5"
             >
               <div class="flex items-start justify-between gap-4">
                 <div>
@@ -94,21 +94,21 @@
                   <p class="mt-1 text-xs font-semibold uppercase tracking-[0.26em] text-slate-400">{{ item.shareLabel }}</p>
                 </div>
               </div>
-              <div class="mt-4 h-2.5 overflow-hidden rounded-full bg-slate-100">
+              <div class="mt-4 h-2.5 overflow-hidden rounded-full bg-[#efe7dd]">
                 <div class="h-full rounded-full transition-all duration-500" :class="item.barClass" :style="{ width: `${item.share}%` }"></div>
               </div>
             </div>
           </div>
         </article>
 
-        <article class="rounded-[36px] border border-slate-200 bg-white p-6 shadow-sm">
+        <article class="rounded-[36px] border border-[#eadfd2] bg-white p-6 shadow-sm">
           <div class="space-y-1">
-            <div class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.3em] text-[#8c4d29]">
+            <div class="inline-flex items-center gap-2 rounded-full border border-[#d6c7bb] bg-white/85 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.3em] text-[#8c4d29]">
               <SolidIcon name="spark" class="h-3.5 w-3.5" />
-              <span>Resumen rápido</span>
+              <span>Hoy</span>
             </div>
-            <h2 class="text-2xl font-semibold text-slate-900">Lo importante hoy</h2>
-            <p class="text-sm text-slate-500">Tres señales claras para decidir el siguiente paso.</p>
+            <h2 class="text-2xl font-semibold text-slate-900">Lo importante</h2>
+            <p class="text-sm text-slate-500">Señales principales del panel.</p>
           </div>
 
           <div class="mt-6 grid gap-3">
@@ -455,8 +455,8 @@ const realtimeBadge = computed(() => {
     case 'manual':
       return {
         label: '',
-        className: 'border-slate-200 bg-slate-50 text-slate-600',
-        dotClass: 'bg-slate-400'
+        className: 'border-[#eadfd2] bg-[#fbf8f2] text-[#8c4d29]',
+        dotClass: 'bg-[#c96a37]'
       };
     case 'live':
       return {
@@ -468,13 +468,13 @@ const realtimeBadge = computed(() => {
       return {
         label: 'Reconectando',
         className: 'border-[#ead8ca] bg-[#fff1e7] text-[#8c4d29]',
-        dotClass: 'bg-amber-500'
+        dotClass: 'bg-[#d9982c]'
       };
     default:
       return {
         label: 'Conectando',
-        className: 'border-slate-200 bg-white/90 text-slate-600',
-        dotClass: 'bg-slate-400'
+        className: 'border-[#eadfd2] bg-white/90 text-[#8c4d29]',
+        dotClass: 'bg-[#c96a37]'
       };
   }
 });
@@ -482,7 +482,7 @@ const breakdownItems = computed(() => [
   {
     id: 'paid',
     label: 'Cobrado',
-    detail: collectionRate.value >= 80 ? 'Ritmo sano para este punto del mes' : 'Conviene seguir empujando cobros',
+    detail: collectionRate.value >= 80 ? 'Buen ritmo este mes' : 'Cobro por revisar',
     value: formatCurrency(paidValue.value),
     share: collectionRate.value,
     shareLabel: `${formatPercent(collectionRate.value)} del objetivo`,
@@ -492,8 +492,8 @@ const breakdownItems = computed(() => [
     id: 'pending',
     label: 'Pendiente',
     detail: pendingCount.value
-      ? `${pendingCount.value} ${pendingCount.value === 1 ? 'pago pendiente' : 'pagos pendientes'} todavía en ventana`
-      : 'No quedan pagos pendientes en ventana',
+      ? `${pendingCount.value} ${pendingCount.value === 1 ? 'pago pendiente' : 'pagos pendientes'}`
+      : 'Sin pagos pendientes',
     value: formatCurrency(pendingValue.value),
     share: pendingRate.value,
     shareLabel: `${formatPercent(pendingRate.value)} del objetivo`,
@@ -503,8 +503,8 @@ const breakdownItems = computed(() => [
     id: 'late',
     label: 'En mora',
     detail: overdueCount.value
-      ? `${overdueCount.value} ${overdueCount.value === 1 ? 'caso fuera de plazo' : 'casos fuera de plazo'}`
-      : 'Sin retrasos acumulados',
+      ? `${overdueCount.value} ${overdueCount.value === 1 ? 'pago en retraso' : 'pagos en retraso'}`
+      : 'Sin retrasos',
     value: formatCurrency(lateValue.value),
     share: lateRate.value,
     shareLabel: `${formatPercent(lateRate.value)} del objetivo`,
@@ -530,8 +530,8 @@ const highlightStyles = (tone: HighlightTone) => {
       };
     default:
       return {
-        card: 'border-slate-200 bg-slate-50',
-        badge: 'bg-white/90 text-slate-600'
+        card: 'border-[#eadfd2] bg-[#fbf8f2]',
+        badge: 'bg-white/90 text-[#8c4d29]'
       };
   }
 };
@@ -540,30 +540,30 @@ const dashboardHighlights = computed(() => [
     id: 'collection',
     title: 'Cobro',
     value: formatPercent(collectionRate.value),
-    badge: collectionRate.value >= 80 ? 'Bien' : 'Seguir',
+    badge: collectionRate.value >= 80 ? 'Correcto' : 'Revisar',
     body:
       collectionRate.value >= 80
-        ? 'Buen ritmo de cobro este mes.'
+        ? 'Buen ritmo de cobro.'
         : collectionRate.value > 0
-          ? 'Cobro bajo. Conviene insistir esta semana.'
-          : 'Aún no entra dinero este mes.',
+          ? 'Cobro por debajo de lo previsto.'
+          : 'Sin cobros registrados este mes.',
     tone: (collectionRate.value >= 80 ? 'success' : 'warning') as HighlightTone
   },
   {
     id: 'availability',
     title: 'Libres',
     value: String(availableUnits.value),
-    badge: availableUnits.value ? 'Mover' : 'Lleno',
+    badge: availableUnits.value ? 'Disponible' : 'Completo',
     body: availableUnits.value
       ? `Hay ${availableUnits.value} ${availableUnits.value === 1 ? 'unidad libre' : 'unidades libres'} para alquilar.`
-      : 'Ahora mismo todo está ocupado.',
+      : 'No hay unidades libres.',
     tone: (availableUnits.value ? 'warning' : 'success') as HighlightTone
   },
   {
     id: 'overdue',
     title: 'Atrasos',
     value: String(overdueCount.value),
-    badge: overdueCount.value ? 'Urgente' : 'Limpio',
+    badge: overdueCount.value ? 'Atención' : 'Al día',
     body: overdueCount.value
       ? `Hay ${overdueCount.value} ${overdueCount.value === 1 ? 'pago atrasado' : 'pagos atrasados'} por ${formatCurrency(overdueAmount.value)}.`
       : 'No hay pagos atrasados.',

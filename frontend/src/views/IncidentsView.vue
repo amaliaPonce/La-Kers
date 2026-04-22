@@ -4,7 +4,7 @@
       <div>
         <p class="text-xs font-semibold uppercase tracking-[0.4em] text-slate-500">Operaciones</p>
         <h1 class="text-3xl font-semibold text-slate-900">Incidencias</h1>
-        <p class="text-sm text-slate-500">Gestiona reparaciones, costes y seguimiento desde un solo sitio.</p>
+        <p class="text-sm text-slate-500">Revisa estado, coste y seguimiento.</p>
       </div>
       <button
         class="inline-flex items-center rounded-full bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-slate-900/30 transition hover:bg-slate-800"
@@ -16,7 +16,7 @@
     </header>
 
     <div v-if="loading" class="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-4 text-sm text-slate-500">
-      Cargando incidencias, apartamentos y contratos…
+      Cargando incidencias…
     </div>
 
     <section class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -40,7 +40,7 @@
           <select v-model="filters.state" class="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm">
             <option value="">Todos</option>
             <option value="ABIERTO">Abierta</option>
-            <option value="PENDIENTE_PROVEEDOR">Pendiente proveedor</option>
+            <option value="PENDIENTE_PROVEEDOR">Pendiente de proveedor</option>
             <option value="EN_PROGRESO">En progreso</option>
             <option value="RESUELTA">Resuelta</option>
           </select>
@@ -92,9 +92,144 @@
       </div>
     </section>
 
-    <div class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_300px] xl:items-start">
-      <section class="order-2 rounded-2xl border border-slate-200 bg-white shadow-sm xl:order-1">
-        <div class="overflow-auto">
+    <div class="space-y-6">
+      <section ref="detailPanelRef" class="scroll-mt-24">
+        <transition name="detail-slide" mode="out-in">
+          <article
+            v-if="selectedIncident"
+            key="incident-detail"
+            class="rounded-[32px] border border-[#ead8ca] bg-[linear-gradient(180deg,_rgba(255,255,255,0.97),_rgba(249,246,240,0.96))] p-5 shadow-[0_22px_50px_rgba(15,23,42,0.08)]"
+          >
+            <div class="flex flex-wrap items-start justify-between gap-4">
+              <div class="space-y-2">
+                <p class="text-xs font-semibold uppercase tracking-[0.32em] text-[#8c4d29]">Ficha activa</p>
+                <div>
+                  <h2 class="text-2xl font-semibold text-slate-900">{{ selectedIncident.title }}</h2>
+                  <p class="mt-1 text-sm text-slate-500">
+                    {{ selectedIncident.apartmentName }} · {{ selectedIncident.tenantName ?? 'Sin inquilino asignado' }}
+                  </p>
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                <span
+                  class="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold"
+                  :class="selectedIncident.statusBadgeClasses"
+                >
+                  ●
+                  <span>{{ selectedIncident.statusLabel }}</span>
+                </span>
+                <button
+                  type="button"
+                  class="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 transition hover:border-primary hover:text-primary"
+                  @click="selectedIncidentId = null"
+                >
+                  Cerrar
+                </button>
+              </div>
+            </div>
+
+            <div class="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              <div class="rounded-3xl border border-white/80 bg-white/80 p-4 shadow-sm">
+                <p class="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-400">Tipo</p>
+                <p class="mt-2 text-base font-semibold text-slate-900">{{ selectedIncident.typeLabel }}</p>
+              </div>
+              <div class="rounded-3xl border border-white/80 bg-white/80 p-4 shadow-sm">
+                <p class="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-400">Prioridad</p>
+                <p class="mt-2 text-base font-semibold" :class="selectedIncident.priorityAccent">{{ selectedIncident.priorityLabel }}</p>
+              </div>
+              <div class="rounded-3xl border border-white/80 bg-white/80 p-4 shadow-sm">
+                <p class="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-400">Responsable</p>
+                <p class="mt-2 text-base font-semibold text-slate-900">{{ selectedIncident.responsible }}</p>
+              </div>
+              <div class="rounded-3xl border border-white/80 bg-white/80 p-4 shadow-sm">
+                <p class="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-400">Coste</p>
+                <p class="mt-2 text-base font-semibold text-slate-900">{{ selectedIncident.costDisplay }}</p>
+              </div>
+            </div>
+
+            <div class="mt-5 grid gap-5 xl:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
+              <div class="space-y-5">
+                <div class="rounded-3xl border border-white/80 bg-white/80 p-4 shadow-sm">
+                  <p class="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-400">Descripción</p>
+                  <p class="mt-2 text-sm leading-6 text-slate-600">{{ selectedIncident.description }}</p>
+                </div>
+
+                <div class="rounded-3xl border border-white/80 bg-white/80 p-4 shadow-sm">
+                  <p class="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-400">Historial</p>
+                  <ol class="mt-3 space-y-3">
+                    <li v-for="item in selectedIncident.timeline" :key="item.label" class="flex items-start gap-3">
+                      <span
+                        class="mt-1 h-2.5 w-2.5 rounded-full"
+                        :class="item.completed ? 'bg-primary' : 'bg-slate-200'"
+                      ></span>
+                      <div>
+                        <p class="text-sm font-semibold text-slate-900">{{ item.label }}</p>
+                        <p class="text-xs text-slate-500">{{ item.date }}</p>
+                      </div>
+                    </li>
+                  </ol>
+                </div>
+              </div>
+
+              <div class="space-y-5">
+                <div class="rounded-3xl border border-white/80 bg-white/80 p-4 shadow-sm">
+                  <div class="flex items-center justify-between gap-3">
+                    <p class="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-400">Adjuntos</p>
+                    <button
+                      type="button"
+                      class="rounded-full border border-primary px-3 py-1 text-xs font-semibold text-primary transition hover:bg-primary/10"
+                      @click="detailUploadInput?.click()"
+                    >
+                      Añadir archivo
+                    </button>
+                    <input ref="detailUploadInput" type="file" multiple class="hidden" @change="handleDetailUpload" />
+                  </div>
+                  <ul class="mt-3 space-y-2">
+                    <li
+                      v-for="attachment in selectedIncident.attachments"
+                      :key="attachment.id"
+                      class="rounded-2xl border border-slate-100 bg-slate-50 px-3 py-2 text-sm text-slate-700"
+                    >
+                      <div class="flex items-center justify-between gap-3">
+                        <div>
+                          <p class="font-semibold text-slate-900">{{ attachment.name }}</p>
+                          <p class="text-xs text-slate-500">{{ attachment.category }} • {{ formatDate(attachment.uploadedAt) }}</p>
+                        </div>
+                        <button type="button" class="text-xs font-semibold text-primary">Abrir</button>
+                      </div>
+                    </li>
+                  </ul>
+                </div>
+
+                <div class="flex flex-wrap gap-3">
+                  <button
+                    type="button"
+                    class="rounded-2xl border border-slate-900 bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
+                    @click="markAsResolved"
+                  >
+                    Marcar resuelta
+                  </button>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <article
+            v-else
+            key="incident-empty-detail"
+            class="rounded-[32px] border border-dashed border-slate-200 bg-slate-50/80 p-6 shadow-sm"
+          >
+            <p class="text-xs font-semibold uppercase tracking-[0.32em] text-slate-400">Ficha de incidencia</p>
+            <h3 class="mt-3 text-xl font-semibold text-slate-900">Selecciona una incidencia para ver su detalle</h3>
+            <p class="mt-2 text-sm leading-6 text-slate-500">
+              Consulta seguimiento, adjuntos y estado desde el detalle.
+            </p>
+          </article>
+        </transition>
+      </section>
+
+      <section class="rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div v-if="filteredIncidents.length" class="overflow-auto">
           <table class="min-w-full text-sm text-slate-600">
             <thead>
               <tr class="text-left text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">
@@ -105,7 +240,7 @@
                 <th class="px-4 py-3">Estado</th>
                 <th class="px-4 py-3">Fecha</th>
                 <th class="px-4 py-3">Responsable</th>
-                <th class="px-4 py-3">Costo estimado</th>
+                <th class="px-4 py-3">Coste</th>
                 <th class="px-4 py-3">Acciones</th>
               </tr>
             </thead>
@@ -148,142 +283,19 @@
                   </button>
                 </td>
               </tr>
-              <tr v-if="!filteredIncidents.length">
-                <td colspan="9" class="px-4 py-10 text-center text-sm text-slate-500">No hay incidencias que coincidan con los filtros.</td>
-              </tr>
             </tbody>
           </table>
         </div>
+        <div
+          v-else
+          class="flex min-h-[220px] items-center justify-center px-6 py-10 text-center"
+        >
+          <div>
+            <p class="text-lg font-semibold text-slate-900">No hay incidencias que coincidan con los filtros.</p>
+            <p class="mt-2 text-sm text-slate-500">Ajusta los filtros o registra una nueva incidencia.</p>
+          </div>
+        </div>
       </section>
-
-      <aside ref="detailPanelRef" class="order-1 scroll-mt-24 xl:order-2 xl:sticky xl:top-6">
-        <transition name="detail-slide" mode="out-in">
-          <article
-            v-if="selectedIncident"
-            key="incident-detail"
-            class="rounded-[32px] border border-[#ead8ca] bg-[linear-gradient(180deg,_rgba(255,255,255,0.97),_rgba(249,246,240,0.96))] p-5 shadow-[0_22px_50px_rgba(15,23,42,0.08)]"
-          >
-            <div class="flex flex-wrap items-start justify-between gap-4">
-              <div class="space-y-2">
-                <p class="text-xs font-semibold uppercase tracking-[0.32em] text-[#8c4d29]">Ficha activa</p>
-                <div>
-                  <h2 class="text-2xl font-semibold text-slate-900">{{ selectedIncident.title }}</h2>
-                  <p class="mt-1 text-sm text-slate-500">
-                    {{ selectedIncident.apartmentName }} · {{ selectedIncident.tenantName ?? 'Inquilino asignado' }}
-                  </p>
-                </div>
-              </div>
-              <div class="flex items-center gap-2">
-                <span
-                  class="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold"
-                  :class="selectedIncident.statusBadgeClasses"
-                >
-                  ●
-                  <span>{{ selectedIncident.statusLabel }}</span>
-                </span>
-                <button
-                  type="button"
-                  class="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 transition hover:border-primary hover:text-primary"
-                  @click="selectedIncidentId = null"
-                >
-                  Cerrar
-                </button>
-              </div>
-            </div>
-
-            <div class="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
-              <div class="rounded-3xl border border-white/80 bg-white/80 p-4 shadow-sm">
-                <p class="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-400">Tipo</p>
-                <p class="mt-2 text-base font-semibold text-slate-900">{{ selectedIncident.typeLabel }}</p>
-              </div>
-              <div class="rounded-3xl border border-white/80 bg-white/80 p-4 shadow-sm">
-                <p class="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-400">Prioridad</p>
-                <p class="mt-2 text-base font-semibold" :class="selectedIncident.priorityAccent">{{ selectedIncident.priorityLabel }}</p>
-              </div>
-              <div class="rounded-3xl border border-white/80 bg-white/80 p-4 shadow-sm">
-                <p class="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-400">Responsable</p>
-                <p class="mt-2 text-base font-semibold text-slate-900">{{ selectedIncident.responsible }}</p>
-              </div>
-              <div class="rounded-3xl border border-white/80 bg-white/80 p-4 shadow-sm">
-                <p class="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-400">Costo final</p>
-                <p class="mt-2 text-base font-semibold text-slate-900">{{ selectedIncident.costDisplay }}</p>
-              </div>
-            </div>
-
-            <div class="mt-5 rounded-3xl border border-white/80 bg-white/80 p-4 shadow-sm">
-              <p class="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-400">Descripción</p>
-              <p class="mt-2 text-sm leading-6 text-slate-600">{{ selectedIncident.description }}</p>
-            </div>
-
-            <div class="mt-5 rounded-3xl border border-white/80 bg-white/80 p-4 shadow-sm">
-              <p class="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-400">Historial</p>
-              <ol class="mt-3 space-y-3">
-                <li v-for="item in selectedIncident.timeline" :key="item.label" class="flex items-start gap-3">
-                  <span
-                    class="mt-1 h-2.5 w-2.5 rounded-full"
-                    :class="item.completed ? 'bg-primary' : 'bg-slate-200'"
-                  ></span>
-                  <div>
-                    <p class="text-sm font-semibold text-slate-900">{{ item.label }}</p>
-                    <p class="text-xs text-slate-500">{{ item.date }}</p>
-                  </div>
-                </li>
-              </ol>
-            </div>
-
-            <div class="mt-5 rounded-3xl border border-white/80 bg-white/80 p-4 shadow-sm">
-              <div class="flex items-center justify-between gap-3">
-                <p class="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-400">Adjuntos</p>
-                <button
-                  type="button"
-                  class="rounded-full border border-primary px-3 py-1 text-xs font-semibold text-primary transition hover:bg-primary/10"
-                  @click="detailUploadInput?.click()"
-                >
-                  Añadir archivo
-                </button>
-                <input ref="detailUploadInput" type="file" multiple class="hidden" @change="handleDetailUpload" />
-              </div>
-              <ul class="mt-3 space-y-2">
-                <li
-                  v-for="attachment in selectedIncident.attachments"
-                  :key="attachment.id"
-                  class="rounded-2xl border border-slate-100 bg-slate-50 px-3 py-2 text-sm text-slate-700"
-                >
-                  <div class="flex items-center justify-between gap-3">
-                    <div>
-                      <p class="font-semibold text-slate-900">{{ attachment.name }}</p>
-                      <p class="text-xs text-slate-500">{{ attachment.category }} • {{ formatDate(attachment.uploadedAt) }}</p>
-                    </div>
-                    <button type="button" class="text-xs font-semibold text-primary">Abrir</button>
-                  </div>
-                </li>
-              </ul>
-            </div>
-
-            <div class="mt-6 flex flex-wrap gap-3">
-              <button
-                type="button"
-                class="rounded-2xl border border-slate-900 bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
-                @click="markAsResolved"
-              >
-                Marcar resuelta
-              </button>
-            </div>
-          </article>
-
-          <article
-            v-else
-            key="incident-empty-detail"
-            class="rounded-[32px] border border-dashed border-slate-200 bg-slate-50/80 p-6 shadow-sm xl:min-h-[320px]"
-          >
-            <p class="text-xs font-semibold uppercase tracking-[0.32em] text-slate-400">Ficha de incidencia</p>
-            <h3 class="mt-3 text-xl font-semibold text-slate-900">Selecciona una incidencia para ver su detalle</h3>
-            <p class="mt-2 text-sm leading-6 text-slate-500">
-              La ficha lateral concentra seguimiento, adjuntos y resolución sin sacarte del listado operativo.
-            </p>
-          </article>
-        </transition>
-      </aside>
     </div>
 
     <div v-if="showModal" class="fixed inset-0 z-40 flex items-center justify-center">
@@ -342,7 +354,7 @@
               </select>
             </label>
             <label class="space-y-2 text-sm font-semibold text-slate-600">
-              Costo estimado
+              Coste estimado
               <input
                 v-model.number="modalForm.cost"
                 type="number"
@@ -355,7 +367,7 @@
           </div>
           <div class="space-y-2 text-sm text-slate-600">
             <p class="font-semibold text-slate-700">Adjuntar fotos, facturas o presupuestos</p>
-            <p class="text-xs text-slate-400">Los archivos se almacenan en el panel de detalle para referencia rápida.</p>
+            <p class="text-xs text-slate-400">Los archivos quedarán disponibles en el detalle.</p>
             <label
               class="flex cursor-pointer items-center gap-2 rounded-2xl border border-dashed border-slate-300 px-4 py-3 text-sm font-semibold text-primary transition hover:border-primary"
             >
@@ -394,6 +406,8 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue';
 import apiClient from '../services/apiClient';
+import { track } from '../lib/analytics';
+import { captureAppException } from '../lib/sentry';
 
 type IncidentRecord = {
   id: string;
@@ -474,15 +488,15 @@ const priorityOptions = [
 ];
 
 const responsibleOptions = [
-  'Equipo interno de mantenimiento',
-  'Proveedor externo asignado',
-  'Coordinador de facility',
-  'Supervisor de operaciones'
+  'Mantenimiento interno',
+  'Proveedor externo',
+  'Coordinación',
+  'Supervisión'
 ];
 
 const statusBadgeMap: Record<DisplayStatusKey, { label: string; bg: string; text: string; border: string }> = {
   ABIERTO: { label: 'Abierta', bg: 'bg-rose-100', text: 'text-rose-700', border: 'border-rose-200' },
-  PENDIENTE_PROVEEDOR: { label: 'Pendiente proveedor', bg: 'bg-sky-100', text: 'text-sky-700', border: 'border-sky-200' },
+  PENDIENTE_PROVEEDOR: { label: 'Pendiente de proveedor', bg: 'bg-sky-100', text: 'text-sky-700', border: 'border-sky-200' },
   EN_PROGRESO: { label: 'En progreso', bg: 'bg-amber-100', text: 'text-amber-700', border: 'border-amber-200' },
   RESUELTA: { label: 'Resuelta', bg: 'bg-emerald-100', text: 'text-emerald-700', border: 'border-emerald-200' }
 };
@@ -759,25 +773,25 @@ const metricCards = computed(() => {
       id: 'open',
       label: 'Incidencias abiertas',
       valueLabel: String(summaryValues.openCount),
-      helper: summaryValues.openCount ? `${summaryValues.openCount} tareas activas` : 'Sin movimientos en curso'
+      helper: summaryValues.openCount ? `${summaryValues.openCount} activas` : 'Sin incidencias abiertas'
     },
     {
       id: 'progress',
       label: 'En progreso',
       valueLabel: String(summaryValues.inProgressCount),
-      helper: summaryValues.inProgressCount ? 'En seguimiento constante' : 'Nada urgente'
+      helper: summaryValues.inProgressCount ? `${summaryValues.inProgressCount} en curso` : 'Sin incidencias en curso'
     },
     {
       id: 'resolved',
       label: 'Resueltas este mes',
       valueLabel: String(summaryValues.resolvedThisMonth),
-      helper: summaryValues.resolvedThisMonth ? 'Actualizado al instante' : 'Aún en revisión'
+      helper: summaryValues.resolvedThisMonth ? 'Actualizadas este mes' : 'Sin resueltas este mes'
     },
     {
       id: 'cost',
-      label: 'Coste total del mes',
+      label: 'Coste del mes',
       valueLabel: formatCurrency(summaryValues.costThisMonth),
-      helper: 'Incluye estimaciones y facturas cargadas'
+      helper: 'Estimaciones y costes registrados'
     }
   ];
 });
@@ -845,6 +859,7 @@ const markAsResolved = async () => {
   if (!selectedIncidentId.value) return;
   try {
     await apiClient.put(`/incidents/${selectedIncidentId.value}`, { status: 'CLOSED' });
+    track('incident_resolved', { source: 'incidents' });
     incidentOverrides[selectedIncidentId.value] = {
       ...incidentOverrides[selectedIncidentId.value],
       statusKey: 'RESUELTA'
@@ -852,6 +867,16 @@ const markAsResolved = async () => {
     await loadData();
   } catch (error) {
     console.error(error);
+    captureAppException(error, {
+      tags: {
+        feature: 'incidents',
+        action: 'resolve'
+      },
+      context: {
+        incidentId: selectedIncidentId.value,
+        route: '/incidents'
+      }
+    });
   }
 };
 
@@ -871,6 +896,7 @@ const handleCreate = async () => {
     const response = await apiClient.post('/incidents', payload);
     const created = response.data;
     if (created?.id) {
+      track('incident_created', { source: 'incidents' });
       incidentOverrides[created.id] = {
         type: modalForm.type,
         priority: modalForm.priority,
@@ -895,6 +921,17 @@ const handleCreate = async () => {
     showModal.value = false;
   } catch (error) {
     console.error(error);
+    captureAppException(error, {
+      tags: {
+        feature: 'incidents',
+        action: 'create'
+      },
+      context: {
+        unitId: modalForm.unit_id,
+        hasCost: modalForm.cost !== null,
+        route: '/incidents'
+      }
+    });
   } finally {
     isSaving.value = false;
     await loadData();

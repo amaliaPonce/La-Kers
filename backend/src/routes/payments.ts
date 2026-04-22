@@ -9,6 +9,7 @@ import {
   PaymentMethod
 } from '../services/paymentsService';
 import { notifyDashboardUpdated } from '../services/dashboardRealtime';
+import { captureServerException } from '../monitoring/sentry';
 
 const router = Router();
 
@@ -77,6 +78,21 @@ router.post('/', async (req: AuthenticatedRequest, res) => {
     res.status(201).json(payment);
   } catch (error) {
     console.error(error);
+    captureServerException(error, {
+      tag: 'payments.create_failed',
+      userId: req.authUser?.id,
+      route: req.path,
+      tags: {
+        feature: 'payments',
+        action: 'create'
+      },
+      extra: {
+        paymentId: null,
+        tenantId: payload.tenant_person_id,
+        unitId: payload.unit_id,
+        route: '/payments'
+      }
+    });
     const status = (error as any).status ?? 500;
     res.status(status).json({ message: 'No se pudo crear el pago' });
   }
@@ -98,6 +114,20 @@ router.patch('/:id/pay', async (req: AuthenticatedRequest, res) => {
     res.json(payment);
   } catch (error) {
     console.error(error);
+    captureServerException(error, {
+      tag: 'payments.mark_paid_failed',
+      userId: req.authUser?.id,
+      route: req.path,
+      tags: {
+        feature: 'payments',
+        action: 'mark_paid'
+      },
+      extra: {
+        paymentId: req.params.id,
+        paymentMethod,
+        route: '/payments'
+      }
+    });
     const status = (error as any).status ?? 500;
     res.status(status).json({ message: 'No se pudo marcar el pago como abonado' });
   }

@@ -1,29 +1,29 @@
 <template>
-  <article class="rounded-3xl border border-slate-200 bg-gradient-to-r from-white/80 to-slate-50 px-5 py-5 shadow-sm">
+  <article class="rounded-3xl border border-[#eadfd2] bg-[linear-gradient(90deg,_rgba(255,255,255,0.9),_rgba(248,245,239,0.92))] px-5 py-5 shadow-sm">
     <div class="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
       <div>
-        <p class="text-xs font-medium text-slate-500">Resumen mensual</p>
+        <p class="text-xs font-medium text-[#8c4d29]">Resumen mensual</p>
         <p class="text-lg font-semibold text-slate-900">{{ monthLabel }}</p>
       </div>
-      <p class="text-sm font-semibold text-slate-700">{{ progressPercent }}% del objetivo</p>
+      <p class="text-sm font-semibold text-[#1f4f46]">{{ progressPercent }}% del objetivo</p>
     </div>
-    <div class="mt-4 h-2 w-full overflow-hidden rounded-full bg-slate-200/70">
+    <div class="mt-4 h-2 w-full overflow-hidden rounded-full bg-[#efe7dd]/80">
       <div
-        class="h-full rounded-full bg-emerald-500 transition-all duration-500"
+        class="h-full rounded-full bg-[#1f4f46] transition-all duration-500"
         :style="{ width: progressWidth }"
       ></div>
     </div>
     <div class="mt-4 grid gap-3 sm:grid-cols-3 text-sm">
       <div>
-        <p class="text-xs font-semibold text-slate-500">Cobrado</p>
-        <p class="text-base font-semibold text-emerald-600">{{ formatCurrency(collected) }}</p>
+        <p class="text-xs font-semibold text-[#8c4d29]">Cobrado</p>
+        <p class="text-base font-semibold text-[#1f4f46]">{{ formatCurrency(collected) }}</p>
       </div>
       <div>
-        <p class="text-xs font-semibold text-slate-500">Pendiente</p>
-        <p class="text-base font-semibold text-amber-600">{{ formatCurrency(pending) }}</p>
+        <p class="text-xs font-semibold text-[#8c4d29]">Pendiente</p>
+        <p class="text-base font-semibold text-[#8a6518]">{{ formatCurrency(pending) }}</p>
       </div>
       <div>
-        <p class="text-xs font-semibold text-slate-500">Retrasado</p>
+        <p class="text-xs font-semibold text-[#8c4d29]">Retrasado</p>
         <p class="text-base font-semibold text-rose-600">{{ formatCurrency(late) }}</p>
       </div>
     </div>
