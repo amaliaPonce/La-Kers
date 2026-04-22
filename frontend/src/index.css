@@ -10,7 +10,8 @@
   }
 
   body {
-    @apply bg-slate-100 text-slate-900;
+    background-color: #f8f5ef;
+    color: #0f172a;
     font-family: 'Plus Jakarta Sans', sans-serif;
   }
 

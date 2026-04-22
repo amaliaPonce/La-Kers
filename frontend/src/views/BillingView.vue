@@ -1,8 +1,8 @@
 <template>
   <div class="space-y-6 pb-10">
-    <section class="rounded-[36px] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+    <section class="rounded-[36px] border border-[#eadfd2] bg-white p-6 shadow-sm sm:p-8">
       <div class="space-y-5">
-        <div class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.35em] text-slate-700">
+        <div class="inline-flex items-center gap-2 rounded-full border border-[#d6c7bb] bg-white/80 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.35em] text-[#8c4d29]">
           <SolidIcon name="coin" class="h-3.5 w-3.5 text-[#c96a37]" />
           <span>Plan</span>
         </div>
@@ -18,16 +18,16 @@
           v-if="feedbackMessage"
           class="rounded-[28px] border px-5 py-4 text-sm shadow-sm"
           :class="feedbackTone === 'success'
-            ? 'border-emerald-200 bg-emerald-50 text-emerald-800'
+            ? 'border-[#d5e4dd] bg-[#edf6f2] text-[#1f4f46]'
             : feedbackTone === 'warning'
-              ? 'border-amber-200 bg-amber-50 text-amber-800'
+              ? 'border-[#e7cf8c] bg-[#fff7df] text-[#8a6518]'
               : 'border-rose-200 bg-rose-50 text-rose-700'"
         >
           {{ feedbackMessage }}
         </div>
 
-        <div class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px] xl:items-start">
-          <div class="rounded-[32px] border border-slate-200 bg-slate-50 p-6 shadow-sm">
+        <div class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px] xl:items-stretch">
+          <div class="rounded-[32px] border border-[#eadfd2] bg-[#fbf8f2] p-6 shadow-sm">
             <div class="flex flex-wrap items-start justify-between gap-4">
               <div>
                 <p class="text-[11px] font-semibold uppercase tracking-[0.32em] text-slate-400">Plan actual</p>
@@ -45,35 +45,35 @@
                 </p>
               </div>
 
-              <div class="min-w-[220px] rounded-[24px] border border-slate-200 bg-white px-4 py-4 shadow-sm">
+              <div class="min-w-[220px] rounded-[24px] border border-[#e5ddd2] bg-white px-4 py-4 shadow-sm">
                 <p class="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-400">Uso</p>
                 <p class="mt-2 text-2xl font-semibold text-slate-900">{{ usageHeadline }}</p>
                 <p class="mt-1 text-sm text-slate-500">{{ usageDetail }}</p>
               </div>
             </div>
 
-            <div class="mt-6 h-2.5 overflow-hidden rounded-full bg-slate-200">
+            <div class="mt-6 h-2.5 overflow-hidden rounded-full bg-[#e8ddd2]">
               <div
                 class="h-full rounded-full transition-all duration-500"
-                :class="isProActive ? 'bg-[#1f4f46]' : isAtLimit ? 'bg-amber-500' : 'bg-slate-900'"
+                :class="isProActive ? 'bg-[#1f4f46]' : isAtLimit ? 'bg-[#d9982c]' : 'bg-[#c96a37]'"
                 :style="{ width: `${usagePercentage}%` }"
               ></div>
             </div>
 
             <div class="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-              <article class="rounded-[24px] border border-slate-200 bg-white p-4">
+              <article class="rounded-[24px] border border-[#e5ddd2] bg-white p-4">
                 <p class="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-400">Estado</p>
                 <p class="mt-2 text-xl font-semibold text-slate-900">{{ statusLabel }}</p>
                 <p class="mt-1 text-sm text-slate-500">{{ cycleLabel }}</p>
               </article>
 
-              <article class="rounded-[24px] border border-slate-200 bg-white p-4">
+              <article class="rounded-[24px] border border-[#e5ddd2] bg-white p-4">
                 <p class="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-400">Recomendación</p>
                 <p class="mt-2 text-xl font-semibold text-slate-900">{{ upgradeTimingTitle }}</p>
                 <p class="mt-1 text-sm text-slate-500">{{ upgradeTimingBody }}</p>
               </article>
 
-              <article class="rounded-[24px] border border-slate-200 bg-white p-4">
+              <article class="rounded-[24px] border border-[#e5ddd2] bg-white p-4">
                 <p class="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-400">Facturación</p>
                 <p class="mt-2 text-xl font-semibold text-slate-900">{{ billingSummaryHeadline }}</p>
                 <p class="mt-1 text-sm text-slate-500">{{ billingSummaryDetail }}</p>
@@ -81,9 +81,9 @@
             </div>
           </div>
 
-          <aside class="rounded-[32px] border border-slate-200 bg-white p-6 shadow-sm">
+          <aside class="flex h-full flex-col rounded-[32px] border border-[#eadfd2] bg-white p-6 shadow-sm">
             <div class="space-y-1">
-              <div class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.3em] text-[#8c4d29]">
+              <div class="inline-flex items-center gap-2 rounded-full border border-[#d6c7bb] bg-white/85 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.3em] text-[#8c4d29]">
                 <SolidIcon name="refresh" class="h-3.5 w-3.5" />
                 <span>Acciones</span>
               </div>
@@ -91,8 +91,8 @@
               <p class="text-sm text-slate-500">Activa Pro o abre el portal de facturación.</p>
             </div>
 
-            <div class="mt-6 grid gap-4">
-              <article class="rounded-[24px] border border-slate-200 bg-slate-50 p-5">
+            <div class="mt-6 grid flex-1 gap-4 content-start">
+              <article class="rounded-[24px] border border-[#d5e4dd] bg-[#eef8f3] p-5">
                 <div class="flex items-start justify-between gap-4">
                   <div>
                     <p class="text-sm font-semibold text-slate-900">Pro mensual</p>
@@ -133,30 +133,20 @@
 
               <p
                 v-if="checkoutUnavailable"
-                class="rounded-[20px] border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800"
+                class="rounded-[20px] border border-[#e7cf8c] bg-[#fff7df] px-4 py-3 text-sm text-[#8a6518]"
               >
                 Stripe no está configurado todavía en este entorno.
               </p>
 
-              <button
-                v-if="summary?.billing.portalAvailable"
-                type="button"
-                class="inline-flex w-fit items-center gap-2 rounded-full border border-slate-300 px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-60"
-                :disabled="actionLoading === 'portal'"
-                @click="openPortal"
-              >
-                <SolidIcon name="refresh" class="h-4 w-4" />
-                <span>{{ actionLoading === 'portal' ? 'Abriendo portal...' : 'Gestionar suscripción' }}</span>
-              </button>
             </div>
           </aside>
         </div>
       </div>
     </section>
 
-    <section class="rounded-[36px] border border-slate-200 bg-white p-6 shadow-sm">
+    <section class="rounded-[36px] border border-[#eadfd2] bg-white p-6 shadow-sm">
       <div class="space-y-1">
-        <div class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.3em] text-[#1f4f46]">
+        <div class="inline-flex items-center gap-2 rounded-full border border-[#d6c7bb] bg-white/85 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.3em] text-[#1f4f46]">
           <SolidIcon name="wallet" class="h-3.5 w-3.5" />
           <span>Planes disponibles</span>
         </div>
@@ -168,7 +158,7 @@
         <article
           class="rounded-[30px] border p-6 shadow-sm transition"
           :class="isProActive
-            ? 'border-slate-200 bg-white'
+            ? 'border-[#e5ddd2] bg-[#fbf8f2]'
             : 'border-[#ead8ca] bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(255,247,241,0.94))]'"
         >
           <div class="flex items-start justify-between gap-3">
@@ -179,7 +169,7 @@
             </div>
             <span
               class="whitespace-nowrap rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em]"
-              :class="isProActive ? 'bg-slate-100 text-slate-500' : 'bg-[#f3ede4] text-[#8c4d29]'"
+              :class="isProActive ? 'bg-white text-[#8c4d29]' : 'bg-[#f3ede4] text-[#8c4d29]'"
             >
               {{ isProActive ? 'Incluido' : 'Plan actual' }}
             </span>
@@ -221,12 +211,12 @@
           </ul>
         </article>
 
-        <article class="rounded-[30px] border border-dashed border-slate-300 bg-slate-50 p-6 shadow-sm">
+        <article class="rounded-[30px] border border-dashed border-[#d8cec2] bg-[#faf6f1] p-6 shadow-sm">
           <div class="flex items-start justify-between gap-3">
             <div>
               <div class="flex flex-wrap items-center gap-2">
                 <p class="text-lg font-semibold text-slate-900">Empresa</p>
-                <span class="rounded-full bg-slate-200 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-700">
+                <span class="rounded-full bg-[#f3ede4] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-[#8c4d29]">
                   Próximamente
                 </span>
               </div>
@@ -238,7 +228,7 @@
 
           <ul class="mt-6 space-y-3 text-sm text-slate-600">
             <li v-for="feature in teamPlanFeatures" :key="feature" class="flex items-start gap-3">
-              <span class="mt-1 h-2.5 w-2.5 rounded-full bg-slate-400"></span>
+              <span class="mt-1 h-2.5 w-2.5 rounded-full bg-[#cdbba8]"></span>
               <span>{{ feature }}</span>
             </li>
           </ul>

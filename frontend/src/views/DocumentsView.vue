@@ -1,9 +1,9 @@
 <template>
   <div class="space-y-6 pb-10">
-    <section class="rounded-3xl border border-slate-100 bg-white p-6 shadow-lg">
+    <section class="rounded-3xl border border-[#eadfd2] bg-white p-6 shadow-lg">
       <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
-          <p class="text-xs font-semibold uppercase tracking-[0.35em] text-slate-500">Documentación</p>
+          <p class="text-xs font-semibold uppercase tracking-[0.35em] text-[#8c4d29]">Documentación</p>
           <h1 class="text-3xl font-semibold text-slate-900">Contratos y recibos</h1>
           <p class="text-sm text-slate-500">Consulta contratos y recibos desde un solo lugar.</p>
         </div>
@@ -16,7 +16,7 @@
         <article
           v-for="metric in metricCards"
           :key="metric.id"
-          class="rounded-[28px] border border-slate-100 bg-slate-50/80 p-5"
+          class="rounded-[28px] border border-[#eadfd2] bg-[#fbf8f2] p-5"
         >
           <p class="text-[11px] font-semibold uppercase tracking-[0.3em] text-slate-400">{{ metric.label }}</p>
           <p class="mt-3 text-3xl font-semibold text-slate-900">{{ metric.value }}</p>
@@ -25,32 +25,32 @@
       </div>
     </section>
 
-    <section class="rounded-[32px] border border-slate-200 bg-white p-5 shadow-sm">
+    <section class="rounded-[32px] border border-[#eadfd2] bg-white p-5 shadow-sm">
       <div class="grid gap-4 md:grid-cols-3">
-        <label class="space-y-2 text-sm font-semibold text-slate-600">
+        <label class="space-y-2 text-sm font-semibold text-[#8c4d29]">
           Tipo
-          <select v-model="filters.type" class="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm">
+          <select v-model="filters.type" class="w-full rounded-xl border border-[#e1d7cb] bg-[#fbf8f2] px-3 py-2 text-sm">
             <option value="">Todos</option>
             <option value="CONTRACT">Contratos</option>
             <option value="RECEIPT">Recibos</option>
           </select>
         </label>
-        <label class="space-y-2 text-sm font-semibold text-slate-600">
+        <label class="space-y-2 text-sm font-semibold text-[#8c4d29]">
           Estado
-          <select v-model="filters.state" class="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm">
+          <select v-model="filters.state" class="w-full rounded-xl border border-[#e1d7cb] bg-[#fbf8f2] px-3 py-2 text-sm">
             <option value="">Todos</option>
             <option value="ACTIVO">Activo</option>
             <option value="ARCHIVADO">Archivado</option>
             <option value="COBRADO">Cobrado</option>
           </select>
         </label>
-        <label class="space-y-2 text-sm font-semibold text-slate-600">
+        <label class="space-y-2 text-sm font-semibold text-[#8c4d29]">
           Buscar
           <input
             v-model="filters.query"
             type="text"
             placeholder="Inquilino, apartamento o periodo"
-            class="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-primary focus:outline-none"
+            class="w-full rounded-xl border border-[#e1d7cb] bg-[#fbf8f2] px-3 py-2 text-sm focus:border-[#1f4f46] focus:outline-none"
           />
         </label>
       </div>
@@ -58,19 +58,19 @@
 
     <div
       v-if="loading"
-      class="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-4 text-sm text-slate-500"
+      class="rounded-2xl border border-dashed border-[#d8cec2] bg-[#fbf8f2] p-4 text-sm text-slate-500"
     >
       Cargando contratos y recibos…
     </div>
 
     <div class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px] xl:items-start">
-      <section class="order-2 rounded-[32px] border border-slate-200 bg-white shadow-sm xl:order-1">
+      <section class="order-2 rounded-[32px] border border-[#eadfd2] bg-white shadow-sm xl:order-1">
         <div class="divide-y divide-slate-100">
           <article
             v-for="document in filteredDocuments"
             :key="document.id"
-            class="cursor-pointer px-5 py-5 transition hover:bg-slate-50/80"
-            :class="{ 'bg-slate-50/90': selectedDocument?.id === document.id }"
+            class="cursor-pointer px-5 py-5 transition hover:bg-[#fbf8f2]"
+            :class="{ 'bg-[#f6efe5]': selectedDocument?.id === document.id }"
             @click="selectDocument(document.id)"
           >
             <div class="flex flex-wrap items-start justify-between gap-4">
@@ -94,7 +94,7 @@
 
               <button
                 type="button"
-                class="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-primary hover:text-primary"
+                class="rounded-full border border-[#1f4f46] px-4 py-2 text-sm font-semibold text-[#1f4f46] transition hover:bg-[#edf6f2]"
                 @click.stop="openDocument(document)"
               >
                 {{ document.ctaLabel }}
@@ -126,7 +126,7 @@
               </div>
               <button
                 type="button"
-                class="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 transition hover:border-primary hover:text-primary"
+                class="rounded-full border border-[#d8cec2] px-3 py-1 text-xs font-semibold text-[#8c4d29] transition hover:border-[#c96a37] hover:text-[#8c4d29]"
                 @click="selectedDocumentId = null"
               >
                 Cerrar
@@ -160,14 +160,14 @@
             <div class="mt-6 flex flex-wrap gap-3">
               <button
                 type="button"
-                class="rounded-2xl border border-slate-900 bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
+                class="rounded-2xl border border-[#1f4f46] bg-[#1f4f46] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#173c36]"
                 @click="openDocument(selectedDocument)"
               >
                 {{ selectedDocument.ctaLabel }}
               </button>
               <router-link
                 :to="selectedDocument.relatedRoute"
-                class="rounded-2xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:border-primary hover:text-primary"
+                class="rounded-2xl border border-[#d8cec2] px-4 py-2 text-sm font-semibold text-[#8c4d29] transition hover:border-[#c96a37] hover:text-[#8c4d29]"
               >
                 {{ selectedDocument.relatedLabel }}
               </router-link>
@@ -177,7 +177,7 @@
           <article
             v-else
             key="document-empty-detail"
-            class="rounded-[32px] border border-dashed border-slate-200 bg-slate-50/80 p-6 shadow-sm xl:min-h-[320px]"
+            class="rounded-[32px] border border-dashed border-[#d8cec2] bg-[#fbf8f2] p-6 shadow-sm xl:min-h-[320px]"
           >
             <p class="text-xs font-semibold uppercase tracking-[0.32em] text-slate-400">Ficha del documento</p>
             <h3 class="mt-3 text-xl font-semibold text-slate-900">Selecciona un documento para ver su detalle</h3>
@@ -365,7 +365,7 @@ const documents = computed<DocumentItem[]>(() => {
         referenceLabel: `Contrato archivado de ${tenantName}`,
         state: 'ARCHIVADO' as const,
         stateLabel: 'Archivado',
-        stateClasses: 'border-slate-200 bg-slate-100 text-slate-600',
+        stateClasses: 'border-[#d8cec2] bg-[#f3ede4] text-[#8c4d29]',
         dateLabel: `Archivado ${formatDate(String(tenant.archived_at ?? tenant.contract_end ?? ''))}`,
         context: 'Contrato archivado disponible para consulta.',
         ctaLabel: 'Abrir contrato',

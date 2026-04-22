@@ -175,19 +175,19 @@ const tonePalette = computed(() => {
       };
     default:
       return {
-        border: 'border-[#e5ddd3]',
-        surface: 'bg-[linear-gradient(180deg,_rgba(250,247,242,0.98),_rgba(255,255,255,0.9))]',
-        text: 'text-slate-700',
-        bar: 'bg-slate-500/80',
-        glow: 'bg-[radial-gradient(circle_at_top,_rgba(148,163,184,0.14),_transparent_72%)]',
-        iconBadge: 'bg-slate-900 text-white'
+        border: 'border-[#eadfd2]',
+        surface: 'bg-[linear-gradient(180deg,_rgba(255,250,244,0.98),_rgba(255,255,255,0.9))]',
+        text: 'text-[#8c4d29]',
+        bar: 'bg-[#c96a37]',
+        glow: 'bg-[radial-gradient(circle_at_top,_rgba(201,106,55,0.12),_transparent_72%)]',
+        iconBadge: 'bg-[#c96a37] text-white'
       };
   }
 });
 
 const cardClasses = computed(() => [
   props.flat
-    ? 'relative flex flex-col rounded-[28px] border border-slate-200 bg-white px-5 py-5 shadow-sm'
+    ? 'relative flex flex-col rounded-[28px] border border-[#eadfd2] bg-white/90 px-5 py-5 shadow-sm'
     : 'relative flex flex-col rounded-[32px] border px-6 py-6 shadow-[0_24px_60px_rgba(15,23,42,0.08)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_28px_70px_rgba(15,23,42,0.12)]',
   props.flat ? '' : tonePalette.value.border,
   props.flat ? '' : tonePalette.value.surface,
@@ -197,15 +197,15 @@ const cardClasses = computed(() => [
 const surfaceGlowClass = computed(() => tonePalette.value.glow);
 const labelClasses = computed(() =>
   props.flat
-    ? 'inline-flex rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-500'
+    ? 'inline-flex rounded-full border border-[#d6c7bb] bg-[#fbf8f2] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.28em] text-[#8c4d29]'
     : 'inline-flex rounded-full border border-white/70 bg-white/85 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-500 shadow-sm'
 );
 const helperClasses = computed(() =>
   props.flat
-    ? 'inline-flex rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-600'
+    ? 'inline-flex rounded-full border border-[#d6c7bb] bg-[#fbf8f2] px-3 py-1.5 text-xs font-semibold text-[#8c4d29]'
     : 'inline-flex rounded-full border border-white/70 bg-white/80 px-3 py-1.5 text-xs font-semibold text-slate-600 shadow-sm'
 );
-const trackClasses = computed(() => (props.flat ? 'bg-slate-100' : 'bg-white/80'));
+const trackClasses = computed(() => (props.flat ? 'bg-[#efe7dd]' : 'bg-white/80'));
 const indicatorTextClass = computed(() => `text-sm font-semibold ${tonePalette.value.text}`);
 const indicatorBarClass = computed(() => tonePalette.value.bar);
 const showRetrasoBadge = computed(() => props.tone === 'danger' && sanitizedPercentage.value !== null && sanitizedPercentage.value > 0);

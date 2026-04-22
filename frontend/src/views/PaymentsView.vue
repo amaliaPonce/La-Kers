@@ -1,6 +1,6 @@
 <template>
   <div class="space-y-8 px-4 pb-10 pt-6">
-    <section class="space-y-6 rounded-3xl border border-slate-100 bg-white/80 p-6 shadow-sm backdrop-blur">
+    <section class="space-y-6 rounded-3xl border border-[#eadfd2] bg-white/85 p-6 shadow-sm backdrop-blur">
       <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p class="text-xs font-semibold text-slate-500">Cobros</p>
@@ -65,7 +65,7 @@
                   <PaymentStatusBadge :status="selectedPayment.status" />
                   <button
                     type="button"
-                    class="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 transition hover:border-primary hover:text-primary"
+                    class="rounded-full border border-[#d8cec2] px-3 py-1 text-xs font-semibold text-[#8c4d29] transition hover:border-[#c96a37] hover:text-[#8c4d29]"
                     @click="selectedPayment = null"
                   >
                     Cerrar
@@ -88,7 +88,7 @@
                     class="mt-2 text-base font-semibold"
                     :class="{
                       'text-rose-600': selectedDaysLate > 0,
-                      'text-amber-600': !selectedDaysLate && selectedDaysUntilDue <= 3,
+                      'text-[#8a6518]': !selectedDaysLate && selectedDaysUntilDue <= 3,
                       'text-emerald-600': selectedPayment.status === 'PAID'
                     }"
                   >
@@ -129,17 +129,17 @@
                 </div>
 
                 <div class="mt-4 grid gap-3 sm:grid-cols-3">
-                  <div class="rounded-2xl border border-slate-100 bg-slate-50 p-3">
+                  <div class="rounded-2xl border border-[#eadfd2] bg-[#fbf8f2] p-3">
                     <p class="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">Pagado</p>
                     <p class="mt-1 text-lg font-semibold text-slate-900">{{ selectedHistorySummary.paidCount }}</p>
                     <p class="text-xs text-slate-500">{{ formatCurrency(selectedHistorySummary.paidAmount) }}</p>
                   </div>
-                  <div class="rounded-2xl border border-slate-100 bg-slate-50 p-3">
+                  <div class="rounded-2xl border border-[#eadfd2] bg-[#fbf8f2] p-3">
                     <p class="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">Banco</p>
                     <p class="mt-1 text-lg font-semibold text-slate-900">{{ selectedHistorySummary.bankCount }}</p>
                     <p class="text-xs text-slate-500">{{ formatCurrency(selectedHistorySummary.bankAmount) }}</p>
                   </div>
-                  <div class="rounded-2xl border border-slate-100 bg-slate-50 p-3">
+                  <div class="rounded-2xl border border-[#eadfd2] bg-[#fbf8f2] p-3">
                     <p class="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">Efectivo</p>
                     <p class="mt-1 text-lg font-semibold text-slate-900">{{ selectedHistorySummary.cashCount }}</p>
                     <p class="text-xs text-slate-500">{{ formatCurrency(selectedHistorySummary.cashAmount) }}</p>
@@ -150,7 +150,7 @@
                   <article
                     v-for="historyPayment in selectedTenantHistory"
                     :key="historyPayment.id"
-                    class="rounded-2xl border border-slate-100 bg-slate-50/70 p-3"
+                    class="rounded-2xl border border-[#eadfd2] bg-[#fbf8f2] p-3"
                   >
                     <div class="flex items-start justify-between gap-3">
                       <div>
@@ -180,7 +180,7 @@
                 <button
                   type="button"
                   data-onboarding="register-payment"
-                  class="min-w-[140px] rounded-2xl border border-slate-900 bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+                  class="min-w-[140px] rounded-2xl border border-[#1f4f46] bg-[#1f4f46] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#173c36] disabled:cursor-not-allowed disabled:opacity-60"
                   :disabled="selectedPayment.status === 'PAID' && Boolean(selectedPayment.payment_method)"
                   @click="openMarkPaidModal(selectedPayment)"
                 >
@@ -189,7 +189,7 @@
                 <button
                   v-if="selectedPayment.status === 'PAID'"
                   type="button"
-                  class="rounded-2xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:border-primary hover:text-primary"
+                  class="rounded-2xl border border-[#d8cec2] px-4 py-2 text-sm font-semibold text-[#8c4d29] transition hover:border-[#c96a37] hover:text-[#8c4d29]"
                   @click="() => downloadReceipt(selectedPayment.id)"
                 >
                   Generar recibo
@@ -200,7 +200,7 @@
             <article
               v-else
               key="payment-empty-detail"
-              class="rounded-[32px] border border-dashed border-slate-200 bg-slate-50/80 p-6 shadow-sm xl:min-h-[320px]"
+              class="rounded-[32px] border border-dashed border-[#d8cec2] bg-[#fbf8f2] p-6 shadow-sm xl:min-h-[320px]"
             >
               <p class="text-xs font-semibold uppercase tracking-[0.32em] text-slate-400">Ficha del pago</p>
               <h3 class="mt-3 text-xl font-semibold text-slate-900">Selecciona un cobro para ver su detalle</h3>
@@ -212,7 +212,7 @@
         </aside>
       </section>
 
-      <section class="rounded-[32px] border border-slate-200 bg-white p-5 shadow-sm">
+      <section class="rounded-[32px] border border-[#eadfd2] bg-white p-5 shadow-sm">
         <div class="overflow-hidden rounded-[28px] border border-[#eadfd2] bg-white">
           <div class="hidden border-b border-[#efe7dd] bg-[#fbf8f2] px-4 py-3 md:grid md:grid-cols-[minmax(0,1.35fr)_minmax(0,0.85fr)_minmax(190px,1fr)_minmax(200px,auto)] md:items-center md:gap-4">
             <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Inquilino</p>
@@ -282,7 +282,7 @@
     <Transition name="toast">
       <div
         v-if="toastVisible"
-        class="fixed right-6 bottom-6 z-50 rounded-2xl border border-slate-200 bg-white/95 px-5 py-3 text-sm font-semibold text-slate-900 shadow-lg shadow-slate-900/10 backdrop-blur"
+        class="fixed right-6 bottom-6 z-50 rounded-2xl border border-[#eadfd2] bg-white/95 px-5 py-3 text-sm font-semibold text-slate-900 shadow-lg shadow-[#8c4d29]/10 backdrop-blur"
       >
         {{ toastMessage }}
       </div>
@@ -294,8 +294,8 @@
         class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 px-4 backdrop-blur-sm"
         @click.self="closeMarkPaidModal"
       >
-        <article class="w-full max-w-md rounded-[28px] border border-slate-200 bg-white p-6 shadow-2xl">
-          <p class="text-[11px] font-semibold uppercase tracking-[0.3em] text-slate-400">Método de cobro</p>
+        <article class="w-full max-w-md rounded-[28px] border border-[#eadfd2] bg-white p-6 shadow-2xl">
+          <p class="text-[11px] font-semibold uppercase tracking-[0.3em] text-[#8c4d29]">Método de cobro</p>
           <h3 class="mt-3 text-xl font-semibold text-slate-900">
             {{ paymentToMarkPaid.status === 'PAID' ? 'Actualizar método del pago' : 'Registrar cobro' }}
           </h3>
@@ -309,8 +309,8 @@
               type="button"
               class="rounded-2xl border px-4 py-4 text-left transition"
               :class="paymentMethodDraft === 'BANK'
-                ? 'border-slate-900 bg-slate-900 text-white'
-                : 'border-slate-200 bg-white text-slate-700 hover:border-slate-400'"
+                ? 'border-[#1f4f46] bg-[#1f4f46] text-white'
+                : 'border-[#d8cec2] bg-white text-slate-700 hover:border-[#c96a37]'"
               @click="paymentMethodDraft = 'BANK'"
             >
               <p class="text-sm font-semibold">Banco</p>
@@ -320,8 +320,8 @@
               type="button"
               class="rounded-2xl border px-4 py-4 text-left transition"
               :class="paymentMethodDraft === 'CASH'
-                ? 'border-slate-900 bg-slate-900 text-white'
-                : 'border-slate-200 bg-white text-slate-700 hover:border-slate-400'"
+                ? 'border-[#1f4f46] bg-[#1f4f46] text-white'
+                : 'border-[#d8cec2] bg-white text-slate-700 hover:border-[#c96a37]'"
               @click="paymentMethodDraft = 'CASH'"
             >
               <p class="text-sm font-semibold">Efectivo</p>
@@ -332,14 +332,14 @@
           <div class="mt-6 flex justify-end gap-3">
             <button
               type="button"
-              class="rounded-2xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:border-slate-900"
+              class="rounded-2xl border border-[#d8cec2] px-4 py-2 text-sm font-semibold text-[#8c4d29] transition hover:border-[#c96a37]"
               @click="closeMarkPaidModal"
             >
               Cancelar
             </button>
             <button
               type="button"
-              class="rounded-2xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+              class="rounded-2xl bg-[#1f4f46] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#173c36] disabled:cursor-not-allowed disabled:opacity-60"
               :disabled="!paymentMethodDraft || isSavingPaymentMethod"
               @click="confirmMarkPaid"
             >

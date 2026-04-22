@@ -1,15 +1,15 @@
 <template>
   <div class="space-y-6 pb-10">
-    <section class="rounded-3xl border border-slate-100 bg-white p-6 shadow-lg">
+    <section class="rounded-3xl border border-[#eadfd2] bg-white p-6 shadow-lg">
       <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
-          <p class="text-xs font-semibold uppercase tracking-[0.35em] text-slate-500">Inquilinos</p>
+          <p class="text-xs font-semibold uppercase tracking-[0.35em] text-[#8c4d29]">Inquilinos</p>
           <h1 class="text-3xl font-semibold text-slate-900">Control de contratos</h1>
           <p class="text-sm text-slate-500">Revisa contratos, vencimientos y alertas.</p>
         </div>
         <button
           type="button"
-          class="inline-flex items-center gap-2 rounded-2xl bg-black px-5 py-2 text-sm font-semibold text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-slate-800"
+          class="inline-flex items-center gap-2 rounded-2xl bg-[#c96a37] px-5 py-2 text-sm font-semibold text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-[#b85d2d]"
           data-onboarding="create-tenant"
           @click="openTenantModal('create')"
         >
@@ -32,8 +32,8 @@
       </div>
     </section>
 
-    <section class="rounded-[32px] border border-slate-200 bg-white p-5 shadow-sm">
-      <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4">
+    <section class="rounded-[32px] border border-[#eadfd2] bg-white p-5 shadow-sm">
+      <div class="flex flex-wrap items-center justify-between gap-3 border-b border-[#efe7dd] pb-4">
         <div>
           <p class="text-xs font-semibold uppercase tracking-[0.4em] text-slate-400">Lista principal</p>
           <h2 class="text-2xl font-semibold text-slate-900">Inquilinos</h2>
@@ -42,7 +42,7 @@
           <button
             type="button"
             class="rounded-2xl border px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] transition"
-            :class="tenantViewMode === 'active' ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-200 text-slate-600'"
+            :class="tenantViewMode === 'active' ? 'border-[#1f4f46] bg-[#1f4f46] text-white' : 'border-[#d8cec2] bg-white text-[#8c4d29]'"
             @click="tenantViewMode = 'active'"
           >
             Activos
@@ -50,7 +50,7 @@
           <button
             type="button"
             class="rounded-2xl border px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] transition"
-            :class="tenantViewMode === 'archived' ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-200 text-slate-600'"
+            :class="tenantViewMode === 'archived' ? 'border-[#1f4f46] bg-[#1f4f46] text-white' : 'border-[#d8cec2] bg-white text-[#8c4d29]'"
             @click="tenantViewMode = 'archived'"
           >
             Archivados
@@ -70,7 +70,7 @@
           />
           <div
             v-if="tenantViewMode === 'archived'"
-            class="rounded-2xl border border-dashed border-slate-200 bg-slate-50/70 p-4 text-sm text-slate-600"
+            class="rounded-2xl border border-dashed border-[#d8cec2] bg-[#fbf8f2] p-4 text-sm text-slate-600"
           >
             <p class="text-xs uppercase tracking-[0.4em] text-slate-400">Conservación</p>
             <ul class="mt-3 space-y-2">
@@ -133,7 +133,7 @@
                   <TenantStatusBadge :status="detailTenant.status" />
                   <button
                     type="button"
-                    class="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 transition hover:border-primary hover:text-primary"
+                  class="rounded-full border border-[#d8cec2] px-3 py-1 text-xs font-semibold text-[#8c4d29] transition hover:border-[#c96a37] hover:text-[#8c4d29]"
                     @click="closeDetailPanel"
                   >
                     Cerrar
@@ -145,11 +145,11 @@
                 <RouterLink
                   v-if="pendingPaymentCount > 0"
                   to="/payments"
-                  class="inline-flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.3em] text-amber-700 transition hover:border-amber-300 hover:bg-amber-100"
+                  class="inline-flex items-center gap-2 rounded-full border border-[#e7cf8c] bg-[#fff7df] px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.3em] text-[#8a6518] transition hover:border-[#d9982c] hover:bg-[#fff1cc]"
                 >
-                  <span class="h-2.5 w-2.5 rounded-full bg-amber-500" aria-hidden="true"></span>
+                  <span class="h-2.5 w-2.5 rounded-full bg-[#d9982c]" aria-hidden="true"></span>
                   Pagos pendientes
-                  <span class="text-[0.55rem] font-semibold text-amber-600">({{ pendingPaymentCount }})</span>
+                  <span class="text-[0.55rem] font-semibold text-[#8a6518]">({{ pendingPaymentCount }})</span>
                 </RouterLink>
                 <RouterLink
                   v-if="openIncidentCount > 0"
@@ -179,7 +179,7 @@
                   <p class="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-400">Seguimiento</p>
                   <p
                     class="mt-2 text-base font-semibold"
-                    :class="detailTenant.status === 'VENCIDO' ? 'text-rose-600' : detailTenant.status === 'PRÓXIMO A VENCER' ? 'text-amber-600' : 'text-emerald-600'"
+                    :class="detailTenant.status === 'VENCIDO' ? 'text-rose-600' : detailTenant.status === 'PRÓXIMO A VENCER' ? 'text-[#8a6518]' : 'text-[#1f4f46]'"
                   >
                     {{ detailTenant.daysLabel }}
                   </p>
@@ -199,14 +199,14 @@
               <div class="mt-6 flex flex-wrap gap-3">
                 <button
                   type="button"
-                  class="rounded-2xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:border-primary hover:text-primary"
+                  class="rounded-2xl border border-[#d8cec2] px-4 py-2 text-sm font-semibold text-[#8c4d29] transition hover:border-[#c96a37] hover:text-[#8c4d29]"
                   @click="openTenantModal('edit', detailTenant)"
                 >
                   Editar
                 </button>
                 <button
                   type="button"
-                  class="rounded-2xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:border-primary hover:text-primary"
+                  class="rounded-2xl border border-[#d8cec2] px-4 py-2 text-sm font-semibold text-[#8c4d29] transition hover:border-[#c96a37] hover:text-[#8c4d29]"
                   @click="downloadRentalContractPdf(detailTenant.id)"
                 >
                   Descargar contrato
@@ -225,7 +225,7 @@
             <article
               v-else
               key="tenant-empty-detail"
-              class="rounded-[32px] border border-dashed border-slate-200 bg-slate-50/80 p-6 shadow-sm xl:min-h-[320px]"
+              class="rounded-[32px] border border-dashed border-[#d8cec2] bg-[#fbf8f2] p-6 shadow-sm xl:min-h-[320px]"
             >
               <p class="text-xs font-semibold uppercase tracking-[0.32em] text-slate-400">Ficha del inquilino</p>
               <h3 class="mt-3 text-xl font-semibold text-slate-900">Selecciona un contrato para ver su detalle</h3>

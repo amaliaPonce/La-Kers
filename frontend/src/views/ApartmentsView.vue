@@ -1,9 +1,9 @@
 <template>
   <div class="space-y-8 pb-6">
-    <section class="rounded-3xl border border-slate-100 bg-white p-6 shadow-lg">
+    <section class="rounded-3xl border border-[#eadfd2] bg-white p-6 shadow-lg">
       <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
-          <p class="text-xs uppercase tracking-[0.35em] text-slate-500">Control de unidades</p>
+          <p class="text-xs uppercase tracking-[0.35em] text-[#8c4d29]">Control de unidades</p>
           <h1 class="text-3xl font-semibold text-slate-900">Apartamentos</h1>
           <p class="text-sm text-slate-500">Resumen de unidades y rentas.</p>
         </div>
@@ -11,8 +11,8 @@
           type="button"
           class="inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-2 text-sm font-semibold text-white shadow-lg transition"
           :class="canCreateApartment
-            ? 'bg-black hover:-translate-y-0.5 hover:bg-slate-800'
-            : 'cursor-not-allowed bg-slate-300 shadow-none'"
+            ? 'bg-[#c96a37] hover:-translate-y-0.5 hover:bg-[#b85d2d]'
+            : 'cursor-not-allowed bg-[#d6c7bb] shadow-none'"
           data-onboarding="create-property"
           @click="handleCreateApartment"
         >
@@ -26,10 +26,10 @@
         v-if="billingSummary"
         class="mt-6 rounded-[28px] border p-5 shadow-sm"
         :class="isAtLimit
-          ? 'border-amber-200 bg-[linear-gradient(180deg,rgba(255,251,235,0.98),rgba(255,247,237,0.98))]'
+          ? 'border-[#e7cf8c] bg-[linear-gradient(180deg,rgba(255,248,229,0.98),rgba(255,244,234,0.98))]'
           : isProPlan
-            ? 'border-emerald-200 bg-[linear-gradient(180deg,rgba(240,253,250,0.96),rgba(255,255,255,0.98))]'
-            : 'border-slate-200 bg-[linear-gradient(180deg,rgba(248,250,252,0.96),rgba(255,255,255,0.98))]'"
+            ? 'border-[#d5e4dd] bg-[linear-gradient(180deg,rgba(240,248,243,0.96),rgba(255,255,255,0.98))]'
+            : 'border-[#ead8ca] bg-[linear-gradient(180deg,rgba(255,250,244,0.98),rgba(255,255,255,0.98))]'"
       >
         <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
@@ -42,13 +42,13 @@
               </span>
               <span
                 v-if="isAtLimit"
-                class="rounded-full bg-amber-100 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-amber-800"
+                class="rounded-full bg-[#fff1cc] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-[#8a6518]"
               >
                 Límite alcanzado
               </span>
               <span
                 v-else-if="isNearLimit"
-                class="rounded-full bg-amber-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-amber-700"
+                class="rounded-full bg-[#fff7df] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-[#8a6518]"
               >
                 Poco margen
               </span>
@@ -64,7 +64,7 @@
             <div class="mt-2 h-2.5 overflow-hidden rounded-full bg-white/90">
               <div
                 class="h-full rounded-full transition-all duration-500"
-                :class="isProPlan ? 'bg-[#1f4f46]' : isAtLimit ? 'bg-amber-500' : 'bg-[#c96a37]'"
+                :class="isProPlan ? 'bg-[#1f4f46]' : isAtLimit ? 'bg-[#d9982c]' : 'bg-[#c96a37]'"
                 :style="{ width: `${billingUsagePercentage}%` }"
               ></div>
             </div>
@@ -117,14 +117,14 @@
       </div>
     </section>
 
-    <section class="rounded-3xl border border-slate-100 bg-white p-6 shadow-lg">
+    <section class="rounded-3xl border border-[#eadfd2] bg-white p-6 shadow-lg">
       <div class="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
         <div>
-          <p class="text-xs uppercase tracking-wide text-slate-500">Lista principal</p>
+          <p class="text-xs uppercase tracking-wide text-[#8c4d29]">Lista principal</p>
           <h2 class="text-2xl font-semibold text-slate-900">Gestión de apartamentos</h2>
           <p class="text-sm text-slate-500">Filtra y revisa el estado de cada unidad.</p>
         </div>
-        <span class="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">Total {{ totalApartments }}</span>
+        <span class="text-xs font-semibold uppercase tracking-[0.3em] text-[#8c4d29]">Total {{ totalApartments }}</span>
       </div>
       <div class="mt-4">
         <ApartmentFilters @update="handleFilterUpdate" />
@@ -166,7 +166,7 @@
           </div>
           <div
             v-else
-            class="flex flex-col items-center justify-center gap-2 rounded-3xl border border-dashed border-slate-200/80 bg-slate-50/60 p-6 text-center text-slate-500"
+            class="flex flex-col items-center justify-center gap-2 rounded-3xl border border-dashed border-[#d8cec2] bg-[#fbf8f2] p-6 text-center text-slate-500"
           >
             <p class="text-lg font-semibold text-slate-800">No hay apartamentos que coincidan</p>
             <p class="text-sm">Ajusta los filtros o crea un apartamento.</p>
@@ -192,7 +192,7 @@
                   <StatusBadge :status="selectedDerivedStatus" />
                   <button
                     type="button"
-                    class="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 transition hover:border-primary hover:text-primary"
+                    class="rounded-full border border-[#d8cec2] px-3 py-1 text-xs font-semibold text-[#8c4d29] transition hover:border-[#c96a37] hover:text-[#8c4d29]"
                     @click="closeDetail"
                   >
                     Cerrar
@@ -232,7 +232,7 @@
                   </div>
                   <span
                     class="rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em]"
-                    :class="selectedApartmentHasContractProfile ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-500'"
+                    :class="selectedApartmentHasContractProfile ? 'bg-[#edf6f2] text-[#1f4f46]' : 'bg-[#f3ede4] text-[#8c4d29]'"
                   >
                     {{ selectedApartmentHasContractProfile ? 'Perfil propio' : 'Perfil general' }}
                   </span>
@@ -249,7 +249,7 @@
               <div class="mt-6 flex flex-wrap gap-3">
                 <button
                   type="button"
-                  class="rounded-2xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:border-primary hover:text-primary"
+                  class="rounded-2xl border border-[#d8cec2] px-4 py-2 text-sm font-semibold text-[#8c4d29] transition hover:border-[#c96a37] hover:text-[#8c4d29]"
                   @click="handleEdit(selectedApartment)"
                 >
                   Editar
@@ -267,7 +267,7 @@
             <article
               v-else
               key="empty-detail"
-              class="rounded-[32px] border border-dashed border-slate-200 bg-slate-50/80 p-6 shadow-sm xl:min-h-[320px]"
+              class="rounded-[32px] border border-dashed border-[#d8cec2] bg-[#fbf8f2] p-6 shadow-sm xl:min-h-[320px]"
             >
               <p class="text-xs font-semibold uppercase tracking-[0.32em] text-slate-400">Ficha del apartamento</p>
               <h3 class="mt-3 text-xl font-semibold text-slate-900">Selecciona una unidad para ver su detalle</h3>

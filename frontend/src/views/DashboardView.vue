@@ -2,7 +2,7 @@
   <div class="space-y-6 pb-10">
     <section
       v-if="showEmptyDashboard"
-      class="rounded-[36px] border border-slate-200 bg-white p-6 shadow-sm sm:p-8"
+      class="rounded-[36px] border border-[#eadfd2] bg-white p-6 shadow-sm sm:p-8"
     >
       <EmptyPropertiesState
         eyebrow="Dashboard"
@@ -12,8 +12,8 @@
         cta-to="/apartments"
       />
 
-      <div class="mt-5 rounded-[28px] border border-slate-200 bg-slate-50 p-5">
-        <p class="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-400">
+      <div class="mt-5 rounded-[28px] border border-[#eadfd2] bg-[#fbf8f2] p-5">
+        <p class="text-[11px] font-semibold uppercase tracking-[0.28em] text-[#8c4d29]">
           Resumen financiero
         </p>
         <p class="mt-2 text-sm leading-7 text-slate-600">
@@ -23,10 +23,10 @@
     </section>
 
     <template v-else>
-      <section class="rounded-[36px] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+      <section class="rounded-[36px] border border-[#eadfd2] bg-white p-6 shadow-sm sm:p-8">
         <div class="space-y-5">
           <div class="flex flex-wrap items-center gap-3">
-            <div class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.35em] text-slate-700">
+            <div class="inline-flex items-center gap-2 rounded-full border border-[#d6c7bb] bg-white/85 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.35em] text-[#8c4d29]">
               <SolidIcon name="dashboard" class="h-3.5 w-3.5 text-[#c96a37]" />
               <span>Resumen</span>
             </div>
@@ -68,9 +68,9 @@
       </section>
 
       <section class="grid gap-6 xl:grid-cols-[1.08fr_0.92fr]">
-        <article class="rounded-[36px] border border-slate-200 bg-white p-6 shadow-sm">
+        <article class="rounded-[36px] border border-[#eadfd2] bg-white p-6 shadow-sm">
           <div class="space-y-1">
-            <div class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.3em] text-[#1f4f46]">
+            <div class="inline-flex items-center gap-2 rounded-full border border-[#d6c7bb] bg-white/85 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.3em] text-[#1f4f46]">
               <SolidIcon name="wallet" class="h-3.5 w-3.5" />
               <span>Mes actual</span>
             </div>
@@ -82,7 +82,7 @@
             <div
               v-for="item in breakdownItems"
               :key="item.id"
-              class="rounded-[28px] border border-slate-200 bg-slate-50 p-5"
+              class="rounded-[28px] border border-[#eadfd2] bg-[#fbf8f2] p-5"
             >
               <div class="flex items-start justify-between gap-4">
                 <div>
@@ -94,16 +94,16 @@
                   <p class="mt-1 text-xs font-semibold uppercase tracking-[0.26em] text-slate-400">{{ item.shareLabel }}</p>
                 </div>
               </div>
-              <div class="mt-4 h-2.5 overflow-hidden rounded-full bg-slate-100">
+              <div class="mt-4 h-2.5 overflow-hidden rounded-full bg-[#efe7dd]">
                 <div class="h-full rounded-full transition-all duration-500" :class="item.barClass" :style="{ width: `${item.share}%` }"></div>
               </div>
             </div>
           </div>
         </article>
 
-        <article class="rounded-[36px] border border-slate-200 bg-white p-6 shadow-sm">
+        <article class="rounded-[36px] border border-[#eadfd2] bg-white p-6 shadow-sm">
           <div class="space-y-1">
-            <div class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.3em] text-[#8c4d29]">
+            <div class="inline-flex items-center gap-2 rounded-full border border-[#d6c7bb] bg-white/85 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.3em] text-[#8c4d29]">
               <SolidIcon name="spark" class="h-3.5 w-3.5" />
               <span>Hoy</span>
             </div>
@@ -455,8 +455,8 @@ const realtimeBadge = computed(() => {
     case 'manual':
       return {
         label: '',
-        className: 'border-slate-200 bg-slate-50 text-slate-600',
-        dotClass: 'bg-slate-400'
+        className: 'border-[#eadfd2] bg-[#fbf8f2] text-[#8c4d29]',
+        dotClass: 'bg-[#c96a37]'
       };
     case 'live':
       return {
@@ -468,13 +468,13 @@ const realtimeBadge = computed(() => {
       return {
         label: 'Reconectando',
         className: 'border-[#ead8ca] bg-[#fff1e7] text-[#8c4d29]',
-        dotClass: 'bg-amber-500'
+        dotClass: 'bg-[#d9982c]'
       };
     default:
       return {
         label: 'Conectando',
-        className: 'border-slate-200 bg-white/90 text-slate-600',
-        dotClass: 'bg-slate-400'
+        className: 'border-[#eadfd2] bg-white/90 text-[#8c4d29]',
+        dotClass: 'bg-[#c96a37]'
       };
   }
 });
@@ -530,8 +530,8 @@ const highlightStyles = (tone: HighlightTone) => {
       };
     default:
       return {
-        card: 'border-slate-200 bg-slate-50',
-        badge: 'bg-white/90 text-slate-600'
+        card: 'border-[#eadfd2] bg-[#fbf8f2]',
+        badge: 'bg-white/90 text-[#8c4d29]'
       };
   }
 };
