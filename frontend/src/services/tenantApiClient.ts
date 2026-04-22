@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { getClerkSessionToken } from './clerkSession';
 
 const API_BASE = import.meta.env.VITE_API_BASE ?? '/api';
 
@@ -21,6 +22,19 @@ const tenantApiClient = axios.create({
       }
     }
   ]
+});
+
+tenantApiClient.interceptors.request.use(async (config) => {
+  const token = await getClerkSessionToken();
+  config.headers.set('x-la-kers-portal', 'tenant');
+
+  if (token) {
+    config.headers.set('Authorization', `Bearer ${token}`);
+  } else {
+    config.headers.delete?.('Authorization');
+  }
+
+  return config;
 });
 
 export default tenantApiClient;

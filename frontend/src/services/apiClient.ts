@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { getClerkSessionToken } from './clerkSession';
 
 const API_BASE = import.meta.env.VITE_API_BASE ?? '/api';
 
@@ -21,6 +22,17 @@ const apiClient = axios.create({
       }
     }
   ]
+});
+
+apiClient.interceptors.request.use(async (config) => {
+  const token = await getClerkSessionToken();
+  if (token) {
+    config.headers.set('Authorization', `Bearer ${token}`);
+  } else {
+    config.headers.delete?.('Authorization');
+  }
+
+  return config;
 });
 
 export default apiClient;
