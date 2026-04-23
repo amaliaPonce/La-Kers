@@ -1,9 +1,9 @@
 <template>
   <span
-    class="inline-flex items-center gap-2 rounded-full px-3 py-1 text-[11px] font-semibold"
-    :class="badgeClass"
+    class="inline-flex items-center whitespace-nowrap rounded-full font-semibold"
+    :class="[compact ? 'gap-1.5 px-2.5 py-0.5 text-[10px]' : 'gap-2 px-3 py-1 text-[11px]', badgeClass]"
   >
-    <span class="h-2.5 w-2.5 rounded-full" :class="dotClass" aria-hidden="true"></span>
+    <span class="rounded-full" :class="[compact ? 'h-2 w-2' : 'h-2.5 w-2.5', dotClass]" aria-hidden="true"></span>
     {{ label }}
   </span>
 </template>
@@ -11,9 +11,14 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   status: 'ACTIVO' | 'PRÓXIMO A VENCER' | 'VENCIDO' | 'ARCHIVADO';
-}>();
+  compact?: boolean;
+}>(), {
+  compact: false
+});
+
+const compact = computed(() => props.compact);
 
 const statusMap: Record<
   'ACTIVO' | 'PRÓXIMO A VENCER' | 'VENCIDO' | 'ARCHIVADO',

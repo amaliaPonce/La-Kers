@@ -9,7 +9,7 @@
         title="Aún no tienes propiedades"
         description="Crea tu primera propiedad para empezar."
         cta-label="Ir a propiedades"
-        cta-to="/apartments"
+        cta-to="/properties"
       />
 
       <div class="mt-5 rounded-[28px] border border-[#eadfd2] bg-[#fbf8f2] p-5">
@@ -555,8 +555,8 @@ const dashboardHighlights = computed(() => [
     value: String(availableUnits.value),
     badge: availableUnits.value ? 'Disponible' : 'Completo',
     body: availableUnits.value
-      ? `Hay ${availableUnits.value} ${availableUnits.value === 1 ? 'unidad libre' : 'unidades libres'} para alquilar.`
-      : 'No hay unidades libres.',
+      ? `Hay ${availableUnits.value} ${availableUnits.value === 1 ? 'propiedad libre' : 'propiedades libres'} para alquilar.`
+      : 'No hay propiedades libres.',
     tone: (availableUnits.value ? 'warning' : 'success') as HighlightTone
   },
   {
@@ -591,8 +591,8 @@ const metrics = computed(() => [
     value: expectedValue.value,
     subtext: 'Base contractual',
     helper: totalUnits.value
-      ? `${totalUnits.value} ${totalUnits.value === 1 ? 'unidad configurada' : 'unidades configuradas'}`
-      : 'Sin unidades registradas',
+      ? `${totalUnits.value} ${totalUnits.value === 1 ? 'propiedad configurada' : 'propiedades configuradas'}`
+      : 'Sin propiedades registradas',
     indicatorLabel: 'Meta contractual',
     tone: 'neutral' as const,
     icon: 'coin'
@@ -601,8 +601,8 @@ const metrics = computed(() => [
     id: 'occupancy',
     label: 'Ocupación',
     value: occupancyPercent.value,
-    subtext: `${occupiedUnits.value} de ${totalUnits.value} unidades ocupadas`,
-    helper: `${availableUnits.value} ${availableUnits.value === 1 ? 'unidad libre' : 'unidades libres'}`,
+    subtext: `${occupiedUnits.value} de ${totalUnits.value} propiedades ocupadas`,
+    helper: `${availableUnits.value} ${availableUnits.value === 1 ? 'propiedad libre' : 'propiedades libres'}`,
     percentage: occupancyPercent.value,
     indicatorLabel: 'Unidades ocupadas',
     tone: 'warning' as const,

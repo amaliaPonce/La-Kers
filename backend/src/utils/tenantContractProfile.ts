@@ -14,6 +14,7 @@ export type TenantContractProfilePayload = {
   legal_representative_id: string;
   legal_representative_role?: string | null;
   iban?: string | null;
+  additional_clauses?: string | null;
   contract_notes?: string | null;
 };
 
@@ -39,19 +40,9 @@ export type TenantContractProfilePdfFields = {
   legal_representative_id: string | null;
   legal_representative_role: string | null;
   iban: string | null;
+  additional_clauses: string | null;
   contract_notes: string | null;
 };
-
-const requiredFieldLabels: Array<[keyof TenantContractProfilePayload, string]> = [
-  ['company_name', 'La razón social es obligatoria'],
-  ['tax_id', 'El CIF/NIF es obligatorio'],
-  ['fiscal_address_line_1', 'La calle y número fiscal son obligatorios'],
-  ['fiscal_postal_code', 'El código postal fiscal es obligatorio'],
-  ['fiscal_city', 'La ciudad fiscal es obligatoria'],
-  ['fiscal_country', 'El país fiscal es obligatorio'],
-  ['legal_representative_name', 'El nombre del representante legal es obligatorio'],
-  ['legal_representative_id', 'El DNI/NIE del representante legal es obligatorio']
-];
 
 const normalizeText = (value: unknown) => {
   const normalized = String(value ?? '').trim();
@@ -106,6 +97,7 @@ export function normalizeTenantContractProfilePayload(
   assignRequired('legal_representative_id');
   assignOptional('legal_representative_role');
   assignOptional('iban');
+  assignOptional('additional_clauses');
   assignOptional('contract_notes');
 
   return normalized;
@@ -115,16 +107,7 @@ export function validateTenantContractProfilePayload(
   payload: Partial<TenantContractProfilePayload>,
   options: { partial?: boolean } = {}
 ) {
-  const { partial = false } = options;
   const errors: string[] = [];
-
-  requiredFieldLabels.forEach(([field, label]) => {
-    if (!partial || payload[field] !== undefined) {
-      if (!normalizeText(payload[field])) {
-        errors.push(label);
-      }
-    }
-  });
 
   if (payload.company_email !== undefined && payload.company_email) {
     if (!isValidEmail(String(payload.company_email))) {
@@ -164,5 +147,6 @@ export const toTenantContractProfilePdfFields = (
   legal_representative_id: normalizeOptionalText(profile?.legal_representative_id),
   legal_representative_role: normalizeOptionalText(profile?.legal_representative_role),
   iban: normalizeOptionalText(profile?.iban),
+  additional_clauses: normalizeOptionalText(profile?.additional_clauses),
   contract_notes: normalizeOptionalText(profile?.contract_notes)
 });

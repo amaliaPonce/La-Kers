@@ -21,7 +21,7 @@
               </div>
               <button
                 type="button"
-                class="rounded-full border border-[#ead8ca] bg-white/85 p-2.5 text-slate-500 transition hover:border-[#d8c4b4] hover:text-slate-900"
+                class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[#ead8ca] bg-white/85 text-slate-500 transition hover:border-[#d8c4b4] hover:text-slate-900"
                 @click="handleClose"
               >
                 ✕
@@ -90,7 +90,7 @@
 
                     <label class="space-y-1.5 lg:col-span-2">
                       <span class="field-label">Dirección</span>
-                      <input v-model="form.address" type="text" class="field-input" placeholder="Dirección del inquilino" />
+                      <input v-model="form.address" type="text" class="field-input" placeholder="Calle de Atocha, 28, Madrid" />
                     </label>
                   </div>
                 </section>
@@ -98,14 +98,14 @@
                 <section class="rounded-[24px] border border-white/70 bg-white/92 p-4 shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
                   <div>
                     <p class="text-[10px] font-semibold uppercase tracking-[0.26em] text-[#8c4d29]">Contrato</p>
-                    <h4 class="mt-1.5 text-lg font-semibold text-slate-900">Unidad y fechas</h4>
+                    <h4 class="mt-1.5 text-lg font-semibold text-slate-900">Propiedad y fechas</h4>
                   </div>
 
                   <div class="mt-4 grid gap-3.5 lg:grid-cols-3">
                     <label class="space-y-1.5">
-                      <span class="field-label">Unidad *</span>
+                      <span class="field-label">Propiedad *</span>
                       <select v-model="form.unit_id" class="field-input">
-                        <option value="">Seleccionar unidad</option>
+                        <option value="">Seleccionar propiedad</option>
                         <option v-for="apartment in apartments" :key="apartment.id" :value="String(apartment.id)">
                           {{ apartment.name }}
                         </option>
@@ -150,8 +150,8 @@
           <footer class="border-t border-[#e7ddd1] bg-[linear-gradient(180deg,_rgba(255,255,255,0.96),_rgba(249,246,240,0.94))] px-4 py-3.5 sm:px-6">
             <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <p v-if="submitError" class="text-[11px] font-medium text-rose-600 sm:text-xs">{{ submitError }}</p>
-                <p v-else class="text-[11px] text-slate-500 sm:text-xs">Alta mínima y clara. El resto se puede ampliar después si hace falta.</p>
+                <p v-if="combinedError" class="text-[11px] font-medium text-rose-600 sm:text-xs">{{ combinedError }}</p>
+
               </div>
               <div class="flex flex-wrap items-center gap-2.5">
                 <button
@@ -196,6 +196,7 @@ const props = defineProps<{
   saving: boolean;
   mode?: 'create' | 'edit';
   initialValues?: TenantFormValues;
+  serverError?: string;
 }>();
 
 const emit = defineEmits<{
@@ -280,14 +281,14 @@ const summaryIdentity = computed(() => {
 const resolveUnitName = (unitId?: string) => {
   if (!unitId) return 'Sin asignar';
   const apartment = props.apartments.find((item) => String(item.id) === String(unitId));
-  return String(apartment?.name ?? 'Unidad no encontrada');
+  return String(apartment?.name ?? 'Propiedad no encontrada');
 };
 
 const draftSummary = computed(() => [
   {
-    label: 'Unidad',
+    label: 'Propiedad',
     value: resolveUnitName(form.unit_id),
-    detail: 'Unidad asignada al contrato'
+    detail: 'Propiedad asignada al contrato'
   },
   {
     label: 'Fechas',
@@ -300,6 +301,8 @@ const draftSummary = computed(() => [
     detail: form.mobile.trim() || 'Sin móvil'
   }
 ]);
+
+const combinedError = computed(() => submitError.value || props.serverError || '');
 
 const handleSubmit = () => {
   submitError.value = '';
@@ -317,7 +320,7 @@ const handleSubmit = () => {
     return;
   }
   if (!form.unit_id) {
-    submitError.value = 'La unidad es obligatoria.';
+    submitError.value = 'La propiedad es obligatoria.';
     return;
   }
   if (!form.contract_start || !form.contract_end) {

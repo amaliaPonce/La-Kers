@@ -8,7 +8,7 @@
     </div>
 
     <header class="relative z-50 border-b border-white/60 bg-[#f8f5ef]/80 backdrop-blur-xl">
-      <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
+      <div class="mx-auto flex max-w-[90rem] flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
         <router-link to="/" class="flex items-center gap-3">
           <img :src="brandLogo" alt="La-Kers" class="h-14 w-auto object-contain drop-shadow-[0_18px_40px_rgba(61,217,180,0.14)] sm:h-16" />
         </router-link>
@@ -45,7 +45,7 @@
       </div>
     </header>
 
-    <main class="relative z-10 mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+    <main class="relative z-10 mx-auto max-w-[90rem] space-y-6 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
       <section class="section-frame overflow-hidden rounded-[34px] px-6 py-6 lg:px-8 lg:py-8">
         <div class="grid gap-10 lg:grid-cols-[minmax(0,1.02fr)_minmax(0,0.98fr)] lg:items-center">
           <div class="space-y-8">
@@ -250,14 +250,14 @@
       </section>
 
       <section id="precios" ref="pricingSectionRef" class="space-y-6">
-        <div class="pricing-shell section-frame overflow-hidden rounded-[34px] px-6 py-6 lg:px-8 lg:py-8">
-          <div class="grid gap-4 xl:grid-cols-[0.95fr_1.05fr_0.9fr] xl:items-stretch">
+        <div class="pricing-shell section-frame overflow-hidden rounded-[34px] px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+          <div class="grid gap-5 xl:grid-cols-[minmax(0,0.94fr)_minmax(0,1.06fr)] xl:items-stretch 2xl:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)_minmax(0,0.88fr)]">
               <article class="flex h-full flex-col rounded-[30px] border-2 border-[#1f4f46] bg-[linear-gradient(180deg,#eef8f3_0%,#dff3ea_100%)] p-6 shadow-[10px_10px_0_0_rgba(31,79,70,0.14)]">
                 <div class="flex flex-wrap items-start justify-between gap-4">
-                  <div class="max-w-[15rem]">
+                  <div class="max-w-[19rem]">
                     <p class="inline-flex rounded-full border-2 border-[#1f4f46] bg-white/85 px-3 py-1 text-[11px] font-extrabold uppercase text-[#1f4f46]" style="letter-spacing: 0.22em;">Starter</p>
                     <h3 class="mt-4 text-3xl font-semibold leading-[1.02] tracking-[-0.03em] text-slate-900">
-                      Empieza con orden.
+                      Empieza gratis.
                     </h3>
                   </div>
                   <div class="rounded-[22px] border-2 border-[#1f4f46] bg-white px-5 py-4 text-right shadow-[6px_6px_0_0_rgba(31,79,70,0.12)]">
@@ -267,7 +267,7 @@
                 </div>
 
                 <p class="mt-5 text-sm leading-7 text-slate-700">
-                  Ideal para empezar a ordenar tu operativa.
+                  Para ordenar tus primeros alquileres sin compromiso.
                 </p>
 
                 <div class="mt-5 flex flex-wrap gap-2">
@@ -296,17 +296,17 @@
                 </div>
               </article>
 
-              <article class="relative flex h-full flex-col overflow-hidden rounded-[32px] border-2 border-[#d9982c] bg-[linear-gradient(180deg,#fff4d1_0%,#ffe3a6_100%)] p-6 shadow-[14px_14px_0_0_rgba(217,152,44,0.18)] lg:-translate-y-3">
+              <article class="relative flex h-full flex-col overflow-hidden rounded-[32px] border-2 border-[#d9982c] bg-[linear-gradient(180deg,#fff4d1_0%,#ffe3a6_100%)] p-6 shadow-[14px_14px_0_0_rgba(217,152,44,0.18)] 2xl:-translate-y-3">
                 <div class="pointer-events-none absolute inset-x-0 top-0 h-28 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.65),transparent_70%)]"></div>
 
                 <div class="relative flex flex-wrap items-start justify-between gap-4">
-                  <div class="max-w-[16rem]">
+                  <div class="max-w-[20rem]">
                     <div class="flex flex-wrap items-center gap-2">
                       <p class="inline-flex rounded-full border-2 border-[#d9982c] bg-[#fff8e5] px-3 py-1 text-[11px] font-extrabold uppercase text-[#8a6518]" style="letter-spacing: 0.22em;">Plan Pro</p>
                       <span class="inline-flex rounded-full border-2 border-[#8c4d29] bg-[#fff1e7] px-3 py-1 text-[11px] font-extrabold uppercase text-[#8c4d29]" style="letter-spacing: 0.18em;">Más popular</span>
                     </div>
                     <h3 class="mt-4 text-3xl font-semibold leading-[1.02] tracking-[-0.03em] text-slate-900">
-                      Para propietarios que no quieren límites.
+                      Sin límites para tu cartera.
                     </h3>
                   </div>
 
@@ -318,16 +318,15 @@
                   </div>
                 </div>
 
-                <div class="relative mt-5 grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto]">
-                  <div class="rounded-[22px] border-2 border-[#e7cf8c] bg-[#fff7df] px-4 py-4">
-                    <p class="text-xs font-extrabold uppercase text-[#8a6518]" style="letter-spacing: 0.18em;">Capacidad</p>
-                    <p class="mt-2 text-sm leading-7 text-slate-700">Inmuebles ilimitados</p>
-                  </div>
-                  <div class="rounded-[22px] border-2 border-[#c96a37] bg-white/80 px-4 py-4 text-center shadow-[4px_4px_0_0_rgba(201,106,55,0.1)]">
-                    <p class="text-[11px] font-extrabold uppercase text-[#8c4d29]" style="letter-spacing: 0.18em;">Lanzamiento</p>
-                    <p class="mt-2 text-sm font-semibold leading-6 text-slate-900">Precio de lanzamiento.</p>
-                    <p class="mt-2 text-xs font-medium text-slate-600">Sin permanencia.</p>
-                  </div>
+                <div class="relative mt-5 flex flex-wrap gap-2">
+                  <span class="rounded-full border-2 border-[#e7cf8c] bg-[#fff7df] px-3 py-2 text-xs font-semibold text-[#8a6518]">Inmuebles ilimitados</span>
+                  <span class="rounded-full border-2 border-[#e7cf8c] bg-[#fff7df] px-3 py-2 text-xs font-semibold text-[#8a6518]">Sin permanencia</span>
+                  <span class="rounded-full border-2 border-[#c96a37] bg-white/80 px-3 py-2 text-xs font-semibold text-[#8c4d29]">Precio bloqueado mientras seas cliente</span>
+                </div>
+
+                <div class="relative mt-4 rounded-[22px] border-2 border-[#e7cf8c] bg-[#fff7df] px-4 py-4">
+                  <p class="text-xs font-extrabold uppercase text-[#8a6518]" style="letter-spacing: 0.18em;">Lanzamiento</p>
+                  <p class="mt-2 text-sm leading-7 text-slate-700">Precio especial para los primeros clientes de La-Kers.</p>
                 </div>
 
                 <div class="relative mt-6 flex flex-1 flex-col rounded-[24px] border-2 border-[#e7cf8c] bg-[#fff9ea]/92 p-4 shadow-[6px_6px_0_0_rgba(217,152,44,0.1)]">
@@ -340,7 +339,7 @@
                     </li>
                   </ul>
 
-                  <div class="mt-6 grid gap-3">
+                  <div class="mt-6 grid gap-3 sm:grid-cols-2">
                     <router-link
                       to="/sign-up"
                       class="inline-flex items-center justify-center rounded-full bg-[#d9982c] px-5 py-4 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-[#c58a22]"
@@ -359,21 +358,21 @@
                 </div>
               </article>
 
-              <article class="flex h-full flex-col rounded-[30px] border-2 border-dashed border-slate-300 bg-[linear-gradient(180deg,#fafaf9_0%,#f3f4f6_100%)] p-6 shadow-[10px_10px_0_0_rgba(148,163,184,0.12)]">
+              <article class="flex h-full flex-col rounded-[30px] border-2 border-dashed border-slate-300 bg-[linear-gradient(180deg,#fafaf9_0%,#f3f4f6_100%)] p-6 shadow-[10px_10px_0_0_rgba(148,163,184,0.12)] xl:col-span-2 2xl:col-span-1">
                 <div class="flex flex-wrap items-start justify-between gap-4">
-                  <div class="max-w-[15rem]">
+                  <div class="max-w-[20rem]">
                     <div class="flex flex-wrap items-center gap-2">
                       <p class="inline-flex rounded-full border-2 border-slate-300 bg-white/90 px-3 py-1 text-[11px] font-extrabold uppercase text-slate-700" style="letter-spacing: 0.22em;">Empresa</p>
                       <span class="inline-flex rounded-full border-2 border-slate-300 bg-slate-100 px-3 py-1 text-[11px] font-extrabold uppercase text-slate-600" style="letter-spacing: 0.18em;">Próximamente</span>
                     </div>
                     <h3 class="mt-4 text-3xl font-semibold leading-[1.02] tracking-[-0.03em] text-slate-900">
-                      Más estructura para crecer después.
+                      Para equipos y operativa compartida.
                     </h3>
                   </div>
                 </div>
 
                 <p class="mt-5 text-sm leading-7 text-slate-600">
-                  Una futura capa para equipos, reporting y operativa compartida sin salir de La-Kers.
+                  Una futura capa para gestionar más usuarios, más coordinación y más reporting dentro de La-Kers.
                 </p>
 
                 <div class="mt-5 flex flex-wrap gap-2">
@@ -761,22 +760,20 @@ const comparisonRows = [
 
 const freePlanFeatures = [
   'Hasta 3 inmuebles activos',
-  'Gestión de propiedades, pagos, incidencias y documentos',
-  'Sin tarjeta y sin límite de tiempo',
-  'Ideal para empezar a ordenar tu operativa'
+  'Pagos, incidencias, contratos y documentos',
+  'Misma base de trabajo desde el primer día'
 ];
 
 const proPlanFeatures = [
   'Inmuebles ilimitados',
-  'Precio de lanzamiento. Sin permanencia.',
-  'Precio bloqueado mientras seas cliente',
-  'Para propietarios que no quieren límites'
+  'Todo Starter, sin límite de cartera',
+  'Upgrade inmediato desde tu cuenta'
 ];
 
 const teamPlanFeatures = [
-  'Pensado para equipos y operativa compartida',
-  'Más estructura para reporting y colaboración',
-  'Disponible próximamente'
+  'Usuarios y flujos compartidos',
+  'Más reporting y colaboración',
+  'Disponible más adelante'
 ];
 
 const testimonials = [

@@ -16,12 +16,12 @@
                 <p class="text-[10px] font-semibold uppercase tracking-[0.28em] text-[#1f4f46]">Propiedades</p>
                 <h3 class="mt-1.5 text-lg font-semibold text-slate-900 sm:text-xl">{{ modalTitle }}</h3>
                 <p class="mt-1.5 text-[11px] leading-5 text-slate-500 sm:text-xs">
-                  Formulario reducido a los datos necesarios para crear o editar una unidad.
+                  Formulario reducido a los datos necesarios para crear o editar una propiedad.
                 </p>
               </div>
               <button
                 type="button"
-                class="rounded-full border border-[#ead8ca] bg-white/85 p-2.5 text-slate-500 transition hover:border-[#d8c4b4] hover:text-slate-900"
+                class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[#ead8ca] bg-white/85 text-slate-500 transition hover:border-[#d8c4b4] hover:text-slate-900"
                 @click="handleClose"
               >
                 ✕
@@ -34,7 +34,7 @@
               <form class="space-y-4" @submit.prevent="handleSubmit">
                 <section class="rounded-[24px] border border-white/70 bg-white/92 p-4 shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
                   <div>
-                    <p class="text-[10px] font-semibold uppercase tracking-[0.26em] text-[#8c4d29]">Unidad</p>
+                    <p class="text-[10px] font-semibold uppercase tracking-[0.26em] text-[#8c4d29]">Propiedad</p>
                     <h4 class="mt-1.5 text-lg font-semibold text-slate-900">Datos principales</h4>
                   </div>
 
@@ -48,22 +48,22 @@
 
                     <label class="space-y-1.5">
                       <span class="field-label">ID *</span>
-                      <input v-model="form.identifier" type="text" class="field-input" placeholder="Apartamento 1" />
+                      <input v-model="form.identifier" type="text" class="field-input" placeholder="Propiedad 1" />
                     </label>
 
                     <label class="space-y-1.5 lg:col-span-2">
                       <span class="field-label">Dirección *</span>
-                      <input v-model="form.address1" type="text" class="field-input" placeholder="C. Escritora Maria Goyri, s/n" />
+                      <input v-model="form.address1" type="text" class="field-input" placeholder="Calle de Alcalá, 45" />
                     </label>
 
                     <label class="space-y-1.5">
                       <span class="field-label">Ciudad *</span>
-                      <input v-model="form.city" type="text" class="field-input" placeholder="Córdoba" />
+                      <input v-model="form.city" type="text" class="field-input" placeholder="Madrid" />
                     </label>
 
                     <label class="space-y-1.5">
                       <span class="field-label">Código postal *</span>
-                      <input v-model="form.postalCode" type="text" class="field-input" placeholder="14005" />
+                      <input v-model="form.postalCode" type="text" class="field-input" placeholder="28014" />
                     </label>
                   </div>
                 </section>
@@ -98,7 +98,7 @@
                     <p class="text-[10px] font-semibold uppercase tracking-[0.26em] text-[#8c4d29]">Contratos PDF</p>
                     <h4 class="mt-1.5 text-lg font-semibold text-slate-900">Datos del arrendador</h4>
                     <p class="mt-1.5 text-[11px] leading-5 text-slate-500 sm:text-xs">
-                      Se usarán en los contratos de esta unidad. Si lo dejas vacío, el sistema seguirá usando la configuración general.
+                      Se usarán en los contratos de esta propiedad. Si lo dejas vacío, el sistema seguirá usando la configuración general.
                     </p>
                   </div>
 
@@ -129,7 +129,7 @@
                         v-model="form.contractLandlordAddress"
                         rows="3"
                         class="field-textarea"
-                        placeholder="Calle Real 10, 14001 Córdoba"
+                        placeholder="Calle de Serrano, 12, 28001 Madrid"
                       ></textarea>
                     </label>
                   </div>
@@ -162,7 +162,6 @@
             <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <p v-if="combinedError" class="text-[11px] font-medium text-rose-600 sm:text-xs">{{ combinedError }}</p>
-                <p v-else class="text-[11px] text-slate-500 sm:text-xs">Alta mínima: identificación, ubicación, estado y renta.</p>
               </div>
               <div class="flex flex-wrap items-center gap-2.5">
                 <button
@@ -217,7 +216,7 @@ const emit = defineEmits<{
 }>();
 
 const propertyTypes = [
-  'Apartamento',
+  'Propiedad',
   'Adosado',
   'Almacén',
   'Casa',
@@ -249,7 +248,7 @@ const rentalStatuses = [
 ] as const;
 
 const form = reactive({
-  propertyType: 'Apartamento',
+  propertyType: 'Propiedad',
   identifier: '',
   address1: '',
   city: '',
@@ -266,7 +265,7 @@ const submitError = ref('');
 const syncForm = () => {
   submitError.value = '';
 
-  form.propertyType = 'Apartamento';
+  form.propertyType = 'Propiedad';
   form.identifier = String(props.apartment?.name ?? '');
   form.address1 = String(props.apartment?.address ?? '');
   form.city = String(props.apartment?.city ?? '');
@@ -332,7 +331,7 @@ const draftSummary = computed(() => [
   {
     label: 'Tipo',
     value: form.propertyType,
-    detail: 'Clasificación principal de la unidad'
+    detail: 'Clasificación principal de la propiedad'
   },
   {
     label: 'Estado',
@@ -347,7 +346,7 @@ const draftSummary = computed(() => [
   {
     label: 'Contratos',
     value: form.contractLandlordName.trim() ? form.contractLandlordName.trim() : 'Configuración general',
-    detail: form.contractLandlordName.trim() ? 'Perfil específico de este apartamento' : 'Sin perfil propio guardado'
+    detail: form.contractLandlordName.trim() ? 'Perfil específico de esta propiedad' : 'Sin perfil propio guardado'
   }
 ]);
 
@@ -366,7 +365,7 @@ const handleSubmit = () => {
   submitError.value = '';
 
   if (!form.identifier.trim()) {
-    submitError.value = 'El ID de la unidad es obligatorio.';
+    submitError.value = 'El ID de la propiedad es obligatorio.';
     return;
   }
   if (!form.address1.trim()) {

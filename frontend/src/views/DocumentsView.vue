@@ -49,7 +49,7 @@
           <input
             v-model="filters.query"
             type="text"
-            placeholder="Inquilino, apartamento o periodo"
+            placeholder="Inquilino, propiedad o periodo"
             class="w-full rounded-xl border border-[#e1d7cb] bg-[#fbf8f2] px-3 py-2 text-sm focus:border-[#1f4f46] focus:outline-none"
           />
         </label>
@@ -193,8 +193,9 @@
 
 <script setup lang="ts">
 import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue';
-import type { AxiosError } from 'axios';
 import apiClient from '../services/apiClient';
+import { useAppFeedback } from '../composables/useAppFeedback';
+import { getNotFoundAwareErrorMessage } from '../lib/errors';
 import type { Payment } from '../types/payment';
 import { track } from '../lib/analytics';
 import { captureAppException } from '../lib/sentry';
@@ -238,6 +239,7 @@ const payments = ref<Payment[]>([]);
 const loading = ref(false);
 const selectedDocumentId = ref<string | null>(null);
 const detailPanelRef = ref<HTMLElement | null>(null);
+const { showError } = useAppFeedback();
 
 const filters = reactive({
   type: '',
@@ -273,8 +275,7 @@ const openPdfBlob = (blob: Blob) => {
 
 const handleDownloadError = (context: string, error: unknown, fallbackMessage: string) => {
   console.error(`[DocumentsView/${context}]`, error);
-  const status = (error as AxiosError)?.response?.status;
-  window.alert(status === 404 ? 'Documento no encontrado.' : fallbackMessage);
+  showError(getNotFoundAwareErrorMessage(error, 'Documento no encontrado.', fallbackMessage));
 };
 
 const openContract = async (tenantId: string) => {

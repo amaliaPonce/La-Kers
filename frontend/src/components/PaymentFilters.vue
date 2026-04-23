@@ -19,13 +19,13 @@
         </select>
       </label>
       <label class="text-xs font-semibold text-[#8c4d29]">
-        Apartamento
+        Propiedad
         <select
           class="mt-2 block w-full rounded-2xl border border-[#e1d7cb] bg-[#fbf8f2] px-3 py-2 text-sm text-slate-700 focus:border-[#1f4f46] focus:outline-none focus:ring-2 focus:ring-[#d5e4dd]"
           :value="apartmentFilter"
           @change="(event) => emit('update:apartmentFilter', event.target.value)"
         >
-          <option value="all">Todos los apartamentos</option>
+          <option value="all">Todas las propiedades</option>
           <option
             v-for="option in apartmentOptions"
             :key="option.value"

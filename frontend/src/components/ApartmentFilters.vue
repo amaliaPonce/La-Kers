@@ -3,14 +3,14 @@
     <input
       v-model="localSearch"
       @input="emitChange"
-      placeholder="Buscar apartamento"
+      placeholder="Buscar propiedad"
       type="text"
-      class="flex-1 min-w-[220px] rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-medium text-slate-700 placeholder:text-slate-400 focus:border-primary focus:ring focus:ring-primary/40"
+      class="flex-1 min-w-[220px] rounded-2xl border border-[#e1d7cb] bg-[#fbf8f2] px-4 py-2 text-sm font-medium text-slate-700 placeholder:text-slate-400 focus:border-[#1f4f46] focus:ring focus:ring-[#d5e4dd]"
     />
     <select
       v-model="localStatus"
       @change="emitChange"
-      class="rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 focus:border-primary focus:ring focus:ring-primary/40"
+      class="rounded-2xl border border-[#e1d7cb] bg-[#fbf8f2] px-4 py-2 text-sm font-medium text-slate-700 focus:border-[#1f4f46] focus:ring focus:ring-[#d5e4dd]"
     >
       <option value="ALL">Todos los estados</option>
       <option value="AVAILABLE">Disponible</option>
@@ -18,7 +18,7 @@
       <option value="RESERVED">Reservado</option>
     </select>
     <button
-      class="flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-primary hover:text-primary"
+      class="flex items-center gap-2 rounded-2xl border border-[#d8cec2] bg-white px-4 py-2 text-sm font-semibold text-[#8c4d29] transition hover:border-[#c96a37] hover:text-[#8c4d29]"
       type="button"
       @click="toggleSort"
     >

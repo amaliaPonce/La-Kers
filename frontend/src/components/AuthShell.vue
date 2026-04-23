@@ -98,7 +98,7 @@
                     <div class="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
                       <p class="text-xs uppercase tracking-[0.28em] text-slate-400">Incidencias</p>
                       <p class="mt-2 text-xl font-semibold text-slate-900">2 activas</p>
-                      <p class="mt-1 text-sm text-slate-500">Todo localizado por unidad.</p>
+                      <p class="mt-1 text-sm text-slate-500">Todo localizado por propiedad.</p>
                     </div>
                   </div>
                 </div>

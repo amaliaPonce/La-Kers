@@ -54,7 +54,7 @@ const props = withDefaults(
     title: 'Aún no tienes propiedades',
     description: 'Crea tu primera propiedad para empezar.',
     ctaLabel: 'Crear primera propiedad',
-    ctaTo: '/apartments'
+    ctaTo: '/properties'
   }
 );
 

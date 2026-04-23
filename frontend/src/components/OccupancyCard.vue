@@ -3,12 +3,12 @@
     <header class="flex flex-col gap-1">
       <p class="text-xs font-semibold uppercase tracking-[0.45em] text-slate-400">Ocupación</p>
       <h3 class="text-2xl font-semibold text-slate-900">Control del edificio</h3>
-      <p class="text-sm text-slate-500">Centro operativo para ver unidades listas, ocupadas y en riesgo.</p>
+      <p class="text-sm text-slate-500">Centro operativo para ver propiedades listas, ocupadas y en riesgo.</p>
     </header>
 
     <div class="mt-6 grid gap-4 sm:grid-cols-3">
       <div>
-        <p class="text-xs uppercase tracking-[0.35em] text-slate-400">Total unidades</p>
+        <p class="text-xs uppercase tracking-[0.35em] text-slate-400">Total propiedades</p>
         <p class="text-3xl font-semibold text-slate-900">{{ totalUnitsLabel }}</p>
       </div>
       <div>

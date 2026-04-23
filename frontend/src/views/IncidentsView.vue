@@ -46,7 +46,7 @@
           </select>
         </label>
         <label class="space-y-2 text-sm font-semibold text-slate-600">
-          Apartamento
+          Propiedad
           <select v-model="filters.unit_id" class="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm">
             <option value="">Todos</option>
             <option v-for="apartment in apartments" :key="apartment.id" :value="apartment.id">
@@ -76,7 +76,7 @@
           Buscar
           <input
             v-model="filters.text"
-            placeholder="Título, apartamento o responsable"
+            placeholder="Título, propiedad o responsable"
             class="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-primary focus:outline-none"
           />
         </label>
@@ -120,7 +120,7 @@
                 </span>
                 <button
                   type="button"
-                  class="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 transition hover:border-primary hover:text-primary"
+                  class="rounded-full border border-[#d8cec2] px-3 py-1 text-xs font-semibold text-[#8c4d29] transition hover:border-[#c96a37] hover:text-[#8c4d29]"
                   @click="selectedIncidentId = null"
                 >
                   Cerrar
@@ -230,10 +230,10 @@
 
       <section class="rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div v-if="filteredIncidents.length" class="overflow-auto">
-          <table class="min-w-full text-sm text-slate-600">
+          <table class="min-w-full text-[13px] text-slate-600">
             <thead>
-              <tr class="text-left text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">
-                <th class="px-4 py-3">Apartamento</th>
+              <tr class="text-left text-[10px] font-semibold uppercase tracking-[0.3em] text-slate-400">
+                <th class="px-4 py-3">Propiedad</th>
                 <th class="px-4 py-3">Título</th>
                 <th class="px-4 py-3">Tipo</th>
                 <th class="px-4 py-3">Prioridad</th>
@@ -258,12 +258,12 @@
                 <td class="px-4 py-3 text-slate-600">
                   <div class="flex items-center gap-2">
                     <span :class="['h-2 w-2 rounded-full', incident.priorityDot]"></span>
-                    <span class="text-sm font-semibold" :class="incident.priorityAccent">{{ incident.priorityLabel }}</span>
+                    <span class="text-[13px] font-semibold" :class="incident.priorityAccent">{{ incident.priorityLabel }}</span>
                   </div>
                 </td>
                 <td class="px-4 py-3">
                   <span
-                    class="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold"
+                    class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[10px] font-semibold"
                     :class="incident.statusBadgeClasses"
                   >
                     ●
@@ -276,7 +276,7 @@
                 <td class="px-4 py-3">
                   <button
                     type="button"
-                    class="text-primary font-semibold underline-offset-4 transition hover:underline"
+                    class="text-primary text-[11px] font-semibold underline-offset-4 transition hover:underline"
                     @click.stop="selectIncident(incident.id)"
                   >
                     Ver detalle
@@ -311,9 +311,9 @@
         <form class="mt-6 space-y-5" @submit.prevent="handleCreate">
           <div class="grid gap-4 md:grid-cols-2">
             <label class="space-y-2 text-sm font-semibold text-slate-600">
-              Apartamento
+              Propiedad
               <select v-model="modalForm.unit_id" class="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm">
-                <option value="" disabled>Selecciona un apartamento</option>
+                <option value="" disabled>Selecciona una propiedad</option>
                 <option v-for="apartment in apartments" :key="apartment.id" :value="apartment.id">
                   {{ apartment.name }}
                 </option>
@@ -391,7 +391,7 @@
             </button>
             <button
               type="submit"
-              class="rounded-full bg-primary px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-primary/30 transition hover:bg-blue-600"
+              class="rounded-full bg-primary px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-primary/30 transition hover:bg-[#173c36]"
               :disabled="isSaving"
             >
               {{ isSaving ? 'Guardando...' : 'Registrar incidencia' }}

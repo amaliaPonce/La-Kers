@@ -62,8 +62,8 @@ const stepMeta: Record<
 > = {
   propertyCreated: {
     title: 'Crear propiedad',
-    description: 'Añade tu primera unidad para activar la operación.',
-    route: '/apartments'
+    description: 'Añade tu primera propiedad para activar la operación.',
+    route: '/properties'
   },
   tenantAdded: {
     title: 'Añadir inquilino',
@@ -93,7 +93,7 @@ const normalizeRouteName = (routeName: TooltipRouteName): OnboardingRouteName | 
   if (!routeName) return null;
   const normalized = String(routeName).trim().toLowerCase();
   if (normalized.includes('dashboard')) return 'dashboard';
-  if (normalized.includes('apartments')) return 'apartments';
+  if (normalized.includes('apartments') || normalized.includes('properties')) return 'apartments';
   if (normalized.includes('tenants')) return 'tenants';
   if (normalized.includes('payments')) return 'payments';
   return null;
@@ -175,16 +175,16 @@ const buildTooltipMap = (currentStep: OnboardingStepName) =>
       dashboard: {
         id: 'dashboard-property-tooltip',
         title: 'Tu dashboard empieza con una propiedad',
-        description: 'Crea la primera unidad para activar ocupación, cobros y lectura operativa.',
+        description: 'Crea la primera propiedad para activar ocupación, cobros y lectura operativa.',
         ctaLabel: 'Ir a propiedades',
-        ctaTo: '/apartments'
+        ctaTo: '/properties'
       },
       apartments: {
         id: 'apartments-property-tooltip',
         title: 'Crea tu primera propiedad',
-        description: 'Empieza con una unidad real o de prueba y deja listo el inventario base.',
+        description: 'Empieza con una propiedad real o de prueba y deja listo el inventario base.',
         ctaLabel: 'Nueva propiedad',
-        ctaTo: '/apartments'
+        ctaTo: '/properties'
       }
     },
     tenantAdded: {

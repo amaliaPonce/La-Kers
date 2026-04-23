@@ -3,9 +3,9 @@
     <section class="rounded-3xl border border-[#eadfd2] bg-white p-6 shadow-lg">
       <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
-          <p class="text-xs uppercase tracking-[0.35em] text-[#8c4d29]">Control de unidades</p>
-          <h1 class="text-3xl font-semibold text-slate-900">Apartamentos</h1>
-          <p class="text-sm text-slate-500">Resumen de unidades y rentas.</p>
+          <p class="text-xs uppercase tracking-[0.35em] text-[#8c4d29]">Control de propiedades</p>
+          <h1 class="text-3xl font-semibold text-slate-900">Propiedades</h1>
+          <p class="text-sm text-slate-500">Resumen de propiedades y rentas.</p>
         </div>
         <button
           type="button"
@@ -19,7 +19,7 @@
           <svg class="h-4 w-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M8 3v10m5-5H3" />
           </svg>
-          {{ canCreateApartment ? 'Nuevo apartamento' : 'Activa Pro sin límites' }}
+          {{ canCreateApartment ? 'Nueva propiedad' : 'Activa Pro sin límites' }}
         </button>
       </div>
       <div
@@ -106,13 +106,13 @@
           label="Renta mensual potencial"
           :value="formatCurrency(monthlyPotential)"
           accent="blue"
-          subtext="Suma de todas las unidades"
+          subtext="Suma de todas las propiedades"
         />
         <CompactMetricCard
           label="Renta mensual activa"
           :value="formatCurrency(monthlyActive)"
           accent="emerald"
-          subtext="Solo unidades ocupadas"
+          subtext="Solo propiedades ocupadas"
         />
       </div>
     </section>
@@ -121,8 +121,8 @@
       <div class="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
         <div>
           <p class="text-xs uppercase tracking-wide text-[#8c4d29]">Lista principal</p>
-          <h2 class="text-2xl font-semibold text-slate-900">Gestión de apartamentos</h2>
-          <p class="text-sm text-slate-500">Filtra y revisa el estado de cada unidad.</p>
+          <h2 class="text-2xl font-semibold text-slate-900">Gestión de propiedades</h2>
+          <p class="text-sm text-slate-500">Filtra y revisa el estado de cada propiedad.</p>
         </div>
         <span class="text-xs font-semibold uppercase tracking-[0.3em] text-[#8c4d29]">Total {{ totalApartments }}</span>
       </div>
@@ -141,10 +141,10 @@
           />
           <div v-else-if="filteredApartments.length" class="overflow-hidden rounded-[28px] border border-[#eadfd2] bg-white">
             <div class="hidden border-b border-[#efe7dd] bg-[#fbf8f2] px-4 py-3 md:grid md:grid-cols-[minmax(0,1.75fr)_minmax(140px,0.6fr)_minmax(150px,0.65fr)_minmax(160px,auto)] md:items-center md:gap-4">
-              <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Unidad</p>
-              <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Renta</p>
-              <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Estado</p>
-              <p class="text-right text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Acciones</p>
+              <p class="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">Unidad</p>
+              <p class="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">Renta</p>
+              <p class="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">Estado</p>
+              <p class="text-right text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">Acciones</p>
             </div>
             <transition-group
               name="apartment-list"
@@ -168,8 +168,8 @@
             v-else
             class="flex flex-col items-center justify-center gap-2 rounded-3xl border border-dashed border-[#d8cec2] bg-[#fbf8f2] p-6 text-center text-slate-500"
           >
-            <p class="text-lg font-semibold text-slate-800">No hay apartamentos que coincidan</p>
-            <p class="text-sm">Ajusta los filtros o crea un apartamento.</p>
+            <p class="text-lg font-semibold text-slate-800">No hay propiedades que coincidan</p>
+            <p class="text-sm">Ajusta los filtros o crea una propiedad.</p>
           </div>
         </div>
 
@@ -242,7 +242,7 @@
                   <p><span class="font-semibold text-slate-900">Domicilio:</span> {{ selectedContractProfileAddress }}</p>
                 </div>
                 <p v-else class="mt-3 text-sm leading-6 text-slate-600">
-                  Este apartamento no tiene perfil propio. Los PDF usarán la configuración general del arrendador.
+                  Esta propiedad no tiene perfil propio. Los PDF usarán la configuración general del arrendador.
                 </p>
               </div>
 
@@ -269,8 +269,8 @@
               key="empty-detail"
               class="rounded-[32px] border border-dashed border-[#d8cec2] bg-[#fbf8f2] p-6 shadow-sm xl:min-h-[320px]"
             >
-              <p class="text-xs font-semibold uppercase tracking-[0.32em] text-slate-400">Ficha del apartamento</p>
-              <h3 class="mt-3 text-xl font-semibold text-slate-900">Selecciona una unidad para ver su detalle</h3>
+              <p class="text-xs font-semibold uppercase tracking-[0.32em] text-slate-400">Ficha de la propiedad</p>
+              <h3 class="mt-3 text-xl font-semibold text-slate-900">Selecciona una propiedad para ver su detalle</h3>
               <p class="mt-2 text-sm leading-6 text-slate-500">
                 La ficha permanece visible mientras navegas.
               </p>
@@ -293,19 +293,20 @@
 </template>
 
 <script setup lang="ts">
-import axios from 'axios';
 import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import CompactMetricCard from '../components/CompactMetricCard.vue';
 import ApartmentFilters from '../components/ApartmentFilters.vue';
 import ApartmentRow from '../components/ApartmentRow.vue';
 import ApartmentModal from '../components/ApartmentModal.vue';
+import { useAppFeedback } from '../composables/useAppFeedback';
 import { useBilling } from '../composables/useBilling';
 import EmptyPropertiesState from '../components/empty-states/EmptyPropertiesState.vue';
 import StatusBadge from '../components/StatusBadge.vue';
 import { useOnboarding } from '../composables/useOnboarding';
 import apiClient from '../services/apiClient';
 import { track } from '../lib/analytics';
+import { getErrorMessage } from '../lib/errors';
 import { captureAppException } from '../lib/sentry';
 
 const router = useRouter();
@@ -332,6 +333,7 @@ const modalApartment = ref<Record<string, unknown> | null>(null);
 const modalLoading = ref(false);
 const modalServerError = ref('');
 const { completeStep } = useOnboarding();
+const { requestConfirmation, showError } = useAppFeedback();
 
 const statusOptions = ['AVAILABLE', 'OCCUPIED', 'RESERVED'] as const;
 type ApartmentStatus = (typeof statusOptions)[number];
@@ -616,20 +618,11 @@ const handleModalSubmit = async (payload: {
         context: {
           apartmentId: payload.id ?? null,
           status: payload.status,
-          route: '/apartments'
+          route: '/properties'
         }
       });
     }
-    if (axios.isAxiosError(error)) {
-      modalServerError.value =
-        typeof error.response?.data?.message === 'string'
-          ? error.response.data.message
-          : Array.isArray(error.response?.data?.errors)
-            ? error.response.data.errors.join(', ')
-            : 'No se pudo guardar la propiedad.';
-    } else {
-      modalServerError.value = 'No se pudo guardar la propiedad.';
-    }
+    modalServerError.value = getErrorMessage(error, 'No se pudo guardar la propiedad.');
   } finally {
     modalLoading.value = false;
   }
@@ -650,7 +643,13 @@ const handleEdit = (apartment: Record<string, unknown>) => {
 
 const handleDelete = async (apartment: Record<string, unknown>) => {
   if (!apartment.id) return;
-  const confirmed = window.confirm('¿Deseas eliminar este apartamento?');
+  const confirmed = await requestConfirmation({
+    title: 'Eliminar propiedad',
+    message: `Se borrará ${String(apartment.name ?? 'esta propiedad')} y no se podrá deshacer.`,
+    confirmLabel: 'Eliminar',
+    cancelLabel: 'Cancelar',
+    tone: 'danger'
+  });
   if (!confirmed) return;
 
   try {
@@ -662,6 +661,17 @@ const handleDelete = async (apartment: Record<string, unknown>) => {
     await refreshData();
   } catch (error) {
     console.error(error);
+    captureAppException(error, {
+      tags: {
+        feature: 'apartments',
+        action: 'delete'
+      },
+      context: {
+        apartmentId: apartment.id,
+        route: '/properties'
+      }
+    });
+    showError(getErrorMessage(error, 'No se pudo eliminar la propiedad.'));
   }
 };
 

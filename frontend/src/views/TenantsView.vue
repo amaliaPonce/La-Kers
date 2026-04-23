@@ -82,10 +82,10 @@
           <div class="overflow-hidden rounded-[28px] border border-[#eadfd2] bg-white">
             <div>
               <div class="hidden border-b border-[#efe7dd] bg-[#fbf8f2] px-4 py-3 md:grid md:grid-cols-[minmax(0,1.85fr)_minmax(230px,1.1fr)_minmax(120px,0.7fr)_minmax(170px,auto)] md:items-center md:gap-4">
-                <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Inquilino</p>
-                <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Contrato</p>
-                <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Estado</p>
-                <p class="text-right text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Acciones</p>
+                <p class="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">Inquilino</p>
+                <p class="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">Contrato</p>
+                <p class="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">Estado</p>
+                <p class="text-right text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">Acciones</p>
               </div>
               <div class="divide-y divide-[#efe7dd]">
                 <TenantRow
@@ -164,7 +164,7 @@
 
               <div class="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
                 <div class="rounded-3xl border border-white/80 bg-white/80 p-4 shadow-sm">
-                  <p class="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-400">Apartamento</p>
+                  <p class="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-400">Propiedad</p>
                   <p class="mt-2 text-base font-semibold text-slate-900">{{ detailTenant.units?.name ?? '—' }}</p>
                 </div>
                 <div class="rounded-3xl border border-white/80 bg-white/80 p-4 shadow-sm">
@@ -242,21 +242,39 @@
                     <p class="mt-1.5 text-sm font-semibold text-slate-900">{{ fiscalAddressLine }}</p>
                     <p class="mt-1 text-[11px] text-slate-500">{{ fiscalAddressDetail }}</p>
                   </article>
+
+                  <article class="rounded-[18px] border border-[#efe7dd] bg-[#fbf8f2] p-3">
+                    <p class="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">Cláusulas adicionales</p>
+                    <p class="mt-1.5 text-sm font-semibold text-slate-900">
+                      {{ detailTenantContractProfile?.additional_clauses ? 'Configuradas' : 'Sin cláusulas adicionales' }}
+                    </p>
+                    <p class="mt-1 text-[11px] text-slate-500">
+                      {{ detailTenantContractProfile?.additional_clauses ?? 'Puedes añadir condiciones extra para que salgan en el contrato.' }}
+                    </p>
+                  </article>
                 </div>
 
                 <div class="mt-4">
                   <button
                     type="button"
-                    class="rounded-2xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:border-primary hover:text-primary"
+                    class="rounded-2xl border border-[#d8cec2] px-4 py-2 text-sm font-semibold text-[#8c4d29] transition hover:border-[#c96a37] hover:text-[#8c4d29]"
                     :disabled="contractProfileLoading"
                     @click="openContractProfileModal"
                   >
-                    {{ contractProfileLoading ? 'Cargando...' : detailTenantContractProfile ? 'Editar datos de contrato' : 'Completar datos de contrato' }}
+                    {{ contractProfileLoading ? 'Cargando...' : detailTenantContractProfile ? 'Editar datos y cláusulas' : 'Completar datos y cláusulas' }}
                   </button>
                 </div>
               </div>
 
               <div class="mt-6 flex flex-wrap gap-3">
+                <button
+                  type="button"
+                  class="rounded-2xl border border-[#1f4f46] bg-[#1f4f46] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#173c36]"
+                  :disabled="contractProfileLoading"
+                  @click="openContractProfileModal"
+                >
+                  {{ contractProfileLoading ? 'Cargando...' : 'Datos y cláusulas' }}
+                </button>
                 <button
                   type="button"
                   class="rounded-2xl border border-[#d8cec2] px-4 py-2 text-sm font-semibold text-[#8c4d29] transition hover:border-[#c96a37] hover:text-[#8c4d29]"
@@ -304,6 +322,7 @@
       :apartments="apartments"
       :saving="saving"
       :initial-values="modalInitialValues"
+      :server-error="tenantModalServerError"
       @close="handleModalClose"
       @submit="handleTenantSubmit"
     />
@@ -341,14 +360,15 @@ import TenantModal from '../components/TenantModal.vue';
 import TenantStatusBadge from '../components/TenantStatusBadge.vue';
 import FinalizeContractWizard from '../components/FinalizeContractWizard.vue';
 import TenantContractProfileModal from '../components/TenantContractProfileModal.vue';
+import { useAppFeedback } from '../composables/useAppFeedback';
 import { useOnboarding } from '../composables/useOnboarding';
 import apiClient from '../services/apiClient';
-import type { AxiosError } from 'axios';
 import type { Payment, PaymentStatus } from '../types/payment';
 import type { Incident, IncidentStatus } from '../types/incident';
 import type { TenantStatus, TenantWithMeta } from '../types/tenant';
 import type { TenantContractProfilePayload, TenantContractProfileRecord } from '../types/tenantContractProfile';
 import { track } from '../lib/analytics';
+import { getErrorMessage, getNotFoundAwareErrorMessage } from '../lib/errors';
 import { captureAppException } from '../lib/sentry';
 
 type TenantFormValues = {
@@ -382,9 +402,11 @@ const tenantModalState = reactive({
 const detailTenant = ref<TenantWithMeta | null>(null);
 const detailPanelRef = ref<HTMLElement | null>(null);
 const saving = ref(false);
+const tenantModalServerError = ref('');
 const lastCreatedSignature = ref('');
 const highlightTimer = ref<number | null>(null);
 const { completeStep } = useOnboarding();
+const { showError } = useAppFeedback();
 const finalizeWizard = reactive({
   visible: false,
   tenant: null as TenantWithMeta | null
@@ -642,17 +664,6 @@ const loadActiveTenants = async () => {
   }
 };
 
-const buildContractProfileErrorMessage = (error: unknown, fallback: string) => {
-  const responseData = (error as AxiosError<{ errors?: string[]; message?: string }>)?.response?.data;
-  if (Array.isArray(responseData?.errors) && responseData.errors.length) {
-    return responseData.errors.join('\n');
-  }
-  if (responseData?.message) {
-    return responseData.message;
-  }
-  return fallback;
-};
-
 const loadArchivedTenants = async () => {
   try {
     const { data } = await apiClient.get('/tenants', {
@@ -722,6 +733,7 @@ const modalInitialValues = computed<TenantFormValues | undefined>(() => {
 const openTenantModal = (mode: 'create' | 'edit', tenant?: TenantWithMeta) => {
   tenantModalState.mode = mode;
   tenantModalState.tenant = tenant ?? null;
+  tenantModalServerError.value = '';
   tenantModalState.visible = true;
 };
 
@@ -729,25 +741,11 @@ const handleModalClose = () => {
   if (saving.value) return;
   tenantModalState.visible = false;
   tenantModalState.tenant = null;
-};
-
-const buildTenantSubmitErrorMessage = (error: unknown, mode: 'create' | 'edit') => {
-  const responseData = (error as AxiosError<{ errors?: string[]; message?: string }>)?.response?.data;
-  if (Array.isArray(responseData?.errors) && responseData.errors.length) {
-    return responseData.errors.join('\n');
-  }
-  if (responseData?.message) {
-    return responseData.message;
-  }
-  return mode === 'edit' ? 'No se pudo actualizar el inquilino.' : 'No se pudo crear el inquilino.';
+  tenantModalServerError.value = '';
 };
 
 const handleTenantSubmit = async (payload: TenantFormValues) => {
-  if (new Date(payload.contract_end) < new Date(payload.contract_start)) {
-    window.alert('La fecha de fin no puede ser anterior a la fecha de inicio.');
-    return;
-  }
-
+  tenantModalServerError.value = '';
   saving.value = true;
   let requestSucceeded = false;
   try {
@@ -775,12 +773,18 @@ const handleTenantSubmit = async (payload: TenantFormValues) => {
         route: '/tenants'
       }
     });
-    window.alert(buildTenantSubmitErrorMessage(error, tenantModalState.mode));
+    tenantModalServerError.value = getErrorMessage(
+      error,
+      tenantModalState.mode === 'edit'
+        ? 'No se pudo actualizar el inquilino.'
+        : 'No se pudo crear el inquilino.'
+    );
   } finally {
     saving.value = false;
     if (requestSucceeded) {
       tenantModalState.visible = false;
       tenantModalState.tenant = null;
+      tenantModalServerError.value = '';
     }
   }
 };
@@ -802,8 +806,7 @@ const buildPdfBlob = (data: unknown) =>
 
 const handleDownloadError = (context: string, error: unknown, notFoundMessage: string) => {
   console.error(`[TenantsView/${context}]`, error);
-  const status = (error as AxiosError)?.response?.status;
-  window.alert(status === 404 ? notFoundMessage : 'No se pudo descargar el contrato.');
+  showError(getNotFoundAwareErrorMessage(error, notFoundMessage, 'No se pudo descargar el contrato.'));
 };
 
 const downloadContractTerminationPdf = async (tenantId?: string) => {
@@ -883,7 +886,7 @@ const loadTenantContractProfile = async (tenantId?: string) => {
   } catch (error) {
     console.error(error);
     if (detailTenant.value?.id === requestedTenantId) {
-      contractProfileLoadError.value = buildContractProfileErrorMessage(error, 'No se pudieron cargar los datos de contrato.');
+      contractProfileLoadError.value = getErrorMessage(error, 'No se pudieron cargar los datos de contrato.');
     }
   } finally {
     if (detailTenant.value?.id === requestedTenantId) {
@@ -946,7 +949,7 @@ const handleContractProfileSubmit = async (payload: TenantContractProfilePayload
     await refreshData();
   } catch (error) {
     console.error(error);
-    contractProfileServerError.value = buildContractProfileErrorMessage(error, 'No se pudieron guardar los datos de contrato.');
+    contractProfileServerError.value = getErrorMessage(error, 'No se pudieron guardar los datos de contrato.');
   } finally {
     contractProfileSaving.value = false;
   }

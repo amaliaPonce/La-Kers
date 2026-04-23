@@ -14,6 +14,7 @@ export type TenantContractProfilePayload = {
   legal_representative_id: string;
   legal_representative_role: string;
   iban: string;
+  additional_clauses: string;
   contract_notes: string;
 };
 
@@ -34,6 +35,7 @@ export type TenantContractProfileRecord = {
   legal_representative_id?: string | null;
   legal_representative_role?: string | null;
   iban?: string | null;
+  additional_clauses?: string | null;
   contract_notes?: string | null;
   created_at?: string;
   updated_at?: string;
@@ -55,5 +57,6 @@ export const createEmptyTenantContractProfilePayload = (): TenantContractProfile
   legal_representative_id: '',
   legal_representative_role: '',
   iban: '',
+  additional_clauses: '',
   contract_notes: ''
 });

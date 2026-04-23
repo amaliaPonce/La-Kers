@@ -1,6 +1,6 @@
 <template>
   <article
-    class="group rounded-3xl border bg-[linear-gradient(180deg,_rgba(255,255,255,0.96),_rgba(248,245,239,0.9))] px-6 py-6 text-center shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg"
+    class="rounded-3xl border bg-[linear-gradient(180deg,_rgba(255,255,255,0.96),_rgba(248,245,239,0.9))] px-6 py-6 text-center shadow-sm"
     :class="borderAccent"
   >
     <p class="text-xs uppercase tracking-[0.35em] text-[#8c4d29]">{{ label }}</p>

@@ -56,7 +56,7 @@
                   <div>
                     <h3 class="text-2xl font-semibold text-slate-900">{{ selectedPayment.tenant_persons?.full_name ?? '—' }}</h3>
                     <p class="mt-1 text-sm text-slate-500">
-                      {{ selectedPayment.units?.name ?? 'Sin apartamento asignado' }} ·
+                      {{ selectedPayment.units?.name ?? 'Sin propiedad asignada' }} ·
                       {{ formatMonthLabel(createMonthKey(selectedPayment.year, selectedPayment.month)) }}
                     </p>
                   </div>
@@ -128,18 +128,18 @@
                   <p class="text-xs font-semibold text-slate-500">{{ selectedTenantHistory.length }} registros</p>
                 </div>
 
-                <div class="mt-4 grid gap-3 sm:grid-cols-3">
-                  <div class="rounded-2xl border border-[#eadfd2] bg-[#fbf8f2] p-3">
+                <div class="mt-4 grid gap-3 sm:grid-cols-3 xl:grid-cols-1">
+                  <div class="flex min-h-[104px] flex-col items-center justify-center rounded-2xl border border-[#eadfd2] bg-[#fbf8f2] p-3 text-center">
                     <p class="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">Pagado</p>
                     <p class="mt-1 text-lg font-semibold text-slate-900">{{ selectedHistorySummary.paidCount }}</p>
                     <p class="text-xs text-slate-500">{{ formatCurrency(selectedHistorySummary.paidAmount) }}</p>
                   </div>
-                  <div class="rounded-2xl border border-[#eadfd2] bg-[#fbf8f2] p-3">
+                  <div class="flex min-h-[104px] flex-col items-center justify-center rounded-2xl border border-[#eadfd2] bg-[#fbf8f2] p-3 text-center">
                     <p class="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">Banco</p>
                     <p class="mt-1 text-lg font-semibold text-slate-900">{{ selectedHistorySummary.bankCount }}</p>
                     <p class="text-xs text-slate-500">{{ formatCurrency(selectedHistorySummary.bankAmount) }}</p>
                   </div>
-                  <div class="rounded-2xl border border-[#eadfd2] bg-[#fbf8f2] p-3">
+                  <div class="flex min-h-[104px] flex-col items-center justify-center rounded-2xl border border-[#eadfd2] bg-[#fbf8f2] p-3 text-center">
                     <p class="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">Efectivo</p>
                     <p class="mt-1 text-lg font-semibold text-slate-900">{{ selectedHistorySummary.cashCount }}</p>
                     <p class="text-xs text-slate-500">{{ formatCurrency(selectedHistorySummary.cashAmount) }}</p>
@@ -158,7 +158,7 @@
                           {{ formatMonthLabel(createMonthKey(historyPayment.year, historyPayment.month)) }}
                         </p>
                         <p class="mt-1 text-xs text-slate-500">
-                          {{ historyPayment.units?.name ?? 'Sin apartamento' }} ·
+                          {{ historyPayment.units?.name ?? 'Sin propiedad' }} ·
                           {{ formatDate(historyPayment.paid_date ?? historyPayment.due_date) }}
                         </p>
                       </div>
@@ -215,10 +215,10 @@
       <section class="rounded-[32px] border border-[#eadfd2] bg-white p-5 shadow-sm">
         <div class="overflow-hidden rounded-[28px] border border-[#eadfd2] bg-white">
           <div class="hidden border-b border-[#efe7dd] bg-[#fbf8f2] px-4 py-3 md:grid md:grid-cols-[minmax(0,1.35fr)_minmax(0,0.85fr)_minmax(190px,1fr)_minmax(200px,auto)] md:items-center md:gap-4">
-            <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Inquilino</p>
-            <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Apartamento</p>
-            <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Resumen</p>
-            <p class="text-right text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Acciones</p>
+            <p class="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">Inquilino</p>
+            <p class="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">Propiedad</p>
+            <p class="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">Resumen</p>
+            <p class="text-right text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">Acciones</p>
           </div>
           <div v-if="groupedPayments.length" class="divide-y divide-[#efe7dd] bg-white">
             <div
@@ -232,12 +232,12 @@
               >
                 <div class="flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
                   <div>
-                    <p class="text-sm font-semibold text-slate-900">{{ group.label }}</p>
-                    <p class="text-xs text-slate-500">
+                    <p class="text-[13px] font-semibold text-slate-900">{{ group.label }}</p>
+                    <p class="text-[11px] text-slate-500">
                       Esperado {{ formatCurrency(group.totals.expected) }}, cobrado {{ formatCurrency(group.totals.collected) }}
                     </p>
                   </div>
-                  <div class="flex flex-wrap gap-3 text-[0.65rem] font-semibold text-slate-600">
+                  <div class="flex flex-wrap gap-3 text-[10px] font-semibold text-slate-600">
                     <span>{{ computeProgress(group.totals.collected, group.totals.expected) }}% cobrado</span>
                     <span>Pendiente {{ formatCurrency(group.totals.pending) }}</span>
                     <span>Retrasado {{ formatCurrency(group.totals.late) }}</span>
@@ -524,7 +524,7 @@ const apartmentOptions = computed(() => {
   const map = new Map<string, string>();
   payments.value.forEach((payment) => {
     const key = payment.units?.id ?? payment.units?.name ?? 'sin-apartado';
-    const label = payment.units?.name ?? 'Sin apartamento asignado';
+    const label = payment.units?.name ?? 'Sin propiedad asignada';
     if (!map.has(key)) {
       map.set(key, label);
     }

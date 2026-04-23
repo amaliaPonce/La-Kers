@@ -23,6 +23,7 @@ const TENANT_CONTRACT_PROFILE_SELECT = [
   'legal_representative_id',
   'legal_representative_role',
   'iban',
+  'additional_clauses',
   'contract_notes',
   'created_at',
   'updated_at'

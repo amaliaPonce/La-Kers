@@ -16,35 +16,35 @@
     <div class="grid gap-4 md:grid-cols-[minmax(0,1.35fr)_minmax(0,0.85fr)_minmax(190px,1fr)_minmax(200px,auto)] md:items-center">
       <div class="min-w-0">
         <div class="flex flex-wrap items-center gap-2">
-          <p class="text-[15px] font-semibold leading-5 text-slate-900">{{ tenantName }}</p>
+          <p class="text-sm font-semibold leading-5 text-slate-900">{{ tenantName }}</p>
           <span
             v-if="selected"
-            class="inline-flex items-center rounded-full bg-[#f4dfd2] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#8c4d29]"
+            class="inline-flex items-center rounded-full bg-[#f4dfd2] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#8c4d29]"
           >
             Activo
           </span>
         </div>
-        <p class="mt-1 text-xs text-slate-400">{{ tenantHint }}</p>
+        <p class="mt-1 text-[11px] text-slate-400">{{ tenantHint }}</p>
       </div>
 
       <div class="min-w-0">
-        <p class="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400 md:hidden">Apartamento</p>
-        <p class="mt-1 text-sm font-semibold leading-5 text-slate-900 md:mt-0">{{ apartmentLabel }}</p>
+        <p class="text-[9px] font-semibold uppercase tracking-[0.18em] text-slate-400 md:hidden">Propiedad</p>
+        <p class="mt-1 text-[13px] font-semibold leading-5 text-slate-900 md:mt-0">{{ apartmentLabel }}</p>
       </div>
 
       <div>
-        <p class="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">Resumen</p>
-        <p class="mt-1 text-sm font-semibold text-slate-900">{{ monthLabel }}</p>
-        <p class="mt-1 text-sm font-semibold text-slate-900">{{ formattedAmount }}</p>
+        <p class="text-[9px] font-semibold uppercase tracking-[0.18em] text-slate-400">Resumen</p>
+        <p class="mt-1 text-[13px] font-semibold text-slate-900">{{ monthLabel }}</p>
+        <p class="mt-1 text-[13px] font-semibold text-slate-900">{{ formattedAmount }}</p>
         <div class="mt-2 flex flex-wrap items-center gap-2">
-          <PaymentStatusBadge :status="payment.status" />
-          <p v-if="daysLateLabel" class="text-[0.65rem] font-semibold text-rose-500">
+          <PaymentStatusBadge :status="payment.status" compact />
+          <p v-if="daysLateLabel" class="text-[10px] font-semibold text-rose-500">
             {{ daysLateLabel }} días de retraso
           </p>
-          <p v-else-if="isImminent" class="text-xs font-semibold text-amber-600">
+          <p v-else-if="isImminent" class="text-[11px] font-semibold text-amber-600">
             Vence en {{ daysUntilDueLabel }} días
           </p>
-          <p v-else class="text-xs text-slate-400">
+          <p v-else class="text-[11px] text-slate-400">
             Vence {{ dueLabel }}
           </p>
         </div>
@@ -55,7 +55,7 @@
           <button
             v-if="showMarkPaidAction"
             type="button"
-            class="inline-flex items-center justify-center rounded-full bg-[#1f4f46] px-3.5 py-2 text-[12px] font-semibold text-white transition hover:bg-[#173c36]"
+            class="inline-flex items-center justify-center rounded-full bg-[#1f4f46] px-3.5 py-2 text-[11px] font-semibold text-white transition hover:bg-[#173c36]"
             @click.stop="() => emit('mark-paid', payment)"
           >
             {{ payment.status === 'PAID' ? 'Añadir método' : 'Marcar como pagado' }}
@@ -63,13 +63,13 @@
           <button
             v-if="payment.status === 'PAID'"
             type="button"
-            class="inline-flex items-center justify-center rounded-full border border-[#d9cdbc] bg-[#fbf8f2] px-3.5 py-2 text-[12px] font-semibold text-[#8c4d29] transition hover:bg-[#f6efe5]"
+            class="inline-flex items-center justify-center rounded-full border border-[#d9cdbc] bg-[#fbf8f2] px-3.5 py-2 text-[11px] font-semibold text-[#8c4d29] transition hover:bg-[#f6efe5]"
             @click.stop="() => emit('download-receipt', payment)"
           >
             Recibo
           </button>
         </div>
-        <p v-if="paymentMethodLabel" class="text-xs text-slate-400">
+        <p v-if="paymentMethodLabel" class="text-[11px] text-slate-400">
           Método: {{ paymentMethodLabel }}
         </p>
       </div>
@@ -79,7 +79,7 @@
       <button
         v-if="showMarkPaidAction"
         type="button"
-        class="inline-flex min-w-[140px] items-center justify-center rounded-full bg-[#1f4f46] px-4 py-2 text-[12px] font-semibold text-white transition hover:bg-[#173c36]"
+        class="inline-flex min-w-[140px] items-center justify-center rounded-full bg-[#1f4f46] px-4 py-2 text-[11px] font-semibold text-white transition hover:bg-[#173c36]"
         @click.stop="() => emit('mark-paid', payment)"
       >
         {{ payment.status === 'PAID' ? 'Añadir método' : 'Marcar como pagado' }}
@@ -87,7 +87,7 @@
       <button
         v-if="payment.status === 'PAID'"
         type="button"
-        class="inline-flex items-center justify-center rounded-full border border-[#d9cdbc] bg-[#fbf8f2] px-3.5 py-2 text-[12px] font-semibold text-[#8c4d29] transition hover:bg-[#f6efe5]"
+        class="inline-flex items-center justify-center rounded-full border border-[#d9cdbc] bg-[#fbf8f2] px-3.5 py-2 text-[11px] font-semibold text-[#8c4d29] transition hover:bg-[#f6efe5]"
         @click.stop="() => emit('download-receipt', payment)"
       >
         Recibo
@@ -133,7 +133,7 @@ const tenantHint = computed(() => {
   return 'Sin fecha de vencimiento';
 });
 
-const apartmentLabel = computed(() => props.payment.units?.name ?? 'Sin apartamento');
+const apartmentLabel = computed(() => props.payment.units?.name ?? 'Sin propiedad');
 
 const monthLabel = computed(() => {
   const year = props.payment.year;

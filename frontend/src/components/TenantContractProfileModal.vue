@@ -21,7 +21,7 @@
               </div>
               <button
                 type="button"
-                class="rounded-full border border-[#ead8ca] bg-white/85 p-2.5 text-slate-500 transition hover:border-[#d8c4b4] hover:text-slate-900"
+                class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[#ead8ca] bg-white/85 text-slate-500 transition hover:border-[#d8c4b4] hover:text-slate-900"
                 @click="handleClose"
               >
                 ✕
@@ -40,7 +40,7 @@
 
                   <div class="mt-4 grid gap-3.5 lg:grid-cols-2">
                     <label class="space-y-1.5 lg:col-span-2">
-                      <span class="field-label">Razón social *</span>
+                      <span class="field-label">Razón social</span>
                       <input v-model="form.company_name" type="text" class="field-input" placeholder="Inversiones Centro S.L." />
                     </label>
 
@@ -50,7 +50,7 @@
                     </label>
 
                     <label class="space-y-1.5">
-                      <span class="field-label">CIF / NIF *</span>
+                      <span class="field-label">CIF / NIF</span>
                       <input v-model="form.tax_id" type="text" class="field-input" placeholder="B12345678" />
                     </label>
 
@@ -74,32 +74,32 @@
 
                   <div class="mt-4 grid gap-3.5 lg:grid-cols-2">
                     <label class="space-y-1.5 lg:col-span-2">
-                      <span class="field-label">Calle y número *</span>
-                      <input v-model="form.fiscal_address_line_1" type="text" class="field-input" placeholder="Calle Real 10" />
+                      <span class="field-label">Calle y número</span>
+                      <input v-model="form.fiscal_address_line_1" type="text" class="field-input" placeholder="Paseo de la Castellana, 91" />
                     </label>
 
                     <label class="space-y-1.5 lg:col-span-2">
                       <span class="field-label">Piso, puerta, etc.</span>
-                      <input v-model="form.fiscal_address_line_2" type="text" class="field-input" placeholder="3A" />
+                      <input v-model="form.fiscal_address_line_2" type="text" class="field-input" placeholder="4º B" />
                     </label>
 
                     <label class="space-y-1.5">
-                      <span class="field-label">Código postal *</span>
-                      <input v-model="form.fiscal_postal_code" type="text" class="field-input" placeholder="14001" />
+                      <span class="field-label">Código postal</span>
+                      <input v-model="form.fiscal_postal_code" type="text" class="field-input" placeholder="28046" />
                     </label>
 
                     <label class="space-y-1.5">
-                      <span class="field-label">Ciudad *</span>
-                      <input v-model="form.fiscal_city" type="text" class="field-input" placeholder="Córdoba" />
+                      <span class="field-label">Ciudad</span>
+                      <input v-model="form.fiscal_city" type="text" class="field-input" placeholder="Madrid" />
                     </label>
 
                     <label class="space-y-1.5">
                       <span class="field-label">Provincia</span>
-                      <input v-model="form.fiscal_province" type="text" class="field-input" placeholder="Córdoba" />
+                      <input v-model="form.fiscal_province" type="text" class="field-input" placeholder="Madrid" />
                     </label>
 
                     <label class="space-y-1.5">
-                      <span class="field-label">País *</span>
+                      <span class="field-label">País</span>
                       <input v-model="form.fiscal_country" type="text" class="field-input" placeholder="España" />
                     </label>
                   </div>
@@ -113,12 +113,12 @@
 
                   <div class="mt-4 grid gap-3.5 lg:grid-cols-2">
                     <label class="space-y-1.5 lg:col-span-2">
-                      <span class="field-label">Nombre completo *</span>
+                      <span class="field-label">Nombre completo</span>
                       <input v-model="form.legal_representative_name" type="text" class="field-input" placeholder="María López" />
                     </label>
 
                     <label class="space-y-1.5">
-                      <span class="field-label">DNI / NIE *</span>
+                      <span class="field-label">DNI / NIE</span>
                       <input v-model="form.legal_representative_id" type="text" class="field-input" placeholder="12345678Z" />
                     </label>
 
@@ -132,7 +132,7 @@
                 <section class="rounded-[24px] border border-white/70 bg-white/92 p-4 shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
                   <div>
                     <p class="text-[10px] font-semibold uppercase tracking-[0.26em] text-[#8c4d29]">Datos adicionales</p>
-                    <h4 class="mt-1.5 text-lg font-semibold text-slate-900">Contrato</h4>
+                    <h4 class="mt-1.5 text-lg font-semibold text-slate-900">Contrato y cláusulas</h4>
                   </div>
 
                   <div class="mt-4 grid gap-3.5">
@@ -141,13 +141,55 @@
                       <input v-model="form.iban" type="text" class="field-input" placeholder="ES91 2100 0418 4502 0005 1332" />
                     </label>
 
+                    <div class="space-y-2">
+                      <div class="flex flex-wrap items-center justify-between gap-3">
+                        <div>
+                          <span class="field-label">Cláusulas adicionales</span>
+                          <p class="mt-1 text-[11px] text-slate-500">Añade tantas condiciones como necesites. Cada bloque se guardará como una cláusula separada.</p>
+                        </div>
+                        <button
+                          type="button"
+                          class="rounded-full border border-[#d8cec2] px-3 py-1.5 text-[11px] font-semibold text-[#8c4d29] transition hover:border-[#c96a37] hover:text-[#8c4d29]"
+                          @click="addClause"
+                        >
+                          Añadir cláusula
+                        </button>
+                      </div>
+
+                      <div class="space-y-3">
+                        <article
+                          v-for="(clause, index) in clauseItems"
+                          :key="`clause-${index}`"
+                          class="rounded-[18px] border border-[#efe7dd] bg-[#fbf8f2] p-3"
+                        >
+                          <div class="flex items-center justify-between gap-3">
+                            <p class="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">Cláusula {{ index + 1 }}</p>
+                            <button
+                              v-if="clauseItems.length > 1"
+                              type="button"
+                              class="text-[11px] font-semibold text-rose-600 transition hover:text-rose-700"
+                              @click="removeClause(index)"
+                            >
+                              Eliminar
+                            </button>
+                          </div>
+                          <textarea
+                            v-model="clauseItems[index]"
+                            rows="4"
+                            class="mt-2 field-textarea"
+                            placeholder="Ej. No se permite subarrendar la vivienda sin autorización expresa del arrendador."
+                          ></textarea>
+                        </article>
+                      </div>
+                    </div>
+
                     <label class="space-y-1.5">
-                      <span class="field-label">Observaciones</span>
+                      <span class="field-label">Observaciones internas</span>
                       <textarea
                         v-model="form.contract_notes"
                         rows="4"
                         class="field-textarea"
-                        placeholder="Notas útiles para preparar el contrato."
+                        placeholder="Notas internas útiles para preparar el contrato."
                       ></textarea>
                     </label>
                   </div>
@@ -231,11 +273,37 @@ const emit = defineEmits<{
 
 const form = reactive(createEmptyTenantContractProfilePayload());
 const submitError = ref('');
+const clauseItems = ref<string[]>(['']);
 
 const isValidEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 const isValidIban = (value: string) => {
   const normalized = value.replace(/\s+/g, '').toUpperCase();
   return /^[A-Z]{2}\d{2}[A-Z0-9]{11,30}$/.test(normalized) && normalized.length >= 15 && normalized.length <= 34;
+};
+
+const splitAdditionalClauses = (value?: string | null) => {
+  const clauses = String(value ?? '')
+    .split(/\n{2,}/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+  return clauses.length ? clauses : [''];
+};
+
+const normalizeAdditionalClauses = () =>
+  clauseItems.value
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .join('\n\n');
+
+const addClause = () => {
+  clauseItems.value.push('');
+};
+
+const removeClause = (index: number) => {
+  clauseItems.value.splice(index, 1);
+  if (!clauseItems.value.length) {
+    clauseItems.value.push('');
+  }
 };
 
 const populateForm = () => {
@@ -255,8 +323,10 @@ const populateForm = () => {
     legal_representative_id: props.initialValues?.legal_representative_id ?? '',
     legal_representative_role: props.initialValues?.legal_representative_role ?? '',
     iban: props.initialValues?.iban ?? '',
+    additional_clauses: props.initialValues?.additional_clauses ?? '',
     contract_notes: props.initialValues?.contract_notes ?? ''
   });
+  clauseItems.value = splitAdditionalClauses(props.initialValues?.additional_clauses);
   submitError.value = '';
 };
 
@@ -303,47 +373,15 @@ const summaryCards = computed(() => [
   {
     label: 'Contrato',
     value: form.iban.trim() || 'Sin IBAN',
-    detail: form.contract_notes.trim() || 'Sin observaciones'
+    detail: normalizeAdditionalClauses() || form.contract_notes.trim() || 'Sin cláusulas ni observaciones'
   }
 ]);
 
 const handleSubmit = () => {
   submitError.value = '';
 
-  if (!form.company_name.trim()) {
-    submitError.value = 'La razón social es obligatoria.';
-    return;
-  }
-  if (!form.tax_id.trim()) {
-    submitError.value = 'El CIF/NIF es obligatorio.';
-    return;
-  }
   if (form.company_email.trim() && !isValidEmail(form.company_email.trim())) {
     submitError.value = 'El email de empresa no es válido.';
-    return;
-  }
-  if (!form.fiscal_address_line_1.trim()) {
-    submitError.value = 'La calle y número fiscal son obligatorios.';
-    return;
-  }
-  if (!form.fiscal_postal_code.trim()) {
-    submitError.value = 'El código postal fiscal es obligatorio.';
-    return;
-  }
-  if (!form.fiscal_city.trim()) {
-    submitError.value = 'La ciudad fiscal es obligatoria.';
-    return;
-  }
-  if (!form.fiscal_country.trim()) {
-    submitError.value = 'El país fiscal es obligatorio.';
-    return;
-  }
-  if (!form.legal_representative_name.trim()) {
-    submitError.value = 'El nombre del representante legal es obligatorio.';
-    return;
-  }
-  if (!form.legal_representative_id.trim()) {
-    submitError.value = 'El DNI/NIE del representante legal es obligatorio.';
     return;
   }
   if (form.iban.trim() && !isValidIban(form.iban.trim())) {
@@ -367,6 +405,7 @@ const handleSubmit = () => {
     legal_representative_id: form.legal_representative_id.trim(),
     legal_representative_role: form.legal_representative_role.trim(),
     iban: form.iban.trim(),
+    additional_clauses: normalizeAdditionalClauses(),
     contract_notes: form.contract_notes.trim()
   });
 };

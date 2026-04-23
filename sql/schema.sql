@@ -61,6 +61,7 @@ create table if not exists public.tenant_contract_profiles (
   legal_representative_id text not null,
   legal_representative_role text,
   iban text,
+  additional_clauses text,
   contract_notes text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()

@@ -133,7 +133,7 @@
               </article>
             </div>
             <p v-if="!incidentPreview.length" class="text-sm text-slate-500">
-              No se han registrado incidencias para este apartamento.
+              No se han registrado incidencias para esta propiedad.
             </p>
           </div>
           <div v-else class="space-y-6">

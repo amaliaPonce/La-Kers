@@ -122,7 +122,7 @@ const profile = ref<TenantPortalProfile | null>(null);
 const loadError = ref('');
 const tenantPortalEnabled = runtimeConfig.enableTenantPortal;
 const metrics = computed(() => [
-  { id: 'unit', label: 'Unidad', value: profile.value?.unit?.name ?? 'Sin unidad', helper: 'Vivienda vinculada a tu expediente.' },
+  { id: 'unit', label: 'Propiedad', value: profile.value?.unit?.name ?? 'Sin propiedad', helper: 'Vivienda vinculada a tu expediente.' },
   { id: 'status', label: 'Estado', value: contractStatusLabel.value, helper: 'Situación actual del contrato.' },
   { id: 'city', label: 'Ciudad', value: profile.value?.unit?.city ?? 'Sin ciudad', helper: 'Ubicación cargada en la ficha.' }
 ]);

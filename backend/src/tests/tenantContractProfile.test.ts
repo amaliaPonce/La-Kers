@@ -7,7 +7,7 @@ import {
   validateTenantContractProfilePayload
 } from '../utils/tenantContractProfile';
 
-test('validateTenantContractProfilePayload requires the core contract fields', () => {
+test('validateTenantContractProfilePayload allows saving the profile empty', () => {
   const errors = validateTenantContractProfilePayload({
     company_name: '',
     tax_id: '',
@@ -19,16 +19,7 @@ test('validateTenantContractProfilePayload requires the core contract fields', (
     legal_representative_id: ''
   });
 
-  assert.deepEqual(errors, [
-    'La razón social es obligatoria',
-    'El CIF/NIF es obligatorio',
-    'La calle y número fiscal son obligatorios',
-    'El código postal fiscal es obligatorio',
-    'La ciudad fiscal es obligatoria',
-    'El país fiscal es obligatorio',
-    'El nombre del representante legal es obligatorio',
-    'El DNI/NIE del representante legal es obligatorio'
-  ]);
+  assert.deepEqual(errors, []);
 });
 
 test('validateTenantContractProfilePayload validates optional email and iban formats when informed', () => {
@@ -74,6 +65,7 @@ test('toTenantContractProfilePdfFields returns a stable mapping for future PDF c
       legal_representative_id: '12345678Z',
       legal_representative_role: 'Administradora',
       iban: 'ES9121000418450200051332',
+      additional_clauses: 'Se prohíbe el subarriendo sin autorización escrita.',
       contract_notes: 'Firmará con sello.'
     }),
     {
@@ -92,6 +84,7 @@ test('toTenantContractProfilePdfFields returns a stable mapping for future PDF c
       legal_representative_id: '12345678Z',
       legal_representative_role: 'Administradora',
       iban: 'ES9121000418450200051332',
+      additional_clauses: 'Se prohíbe el subarriendo sin autorización escrita.',
       contract_notes: 'Firmará con sello.'
     }
   );

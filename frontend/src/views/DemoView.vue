@@ -211,7 +211,7 @@
                     <p class="mt-1 text-sm text-slate-500">DNI: {{ landingDemoSelectedRow.identification }}</p>
                   </div>
                   <div class="rounded-3xl border border-white/80 bg-white/85 p-4 shadow-sm">
-                    <p class="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-400">Apartamento</p>
+                    <p class="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-400">Propiedad</p>
                     <p class="mt-2 text-base font-semibold text-slate-900">{{ landingDemoSelectedRow.apartment }}</p>
                   </div>
                   <div class="rounded-3xl border border-white/80 bg-white/85 p-4 shadow-sm">
@@ -300,7 +300,7 @@ const createLandingDemoState = () => ({
   apartments: [
     {
       id: 'apt-1',
-      name: 'Apartamento 4',
+      name: 'Propiedad 4',
       address: 'C. Maestre Escuela, 61',
       occupant: 'Sin inquilino asignado',
       rent: '490,00 € / mes',
@@ -308,7 +308,7 @@ const createLandingDemoState = () => ({
     },
     {
       id: 'apt-2',
-      name: 'Apartamento 1',
+      name: 'Propiedad 1',
       address: 'C. Maestre Escuela, 61',
       occupant: 'Amalia Ponce Toledo',
       rent: '490,00 € / mes',
@@ -316,7 +316,7 @@ const createLandingDemoState = () => ({
     },
     {
       id: 'apt-3',
-      name: 'Apartamento 2',
+      name: 'Propiedad 2',
       address: 'C. Maestre Escuela, 61',
       occupant: 'Lucía Roldán',
       rent: '530,00 € / mes',
@@ -328,7 +328,7 @@ const createLandingDemoState = () => ({
       id: 'tenant-1',
       fullName: 'Amalia Ponce Toledo',
       identification: '45736597Q',
-      apartment: 'Apartamento 1',
+      apartment: 'Propiedad 1',
       start: '01 mar 2026',
       end: '01 mar 2027',
       daysLabel: 'Faltan 339 días',
@@ -338,7 +338,7 @@ const createLandingDemoState = () => ({
       id: 'tenant-2',
       fullName: 'Lucía Roldán',
       identification: '52918473M',
-      apartment: 'Apartamento 2',
+      apartment: 'Propiedad 2',
       start: '15 ene 2026',
       end: '15 ene 2027',
       daysLabel: 'Faltan 293 días',
@@ -359,7 +359,7 @@ const createLandingDemoState = () => ({
     {
       id: 'payment-1',
       tenant: 'Amalia Ponce Toledo',
-      apartment: 'Apartamento 1',
+      apartment: 'Propiedad 1',
       month: 'Marzo 2026',
       amount: '490,00 €',
       dueLabel: '05 mar 2026',
@@ -369,7 +369,7 @@ const createLandingDemoState = () => ({
     {
       id: 'payment-2',
       tenant: 'Lucía Roldán',
-      apartment: 'Apartamento 2',
+      apartment: 'Propiedad 2',
       month: 'Marzo 2026',
       amount: '530,00 €',
       dueLabel: '03 mar 2026',
@@ -423,7 +423,7 @@ const landingDemoConfig = computed(() => {
 
   return {
     title: 'Propiedades',
-    subtitle: 'Inventario y estado de cada unidad.',
+    subtitle: 'Inventario y estado de cada propiedad.',
     columns: ['Unidad', 'Renta', 'Estado'],
     headerGrid: 'md:grid-cols-[minmax(0,1.7fr)_minmax(140px,0.6fr)_minmax(150px,0.65fr)]',
     primaryAction: 'Abrir edición'

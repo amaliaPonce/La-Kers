@@ -237,6 +237,7 @@
         </template>
       </SignedOut>
     </template>
+    <AppFeedbackHost />
   </div>
 </template>
 
@@ -244,6 +245,7 @@
 import { computed, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { SignedIn, SignedOut, UserButton, useUser } from '@clerk/vue';
+import AppFeedbackHost from './components/AppFeedbackHost.vue';
 import SolidIcon from './components/SolidIcon.vue';
 import { useBilling } from './composables/useBilling';
 import OnboardingChecklist from './components/onboarding/OnboardingChecklist.vue';
@@ -274,7 +276,7 @@ const {
 const quickNavItems = computed(() => {
   return [
     { label: 'Dashboard', path: '/dashboard', icon: 'dashboard' },
-    { label: 'Propiedades', path: '/apartments', icon: 'building' },
+    { label: 'Propiedades', path: '/properties', icon: 'building' },
     { label: 'Inquilinos', path: '/tenants', icon: 'users' },
     { label: 'Pagos', path: '/payments', icon: 'wallet' },
     { label: 'Incidencias', path: '/incidents', icon: 'warning' },
@@ -290,7 +292,7 @@ const sidebarSections = computed(() => {
       title: 'Panel',
       items: [
         { label: 'Dashboard', path: '/dashboard', icon: 'dashboard', active: resolveActive('/dashboard') },
-        { label: 'Propiedades', path: '/apartments', icon: 'building', active: resolveActive('/apartments') },
+        { label: 'Propiedades', path: '/properties', icon: 'building', active: resolveActive('/properties') },
         { label: 'Inquilinos', path: '/tenants', icon: 'users', active: resolveActive('/tenants') },
         { label: 'Pagos', path: '/payments', icon: 'wallet', active: resolveActive('/payments') },
         { label: 'Incidencias', path: '/incidents', icon: 'warning', active: resolveActive('/incidents') },
@@ -325,7 +327,7 @@ const planBadgeClass = computed(() =>
 const billingLinkLabel = computed(() => (isProPlan.value ? 'Activo' : 'Ver'));
 
 const currentSectionDescription = computed(() => {
-  if (route.path === '/apartments') return 'Inventario y estado de cada unidad.';
+  if (route.path === '/properties') return 'Inventario y estado de cada propiedad.';
   if (route.path === '/tenants') return 'Seguimiento de inquilinos y contratos.';
   if (route.path === '/payments') return 'Cobros, vencimientos y movimientos.';
   if (route.path === '/incidents') return 'Incidencias y seguimiento operativo.';
