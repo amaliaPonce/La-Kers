@@ -28,7 +28,14 @@ test('createAppConfig parses production env overrides', () => {
     AUTH_RATE_LIMIT_WINDOW_MS: '30000',
     AUTH_RATE_LIMIT_MAX: '5',
     REQUEST_BODY_LIMIT: '512kb',
-    CLERK_USER_CACHE_TTL_MS: '45000'
+    CLERK_USER_CACHE_TTL_MS: '45000',
+    ENABLE_PAYMENT_AUTOMATIONS: 'true',
+    EMAIL_PROVIDER: 'resend',
+    EMAIL_FROM: 'La-Kers <noreply@example.com>',
+    EMAIL_REPLY_TO: 'support@example.com',
+    RESEND_API_KEY: 're_test',
+    PAYMENT_REMINDER_DAYS_BEFORE_DUE: '5',
+    LATE_PAYMENT_OWNER_REMINDER_EVERY_DAYS: '9'
   });
 
   assert.equal(config.port, 8080);
@@ -45,6 +52,13 @@ test('createAppConfig parses production env overrides', () => {
   assert.equal(config.authRateLimitWindowMs, 30000);
   assert.equal(config.authRateLimitMax, 5);
   assert.equal(config.requestBodyLimit, '512kb');
+  assert.equal(config.enablePaymentAutomations, true);
+  assert.equal(config.emailProvider, 'resend');
+  assert.equal(config.emailFrom, 'La-Kers <noreply@example.com>');
+  assert.equal(config.emailReplyTo, 'support@example.com');
+  assert.equal(config.resendApiKey, 're_test');
+  assert.equal(config.paymentReminderDaysBeforeDue, 5);
+  assert.equal(config.latePaymentOwnerReminderEveryDays, 9);
 });
 
 test('isOriginAllowed accepts exact matches and requests without origin', () => {
@@ -63,4 +77,8 @@ test('createAppConfig enables minimal defaults when no flags are provided', () =
   assert.equal(config.enableTenantPortal, false);
   assert.equal(config.enableDashboardRealtime, false);
   assert.equal(config.clerkUserCacheTtlMs, 300000);
+  assert.equal(config.enablePaymentAutomations, false);
+  assert.equal(config.emailProvider, 'noop');
+  assert.equal(config.paymentReminderDaysBeforeDue, 3);
+  assert.equal(config.latePaymentOwnerReminderEveryDays, 7);
 });

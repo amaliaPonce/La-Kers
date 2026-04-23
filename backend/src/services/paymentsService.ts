@@ -1,5 +1,6 @@
 import { supabaseAdmin } from '../config/supabaseClient';
 import { ensureOwnerOwnsUnit } from './ownersService';
+import { paymentAutomationService, PaymentAutomationRecord } from './paymentAutomationService';
 
 type PaymentPayload = {
   unit_id: string;
@@ -37,7 +38,7 @@ export type PaymentTenantContract = {
   } | null;
 };
 
-const PAYMENT_SELECT = '*, units!inner(id, owner_id, name, status), tenant_persons(id, full_name)';
+const PAYMENT_SELECT = '*, units!inner(id, owner_id, name, status, address, city, postal_code), tenant_persons(id, full_name, email)';
 
 const padDatePart = (value: number) => String(value).padStart(2, '0');
 const createMonthKey = (year: number, month: number) => `${year}-${padDatePart(month)}`;
@@ -162,7 +163,15 @@ export async function markPaymentPaid(id: string, paymentMethod: PaymentMethod, 
     })
     .eq('id', id);
   if (error) throw error;
-  return getPaymentById(id, ownerId);
+  const updatedPayment = await getPaymentById(id, ownerId);
+  if (updatedPayment) {
+    try {
+      await paymentAutomationService.sendAutomaticReceipt(updatedPayment as PaymentAutomationRecord);
+    } catch (automationError) {
+      console.error('[payments][automatic-receipt]', automationError);
+    }
+  }
+  return updatedPayment;
 }
 
 export async function hasPaymentForMonth(unit_id: string, month: number, year: number) {
@@ -215,12 +224,28 @@ export async function getOccupiedContracts(date: string, ownerId?: string) {
 
 export async function markPendingPaymentsAsLate(date: string, ownerId?: string) {
   const targetDate = toDateKey(date);
-  if (!targetDate) return;
+  if (!targetDate) return [];
+
+  let selectionQuery = supabaseAdmin
+    .from('payments')
+    .select(PAYMENT_SELECT)
+    .lt('due_date', targetDate)
+    .eq('status', 'PENDING');
+
+  if (ownerId) {
+    selectionQuery = selectionQuery.eq('units.owner_id', ownerId);
+  }
+
+  const { data: pendingPayments, error: selectionError } = await selectionQuery;
+  if (selectionError) throw selectionError;
+
+  const paymentIds = (pendingPayments ?? []).map((payment) => String(payment.id ?? '')).filter(Boolean);
+  if (!paymentIds.length) return [];
 
   let query = supabaseAdmin
     .from('payments')
     .update({ status: 'LATE' })
-    .lt('due_date', targetDate)
+    .in('id', paymentIds)
     .eq('status', 'PENDING');
 
   if (ownerId) {
@@ -231,12 +256,26 @@ export async function markPendingPaymentsAsLate(date: string, ownerId?: string) 
     if (unitsError) throw unitsError;
 
     const unitIds = (units ?? []).map((unit) => String(unit.id ?? '')).filter(Boolean);
-    if (!unitIds.length) return;
+    if (!unitIds.length) return [];
     query = query.in('unit_id', unitIds);
   }
 
   const { error } = await query;
   if (error) throw error;
+
+  let updatedQuery = supabaseAdmin
+    .from('payments')
+    .select(PAYMENT_SELECT)
+    .in('id', paymentIds)
+    .eq('status', 'LATE');
+
+  if (ownerId) {
+    updatedQuery = updatedQuery.eq('units.owner_id', ownerId);
+  }
+
+  const { data: updatedPayments, error: updatedPaymentsError } = await updatedQuery;
+  if (updatedPaymentsError) throw updatedPaymentsError;
+  return updatedPayments ?? [];
 }
 
 export async function ensurePendingPaymentsForDate(date: string, ownerId?: string) {

@@ -8,6 +8,7 @@ import {
   markPendingPaymentsAsLate,
   PaymentMethod
 } from '../services/paymentsService';
+import { runLatePaymentTransitionAutomation } from '../services/paymentAutomationService';
 import { notifyDashboardUpdated } from '../services/dashboardRealtime';
 import { captureServerException } from '../monitoring/sentry';
 
@@ -44,7 +45,8 @@ router.get('/', async (req: AuthenticatedRequest, res) => {
   try {
     const today = new Date().toISOString().split('T')[0];
     await ensurePendingPaymentsForDate(today, ownerId);
-    await markPendingPaymentsAsLate(today, ownerId);
+    const transitionedPayments = await markPendingPaymentsAsLate(today, ownerId);
+    await runLatePaymentTransitionAutomation(transitionedPayments, today);
     const payments = await listPayments(ownerId);
     res.json(payments);
   } catch (error) {

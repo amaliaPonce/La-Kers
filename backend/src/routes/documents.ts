@@ -5,6 +5,11 @@ import { supabaseAdmin } from '../config/supabaseClient';
 import { landlordConfig } from '../config/landlordConfig';
 import { resolveContractLandlordProfile } from '../utils/contractLandlordProfile';
 import { getTenantContractProfilePdfFields } from '../services/tenantContractProfilesService';
+import {
+  buildPaymentReceiptFilename,
+  generatePaymentReceiptPdf,
+  getPaidPaymentReceiptRecord
+} from '../services/paymentReceiptService';
 import { captureServerException } from '../monitoring/sentry';
 
 const router = Router();
@@ -31,67 +36,6 @@ const formatCurrencyValue = (value?: number | string | null) => {
   const amount = Number(value ?? 0);
   return currencyFormatter.format(Number.isFinite(amount) ? amount : 0);
 };
-
-const translatePaymentStatus = (status?: string | null) => {
-  switch (status) {
-    case 'PAID':
-      return 'Pagado';
-    case 'LATE':
-      return 'Atrasado';
-    case 'PENDING':
-      return 'Pendiente';
-    default:
-      return '—';
-  }
-};
-
-const translatePaymentMethod = (method?: string | null) => {
-  switch (method) {
-    case 'BANK':
-      return 'Banco';
-    case 'CASH':
-      return 'Efectivo';
-    default:
-      return 'No indicado';
-  }
-};
-
-const generatePdfWithPdfKit = (payment: any): Promise<Buffer> =>
-  new Promise((resolve) => {
-    const doc = new PDFDocument({ size: 'A4', margin: 36 });
-    const chunks: Buffer[] = [];
-    doc.on('data', (chunk: Buffer) => chunks.push(chunk));
-    doc.on('end', () => resolve(Buffer.concat(chunks)));
-    doc.font('Helvetica-Bold');
-    doc.fontSize(22).text('Recibo de pago mensual', { align: 'left' });
-    doc.fontSize(10).font('Helvetica').text(`Fecha de emisión: ${formatDateLabel(new Date().toISOString())}`, { align: 'right' });
-    doc.moveDown(0.5);
-
-    doc.fontSize(12).font('Helvetica-Bold').text('Datos del inmueble');
-    doc.moveDown(0.25);
-    doc.font('Helvetica').fontSize(11);
-    doc.text(`Apartamento: ${payment.units?.name ?? '—'}`);
-    doc.text(`Inquilino: ${payment.tenant_persons?.full_name ?? '—'}`);
-    doc.text(`Estado actual: ${translatePaymentStatus(payment.status)}`);
-    doc.moveDown(0.5);
-
-    doc.strokeColor('#E5E7EB').lineWidth(1).moveTo(doc.x, doc.y).lineTo(doc.page.width - doc.options.margin, doc.y).stroke();
-    doc.moveDown(0.75);
-
-    doc.fontSize(14).font('Helvetica-Bold').text('Resumen del cobro');
-    doc.moveDown(0.25);
-    doc.font('Helvetica').fontSize(12);
-    doc.text(`Monto facturado: ${formatCurrencyValue(payment.amount)}`);
-    doc.text(`Mes / Año: ${payment.month ?? '—'} / ${payment.year ?? '—'}`);
-    doc.text(`Vencimiento registrado: ${formatDateLabel(payment.due_date)}`);
-    doc.text(`Pago registrado: ${formatDateLabel(payment.paid_date)}`);
-    doc.text(`Método de cobro: ${translatePaymentMethod(payment.payment_method)}`);
-    doc.moveDown();
-
-    doc.fontSize(10).fillColor('#475569');
-    doc.text('Documento generado a partir del pago registrado en La-Kers.');
-    doc.end();
-  });
 
 const clauseOrdinals = [
   'Primero',
@@ -313,24 +257,15 @@ router.post('/receipt/:paymentId', async (req: AuthenticatedRequest, res) => {
     if (!ownerId) {
       return res.status(401).json({ message: 'Autenticación requerida' });
     }
-    const { data: payment, error } = await supabaseAdmin
-      .from('payments')
-      .select('*, units(name), tenant_persons(full_name)')
-      .eq('id', paymentId)
-      .eq('units.owner_id', ownerId)
-      .single();
-
-    if (error || !payment) {
+    const payment = await getPaidPaymentReceiptRecord(paymentId, ownerId);
+    if (!payment) {
       return res.status(404).json({ message: 'Pago no encontrado' });
     }
-    if (payment.status !== 'PAID') {
-      return res.status(409).json({ message: 'Solo se puede generar un recibo para pagos abonados' });
-    }
 
-    const pdfBuffer = await generatePdfWithPdfKit(payment);
+    const pdfBuffer = await generatePaymentReceiptPdf(payment);
 
     res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename=receipt-${paymentId}.pdf`);
+    res.setHeader('Content-Disposition', `attachment; filename=${buildPaymentReceiptFilename(paymentId)}`);
     res.send(pdfBuffer);
   } catch (error) {
     console.error('[documents/receipt]', error);

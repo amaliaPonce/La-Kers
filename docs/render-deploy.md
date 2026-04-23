@@ -60,12 +60,16 @@ Este repo queda preparado para desplegarse en Render Free con el blueprint de [r
 - `ENABLE_CRON_JOBS=false`
 - `ENABLE_TENANT_PORTAL=false`
 - `ENABLE_DASHBOARD_REALTIME=false`
+- `ENABLE_PAYMENT_AUTOMATIONS=false`
 - `BILLING_MODE=stripe`
 - `REQUEST_BODY_LIMIT=1mb`
 - `RATE_LIMIT_WINDOW_MS=900000`
 - `RATE_LIMIT_MAX=300`
 - `AUTH_RATE_LIMIT_WINDOW_MS=900000`
 - `AUTH_RATE_LIMIT_MAX=20`
+- `EMAIL_PROVIDER=noop`
+- `PAYMENT_REMINDER_DAYS_BEFORE_DUE=3`
+- `LATE_PAYMENT_OWNER_REMINDER_EVERY_DAYS=7`
 - `CORS_ALLOWED_ORIGINS` desde la URL pública de `la-kers-web`
 - `VITE_API_BASE` desde la URL pública de `la-kers-api`
 - `VITE_MINIMAL_MODE=true`
@@ -94,25 +98,28 @@ Este repo queda preparado para desplegarse en Render Free con el blueprint de [r
    - backend: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`, `LANDLORD_NAME`, `LANDLORD_IDENTIFICATION`, `LANDLORD_ADDRESS`
    - frontend: `VITE_CLERK_PUBLISHABLE_KEY`
 8. Introduce también las variables de Stripe: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_ID_PRO_MONTHLY`, `STRIPE_PRICE_ID_PRO_YEARLY`, `BILLING_CONTACT_EMAIL`
-9. Lanza el deploy del blueprint.
-10. En Supabase SQL Editor ejecuta, en este orden exacto:
+9. Si activas automatizaciones premium de cobro, configura además `ENABLE_CRON_JOBS=true`, `ENABLE_PAYMENT_AUTOMATIONS=true`, `EMAIL_PROVIDER=resend`, `EMAIL_FROM` y `RESEND_API_KEY`. `EMAIL_REPLY_TO` es opcional. Solo se enviarán para propietarios con plan `Pro` activo.
+10. Lanza el deploy del blueprint.
+11. En Supabase SQL Editor ejecuta, en este orden exacto:
     - `sql/schema.sql`
     - `sql/20260327_clerk_owner_ids.sql`
     - `sql/20260327_owner_subscriptions.sql`
     - `sql/20260413_tenant_contract_profiles.sql`
+    - `sql/20260423_notification_events.sql`
     - `sql/20260327_tenant_portal_access.sql` solo si reactivas el portal tenant
     - si la base ya existia antes de abril de 2026, esta migracion incremental es obligatoria aunque el deploy de Render salga en verde
-11. Cuando el deploy termine, valida estas URLs:
+12. Cuando el deploy termine, valida estas URLs:
     - `https://TU-API.onrender.com/ready`
     - `https://TU-API.onrender.com/health`
     - landing y login del frontend público
-12. Haz la validación funcional mínima:
+13. Haz la validación funcional mínima:
     - login owner
     - alta de inmueble
     - alta de inquilino
     - generación o marcado de pagos
     - descarga de recibo PDF
     - descarga de contrato PDF
+    - si activaste automatizaciones, valida recordatorio previo, transición a `LATE` y resumen semanal
 
 ## Notas operativas
 

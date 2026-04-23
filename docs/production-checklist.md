@@ -14,6 +14,9 @@
 - Set `VITE_CLERK_PUBLISHABLE_KEY` in the frontend runtime.
 - Set `LANDLORD_NAME`, `LANDLORD_IDENTIFICATION` and `LANDLORD_ADDRESS`.
 - If you enable automatic billing, set `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_ID_PRO_MONTHLY` and `STRIPE_PRICE_ID_PRO_YEARLY`.
+- If you enable payment automations, set `ENABLE_PAYMENT_AUTOMATIONS=true`, `EMAIL_PROVIDER`, `EMAIL_FROM`, `PAYMENT_REMINDER_DAYS_BEFORE_DUE` and `LATE_PAYMENT_OWNER_REMINDER_EVERY_DAYS`.
+- If `EMAIL_PROVIDER=resend`, also set `RESEND_API_KEY`. `EMAIL_REPLY_TO` is optional.
+- Payment automations should be treated as a `Pro` feature; verify the owner has `plan_id=pro` with an active/trialing/past_due subscription state before expecting sends.
 - Review `TRUST_PROXY=true` when running behind Nginx, Render, Railway, Fly.io, or another reverse proxy.
 - Keep `REQUEST_BODY_LIMIT` small unless a larger payload is strictly required.
 
@@ -22,6 +25,7 @@
   - `sql/schema.sql`
   - `sql/20260327_clerk_owner_ids.sql`
   - `sql/20260327_owner_subscriptions.sql`
+  - `sql/20260423_notification_events.sql`
   - `sql/20260327_tenant_portal_access.sql` only if tenant portal is enabled
 - Do not run ad hoc SQL to promote users, toggle plans, or link accounts in production.
 - Do not store generated PDFs or logs in Git.
@@ -36,6 +40,7 @@
 
 ## Cron Jobs
 - Keep `ENABLE_CRON_JOBS=false` on the free deployment target.
+- Enable `ENABLE_CRON_JOBS=true` only when you also have a real email provider configured and want payment automations active.
 - If you later deploy more than one backend replica, enable cron on only one instance.
 - Do not scale horizontally until you have a shared strategy for cron and rate limiting.
 

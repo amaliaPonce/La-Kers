@@ -113,7 +113,7 @@ function resolveBillingCycleFromPriceId(priceId?: string | null): BillingCycle |
   return null;
 }
 
-function getEffectivePlanId(subscription?: OwnerSubscriptionRecord | null) {
+export function getEffectivePlanId(subscription?: OwnerSubscriptionRecord | null) {
   if (
     subscription?.plan_id === PRO_PLAN_ID &&
     BILLING_ENABLED_STATUSES.has(normalizeSubscriptionStatus(subscription.subscription_status))
@@ -242,6 +242,12 @@ export async function getOwnerSubscription(ownerId: string) {
   }
 
   return (data as OwnerSubscriptionRecord | null) ?? null;
+}
+
+export async function isOwnerOnProPlan(ownerId: string) {
+  if (!ownerId) return false;
+  const subscription = await getOwnerSubscription(ownerId);
+  return getEffectivePlanId(subscription) === PRO_PLAN_ID;
 }
 
 export async function getOwnerBillingSummary(ownerId: string) {

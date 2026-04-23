@@ -65,9 +65,13 @@ Se crean dos servicios:
 - `ENABLE_CRON_JOBS=false`
 - `ENABLE_TENANT_PORTAL=false`
 - `ENABLE_DASHBOARD_REALTIME=false`
+- `ENABLE_PAYMENT_AUTOMATIONS=false`
 - `BILLING_MODE=stripe`
 - `CORS_ALLOWED_ORIGINS` apuntando al frontend público
 - `VITE_API_BASE` apuntando a la API pública
+- `EMAIL_PROVIDER=noop`
+- `PAYMENT_REMINDER_DAYS_BEFORE_DUE=3`
+- `LATE_PAYMENT_OWNER_REMINDER_EVERY_DAYS=7`
 
 ## 4. Aplica SQL en Supabase
 
@@ -77,7 +81,8 @@ Ejecuta los scripts en este orden exacto:
 2. `sql/20260327_clerk_owner_ids.sql`
 3. `sql/20260327_owner_subscriptions.sql`
 4. `sql/20260413_tenant_contract_profiles.sql`
-5. `sql/20260327_tenant_portal_access.sql` solo si reactivas el portal tenant
+5. `sql/20260423_notification_events.sql`
+6. `sql/20260327_tenant_portal_access.sql` solo si reactivas el portal tenant
 
 No dejes solo `schema.sql`. El producto actual depende del control de plan, de la ficha fiscal del inquilino y, si reactivas esa parte, también del tenant portal.
 No ejecutes SQL fuera de esa lista en producción. Quedan explícitamente fuera parches manuales de usuarios, activaciones directas de plan y scripts locales no versionados como migraciones.
@@ -101,16 +106,18 @@ Checklist mínima:
 4. Crear o generar pagos y marcar uno como abonado.
 5. Descargar recibo PDF.
 6. Finalizar contrato y descargar PDF.
-7. Si Stripe está activo, completar compra PRO y verificar webhook.
-8. Si reactivas tenant portal, validarlo con un email enlazado.
+7. Si activas automatizaciones de cobro, validar recordatorio previo, aviso de impago y resumen semanal.
+8. Si Stripe está activo, completar compra PRO y verificar webhook.
+9. Si reactivas tenant portal, validarlo con un email enlazado.
 
 ## 7. Revisa operación antes de abrir
 
 1. Asume `ENABLE_CRON_JOBS=false` en el despliegue gratis.
-2. No escales horizontalmente sin rediseñar el rate limit en memoria.
-3. Activa backups en Supabase si sales del free tier.
-4. Activa monitorización de uptime y errores.
-5. Revisa rotación de claves si alguna credencial fue compartida fuera de un canal seguro.
+2. Si activas cron para automatizaciones de cobro, usa una sola instancia con `ENABLE_PAYMENT_AUTOMATIONS=true`, `EMAIL_PROVIDER=resend`, `EMAIL_FROM` y `RESEND_API_KEY`. Las automatizaciones quedan limitadas a owners con plan `Pro` activo.
+3. No escales horizontalmente sin rediseñar el rate limit en memoria.
+4. Activa backups en Supabase si sales del free tier.
+5. Activa monitorización de uptime y errores.
+6. Revisa rotación de claves si alguna credencial fue compartida fuera de un canal seguro.
 
 ## 8. Limitaciones que debes aceptar antes de abrir
 

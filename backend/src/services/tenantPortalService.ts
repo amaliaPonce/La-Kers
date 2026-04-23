@@ -1,6 +1,6 @@
-import { clerkClient } from '@clerk/express';
 import { appConfig } from '../config/appConfig';
 import { supabaseAdmin } from '../config/supabaseClient';
+import { getClerkPrimaryEmail, getClerkUser } from './clerkUsersService';
 
 type TenantPortalAccessRecord = {
   id: string;
@@ -36,24 +36,6 @@ type TenantPortalProfile = {
   } | null;
 };
 
-type ClerkEmailAddress = {
-  emailAddress?: string | null;
-  id?: string | null;
-};
-
-type ClerkUserRecord = {
-  primaryEmailAddressId?: string | null;
-  emailAddresses?: ClerkEmailAddress[] | null;
-  unsafeMetadata?: Record<string, unknown> | null;
-};
-
-type CachedClerkUser = {
-  expiresAt: number;
-  value: ClerkUserRecord;
-};
-
-const clerkUserCache = new Map<string, CachedClerkUser>();
-
 function normalizeEmail(value: string | null | undefined) {
   return String(value ?? '').trim().toLowerCase();
 }
@@ -64,21 +46,6 @@ function assertTenantPortalEnabled() {
   const error = new Error('El portal del inquilino está desactivado en este entorno');
   (error as any).status = 404;
   throw error;
-}
-
-async function getCachedClerkUser(clerkUserId: string) {
-  const now = Date.now();
-  const cached = clerkUserCache.get(clerkUserId);
-  if (cached && cached.expiresAt > now) {
-    return cached.value;
-  }
-
-  const user = (await clerkClient.users.getUser(clerkUserId)) as ClerkUserRecord;
-  clerkUserCache.set(clerkUserId, {
-    value: user,
-    expiresAt: now + appConfig.clerkUserCacheTtlMs
-  });
-  return user;
 }
 
 async function getTenantPortalAccessByClerkUserId(clerkUserId: string) {
@@ -113,16 +80,9 @@ async function touchLastLogin(accessId: string) {
   if (error) throw error;
 }
 
-async function getClerkPrimaryEmail(clerkUserId: string) {
-  const user = await getCachedClerkUser(clerkUserId);
-  const emailAddresses = Array.isArray(user.emailAddresses) ? user.emailAddresses : [];
-  const primary = emailAddresses.find((email) => email.id === user.primaryEmailAddressId) ?? emailAddresses[0];
-  return normalizeEmail(primary?.emailAddress);
-}
-
 export async function getClerkPortalRole(clerkUserId: string) {
   assertTenantPortalEnabled();
-  const user = await getCachedClerkUser(clerkUserId);
+  const user = await getClerkUser(clerkUserId);
   return String(user.unsafeMetadata?.portalRole ?? '').trim().toLowerCase();
 }
 

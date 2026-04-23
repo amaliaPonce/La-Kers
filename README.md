@@ -53,6 +53,7 @@ Configura `backend/.env` con al menos:
 - `ENABLE_CRON_JOBS`
 - `ENABLE_TENANT_PORTAL`
 - `ENABLE_DASHBOARD_REALTIME`
+- `ENABLE_PAYMENT_AUTOMATIONS`
 - `CLERK_USER_CACHE_TTL_MS`
 - `BILLING_MODE`
 - `REQUEST_BODY_LIMIT`
@@ -60,6 +61,11 @@ Configura `backend/.env` con al menos:
 - `RATE_LIMIT_MAX`
 - `AUTH_RATE_LIMIT_WINDOW_MS`
 - `AUTH_RATE_LIMIT_MAX`
+- `EMAIL_PROVIDER`
+- `EMAIL_FROM`
+- `EMAIL_REPLY_TO`
+- `PAYMENT_REMINDER_DAYS_BEFORE_DUE`
+- `LATE_PAYMENT_OWNER_REMINDER_EVERY_DAYS`
 - `LANDLORD_NAME`
 - `LANDLORD_IDENTIFICATION`
 - `LANDLORD_ADDRESS`
@@ -73,6 +79,10 @@ Adicionales si usas el valor por defecto `BILLING_MODE=stripe`:
 - `STRIPE_PRICE_ID_PRO_YEARLY`
 - `BILLING_CONTACT_EMAIL`
 
+Adicionales si activas `EMAIL_PROVIDER=resend`:
+
+- `RESEND_API_KEY`
+
 ### Frontend
 
 Configura `frontend/.env` con:
@@ -80,6 +90,7 @@ Configura `frontend/.env` con:
 - `VITE_MINIMAL_MODE=true`
 - `VITE_API_BASE=/api`
 - `VITE_ENABLE_TENANT_PORTAL=false`
+- `VITE_ENABLE_PAYMENT_AUTOMATIONS=false`
 - `VITE_ENABLE_DASHBOARD_REALTIME=false`
 - `VITE_CLERK_PUBLISHABLE_KEY`
 
@@ -93,7 +104,8 @@ Orden recomendado de ejecución en Supabase:
 2. `sql/20260327_clerk_owner_ids.sql`
 3. `sql/20260327_owner_subscriptions.sql`
 4. `sql/20260413_tenant_contract_profiles.sql`
-5. `sql/20260327_tenant_portal_access.sql`
+5. `sql/20260423_notification_events.sql`
+6. `sql/20260327_tenant_portal_access.sql`
 
 Notas:
 
@@ -111,6 +123,7 @@ El repositorio queda configurado para arrancar en modo mínimo por defecto:
 - `ENABLE_CRON_JOBS=false`: evita trabajos en segundo plano innecesarios en instancias pequeñas.
 - `ENABLE_TENANT_PORTAL=false`: desactiva el portal tenant y sus consultas extra a Clerk/Supabase.
 - `ENABLE_DASHBOARD_REALTIME=false`: elimina SSE y refrescos en vivo para reducir conexiones y carga.
+- `ENABLE_PAYMENT_AUTOMATIONS=false`: desactiva recordatorios y envíos automáticos hasta que configures email y cron.
 - `MINIMAL_MODE=true`: hace que esos defaults sean conservadores hasta que los habilites explícitamente.
 
 Si de forma excepcional necesitas desactivar billing automático, cambia `BILLING_MODE=manual`.
@@ -142,6 +155,7 @@ En este modo ya no hace falta `DOCUMENT_STORAGE_PATH`: los PDFs de finalización
 - Gestión de inmuebles
 - Gestión de inquilinos
 - Pagos y recibos PDF
+- Recordatorios automáticos de cobro y resúmenes semanales de morosidad para propietarios con plan `Pro` cuando activas automatizaciones
 - Contratos y documentos
 - Incidencias
 - Billing con plan `Freemium` y `Pro`

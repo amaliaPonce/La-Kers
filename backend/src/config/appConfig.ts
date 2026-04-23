@@ -36,6 +36,12 @@ const parseOriginList = (value: string | undefined) =>
     .filter(Boolean)
     .map(trimTrailingSlash);
 
+const parseEmailProvider = (value: string | undefined) => {
+  const normalized = String(value ?? 'noop').trim().toLowerCase();
+  if (normalized === 'resend') return 'resend' as const;
+  return 'noop' as const;
+};
+
 const derivePlatformOrigins = (env: NodeJS.ProcessEnv) => {
   const origins = new Set<string>();
   const vercelCandidates = [
@@ -71,6 +77,13 @@ export type AppConfig = {
   globalRateLimitMax: number;
   authRateLimitWindowMs: number;
   authRateLimitMax: number;
+  enablePaymentAutomations: boolean;
+  emailProvider: 'noop' | 'resend';
+  emailFrom: string;
+  emailReplyTo: string;
+  resendApiKey: string;
+  paymentReminderDaysBeforeDue: number;
+  latePaymentOwnerReminderEveryDays: number;
 };
 
 export function createAppConfig(env: NodeJS.ProcessEnv): AppConfig {
@@ -111,7 +124,14 @@ export function createAppConfig(env: NodeJS.ProcessEnv): AppConfig {
     globalRateLimitWindowMs: parseNumber(env.RATE_LIMIT_WINDOW_MS, 15 * 60 * 1000),
     globalRateLimitMax: parseNumber(env.RATE_LIMIT_MAX, 300),
     authRateLimitWindowMs: parseNumber(env.AUTH_RATE_LIMIT_WINDOW_MS, 15 * 60 * 1000),
-    authRateLimitMax: parseNumber(env.AUTH_RATE_LIMIT_MAX, 20)
+    authRateLimitMax: parseNumber(env.AUTH_RATE_LIMIT_MAX, 20),
+    enablePaymentAutomations: parseBoolean(env.ENABLE_PAYMENT_AUTOMATIONS, !minimalMode),
+    emailProvider: parseEmailProvider(env.EMAIL_PROVIDER),
+    emailFrom: env.EMAIL_FROM?.trim() || '',
+    emailReplyTo: env.EMAIL_REPLY_TO?.trim() || '',
+    resendApiKey: env.RESEND_API_KEY?.trim() || '',
+    paymentReminderDaysBeforeDue: parseNonNegativeNumber(env.PAYMENT_REMINDER_DAYS_BEFORE_DUE, 3),
+    latePaymentOwnerReminderEveryDays: parseNumber(env.LATE_PAYMENT_OWNER_REMINDER_EVERY_DAYS, 7)
   };
 }
 

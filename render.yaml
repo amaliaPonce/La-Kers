@@ -22,6 +22,8 @@ services:
         value: false
       - key: ENABLE_DASHBOARD_REALTIME
         value: false
+      - key: ENABLE_PAYMENT_AUTOMATIONS
+        value: false
       - key: BILLING_MODE
         value: stripe
       - key: REQUEST_BODY_LIMIT
@@ -34,6 +36,12 @@ services:
         value: 900000
       - key: AUTH_RATE_LIMIT_MAX
         value: 20
+      - key: EMAIL_PROVIDER
+        value: noop
+      - key: PAYMENT_REMINDER_DAYS_BEFORE_DUE
+        value: 3
+      - key: LATE_PAYMENT_OWNER_REMINDER_EVERY_DAYS
+        value: 7
       - key: CORS_ALLOWED_ORIGINS
         fromService:
           type: web
@@ -46,6 +54,12 @@ services:
       - key: CLERK_PUBLISHABLE_KEY
         sync: false
       - key: CLERK_SECRET_KEY
+        sync: false
+      - key: EMAIL_FROM
+        sync: false
+      - key: EMAIL_REPLY_TO
+        sync: false
+      - key: RESEND_API_KEY
         sync: false
       - key: LANDLORD_NAME
         sync: false
@@ -79,6 +93,8 @@ services:
       - key: VITE_MINIMAL_MODE
         value: true
       - key: VITE_ENABLE_TENANT_PORTAL
+        value: false
+      - key: VITE_ENABLE_PAYMENT_AUTOMATIONS
         value: false
       - key: VITE_ENABLE_DASHBOARD_REALTIME
         value: false
