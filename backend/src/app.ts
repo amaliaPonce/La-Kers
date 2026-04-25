@@ -73,7 +73,11 @@ app.get('/ready', async (req, res) => {
   });
 });
 
-app.use(clerkMiddleware());
+app.use(clerkMiddleware({
+  authorizedParties: appConfig.allowedOrigins,
+  publishableKey: process.env.CLERK_PUBLISHABLE_KEY,
+  secretKey: process.env.CLERK_SECRET_KEY
+}));
 app.use(authMiddleware);
 app.use((req, res, next) => {
   applySentryRequestContext(req as AuthenticatedRequest);

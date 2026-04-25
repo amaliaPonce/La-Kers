@@ -1,12 +1,16 @@
 import { NextFunction, Request, Response } from 'express';
+import { getAuth } from '@clerk/express';
 import { appConfig } from '../config/appConfig';
 import { ensureTenantPortalAccess, hasTenantPortalAccess } from '../services/tenantPortalService';
 
+type ClerkAuthState = {
+  userId?: string | null;
+  sessionClaims?: Record<string, unknown> | null;
+  reason?: string | null;
+};
+
 export interface AuthenticatedRequest extends Request {
-  auth?: {
-    userId?: string | null;
-    sessionClaims?: Record<string, unknown> | null;
-  };
+  auth?: unknown;
   authUser?: {
     id: string;
   };
@@ -20,6 +24,18 @@ export interface AuthenticatedRequest extends Request {
   };
 }
 
+function resolveClerkAuth(req: AuthenticatedRequest): ClerkAuthState {
+  if (typeof req.auth === 'function') {
+    return req.auth() as ClerkAuthState;
+  }
+
+  try {
+    return getAuth(req) as ClerkAuthState;
+  } catch {
+    return (req.auth ?? {}) as ClerkAuthState;
+  }
+}
+
 export async function authMiddleware(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   if (req.method === 'OPTIONS') {
     return next();
@@ -27,7 +43,8 @@ export async function authMiddleware(req: AuthenticatedRequest, res: Response, n
   if (!process.env.CLERK_SECRET_KEY?.trim()) {
     return res.status(503).json({ message: 'Falta configurar CLERK_SECRET_KEY en backend/.env' });
   }
-  const userId = req.auth?.userId;
+  const clerkAuth = resolveClerkAuth(req);
+  const userId = clerkAuth.userId;
   if (!userId) {
     const authHeader = String(req.headers.authorization ?? '').trim();
     const hasBearerToken = authHeader.toLowerCase().startsWith('bearer ') && authHeader.length > 'bearer '.length;
@@ -37,7 +54,8 @@ export async function authMiddleware(req: AuthenticatedRequest, res: Response, n
       return res.status(401).json({
         message:
           'Token de sesión inválido o no verificable. Revisa que el frontend y el backend usen las claves del mismo proyecto Clerk (VITE_CLERK_PUBLISHABLE_KEY / CLERK_PUBLISHABLE_KEY / CLERK_SECRET_KEY).',
-        code: 'AUTH_INVALID'
+        code: 'AUTH_INVALID',
+        reason: clerkAuth.reason ?? 'unknown'
       });
     }
 
