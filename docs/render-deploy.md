@@ -120,6 +120,28 @@ Este repo queda preparado para desplegarse en Render Free con el blueprint de [r
     - descarga de recibo PDF
     - descarga de contrato PDF
 
+## Deploy por URL (Deploy Hook)
+
+Si no quieres dar acceso de lectura del repo a Render (o quieres un botón/script de deploy), puedes usar un **Deploy Hook** del servicio de Render.
+
+### Guardar el hook de forma segura
+
+- Guarda la URL del hook **fuera del repositorio** (por ejemplo como variable de entorno local o como secret en tu CI).
+- No la pegues en documentación ni la comitees: **cualquiera con esa URL puede disparar deploys**.
+
+Ejemplo (tu terminal):
+
+```bash
+export RENDER_DEPLOY_HOOK_URL="https://api.render.com/deploy/<service-id>?key=<redacted>"
+curl -fsSL -X POST "$RENDER_DEPLOY_HOOK_URL"
+```
+
+### Rotación de la key
+
+Si alguna vez compartes la URL (por chat, ticket, captura, etc.), considera esa key **comprometida** y rótala:
+
+- En Render, abre tu servicio → `Settings` → `Deploy Hook` → genera una nueva URL/key.
+
 ## Notas operativas
 
 - Render Free permite coste 0€, pero no es producción robusta: el servicio puede dormirse, reiniciarse o suspenderse si genera mucho tráfico saliente.

@@ -13,7 +13,7 @@ declare global {
   }
 }
 
-const CLERK_WAIT_TIMEOUT_MS = 5000;
+const CLERK_WAIT_TIMEOUT_MS = 15000;
 const CLERK_WAIT_STEP_MS = 50;
 
 function sleep(ms: number) {

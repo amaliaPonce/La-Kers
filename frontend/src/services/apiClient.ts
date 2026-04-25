@@ -26,11 +26,22 @@ const apiClient = axios.create({
 
 apiClient.interceptors.request.use(async (config) => {
   const token = await getClerkSessionToken();
+  const headers: any = config.headers ?? {};
+  const canUseAxiosHeaders = typeof headers.set === 'function';
+
   if (token) {
-    config.headers.set('Authorization', `Bearer ${token}`);
+    if (canUseAxiosHeaders) {
+      headers.set('Authorization', `Bearer ${token}`);
+    } else {
+      headers.Authorization = `Bearer ${token}`;
+    }
+  } else if (canUseAxiosHeaders) {
+    headers.delete?.('Authorization');
   } else {
-    config.headers.delete?.('Authorization');
+    delete headers.Authorization;
   }
+
+  config.headers = headers;
 
   return config;
 });

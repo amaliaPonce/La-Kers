@@ -29,7 +29,19 @@ export async function authMiddleware(req: AuthenticatedRequest, res: Response, n
   }
   const userId = req.auth?.userId;
   if (!userId) {
-    return res.status(401).json({ message: 'Autenticación requerida' });
+    const authHeader = String(req.headers.authorization ?? '').trim();
+    const hasBearerToken = authHeader.toLowerCase().startsWith('bearer ') && authHeader.length > 'bearer '.length;
+    const hasClerkCookie = String(req.headers.cookie ?? '').includes('__session');
+
+    if (hasBearerToken || hasClerkCookie) {
+      return res.status(401).json({
+        message:
+          'Token de sesión inválido o no verificable. Revisa que el frontend y el backend usen las claves del mismo proyecto Clerk (VITE_CLERK_PUBLISHABLE_KEY / CLERK_PUBLISHABLE_KEY / CLERK_SECRET_KEY).',
+        code: 'AUTH_INVALID'
+      });
+    }
+
+    return res.status(401).json({ message: 'Autenticación requerida', code: 'AUTH_REQUIRED' });
   }
 
   const requestedPortalHeader = String(req.headers['x-la-kers-portal'] ?? '').trim().toLowerCase();
