@@ -1,5 +1,4 @@
 import { supabaseAdmin } from '../config/supabaseClient';
-import { PlanDefinition } from '../config/plans';
 
 export async function getOwnerUnits(ownerId: string) {
   if (!ownerId) return [];
@@ -44,16 +43,4 @@ export async function ensureOwnerOwnsUnit(ownerId: string, unitId: string) {
     throw err;
   }
   return data;
-}
-
-export function buildPlanPayload(plan: PlanDefinition) {
-  return {
-    id: plan.id,
-    name: plan.name,
-    description: plan.description,
-    unitLimit: plan.unitLimit,
-    isUnlimited: plan.isUnlimited,
-    monthlyPriceCents: plan.monthlyPriceCents,
-    yearlyPriceCents: plan.yearlyPriceCents
-  };
 }

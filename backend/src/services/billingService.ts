@@ -2,9 +2,9 @@ import crypto from 'node:crypto';
 import { APP_NAME } from '../config/brand';
 import { stripeConfig } from '../config/stripeConfig';
 import { appConfig, isOriginAllowed } from '../config/appConfig';
-import { FREEMIUM_PLAN_ID, PRO_PLAN_ID, getPlanDefinition } from '../config/plans';
+import { FREEMIUM_PLAN_ID, PRO_PLAN_ID, buildPlanPayload, getPlanDefinition } from '../config/plans';
 import { supabaseAdmin } from '../config/supabaseClient';
-import { buildPlanPayload, countOwnerUnits } from './ownersService';
+import { countOwnerUnits } from './ownersService';
 
 export type BillingCycle = 'monthly' | 'yearly';
 export type SubscriptionStatus =

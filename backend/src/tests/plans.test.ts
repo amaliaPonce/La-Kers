@@ -1,7 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { FREEMIUM_PLAN_ID, PRO_PLAN_ID, getPlanDefinition } from '../config/plans';
-import { buildPlanPayload } from '../services/ownersService';
+import { FREEMIUM_PLAN_ID, PRO_PLAN_ID, buildPlanPayload, getPlanDefinition } from '../config/plans';
 
 test('plan definitions expose Starter and unlimited Pro', () => {
   const starterPlan = getPlanDefinition(FREEMIUM_PLAN_ID);

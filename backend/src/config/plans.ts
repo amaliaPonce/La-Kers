@@ -38,3 +38,15 @@ export function getPlanDefinition(planId?: string): PlanDefinition {
   }
   return planDefinitions[FREEMIUM_PLAN_ID];
 }
+
+export function buildPlanPayload(plan: PlanDefinition) {
+  return {
+    id: plan.id,
+    name: plan.name,
+    description: plan.description,
+    unitLimit: plan.unitLimit,
+    isUnlimited: plan.isUnlimited,
+    monthlyPriceCents: plan.monthlyPriceCents,
+    yearlyPriceCents: plan.yearlyPriceCents
+  };
+}
