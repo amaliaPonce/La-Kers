@@ -96,14 +96,20 @@ create index if not exists payments_payment_method_idx on public.payments(paymen
 create table if not exists public.incidents (
   id uuid primary key default gen_random_uuid(),
   unit_id uuid not null references public.units(id) on delete cascade,
+  tenant_person_id uuid references public.tenant_persons(id) on delete set null,
   title text not null,
   description text not null,
   status text not null check (status in ('OPEN', 'IN_PROGRESS', 'CLOSED')),
   cost numeric(12,2) check (cost is null or cost >= 0),
-  created_at timestamptz not null default now()
+  reported_by text not null default 'OWNER' check (reported_by in ('OWNER', 'TENANT', 'SYSTEM')),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  status_updated_at timestamptz not null default now(),
+  closed_at timestamptz
 );
 
 create index if not exists incidents_unit_id_idx on public.incidents(unit_id);
+create index if not exists incidents_tenant_person_id_idx on public.incidents(tenant_person_id);
 create index if not exists incidents_status_idx on public.incidents(status);
 
 create table if not exists public.contract_documents (
@@ -138,3 +144,41 @@ create index if not exists owner_subscriptions_plan_id_idx on public.owner_subsc
 create index if not exists owner_subscriptions_status_idx on public.owner_subscriptions(subscription_status);
 create unique index if not exists owner_subscriptions_stripe_customer_id_idx on public.owner_subscriptions(stripe_customer_id) where stripe_customer_id is not null;
 create unique index if not exists owner_subscriptions_stripe_subscription_id_idx on public.owner_subscriptions(stripe_subscription_id) where stripe_subscription_id is not null;
+
+create table if not exists public.tenant_portal_access (
+  id uuid primary key default gen_random_uuid(),
+  clerk_user_id text not null unique,
+  tenant_person_id uuid not null references public.tenant_persons(id) on delete cascade,
+  owner_id text not null,
+  status text not null default 'ACTIVE' check (status in ('ACTIVE', 'REVOKED')),
+  linked_via text not null default 'email_match' check (linked_via in ('manual', 'email_match', 'invite_link')),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  last_login_at timestamptz
+);
+
+create unique index if not exists tenant_portal_access_tenant_person_id_idx
+  on public.tenant_portal_access(tenant_person_id);
+
+create index if not exists tenant_portal_access_owner_id_idx
+  on public.tenant_portal_access(owner_id);
+
+create index if not exists tenant_portal_access_status_idx
+  on public.tenant_portal_access(status);
+
+create table if not exists public.tenant_portal_invites (
+  id uuid primary key default gen_random_uuid(),
+  owner_id text not null,
+  tenant_person_id uuid not null references public.tenant_persons(id) on delete cascade,
+  token_hash text not null unique,
+  status text not null default 'PENDING' check (status in ('PENDING', 'CLAIMED', 'REVOKED', 'EXPIRED')),
+  expires_at timestamptz not null,
+  claimed_at timestamptz,
+  claimed_by_clerk_user_id text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists tenant_portal_invites_owner_id_idx on public.tenant_portal_invites(owner_id);
+create index if not exists tenant_portal_invites_tenant_person_id_idx on public.tenant_portal_invites(tenant_person_id);
+create index if not exists tenant_portal_invites_status_idx on public.tenant_portal_invites(status);

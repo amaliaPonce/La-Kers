@@ -59,7 +59,10 @@ Este repo queda preparado para desplegarse en Render Free con el blueprint de [r
 - `TRUST_PROXY=true`
 - `ENABLE_CRON_JOBS=false`
 - `ENABLE_TENANT_PORTAL=false`
+- `ENABLE_TENANT_PORTAL_PREMIUM=false`
 - `ENABLE_DASHBOARD_REALTIME=false`
+- `TENANT_CONTRACT_RENEWAL_NOTICE_DAYS=30`
+- `TENANT_PORTAL_INVITE_TTL_DAYS=14`
 - `BILLING_MODE=stripe`
 - `REQUEST_BODY_LIMIT=1mb`
 - `RATE_LIMIT_WINDOW_MS=900000`
@@ -70,6 +73,7 @@ Este repo queda preparado para desplegarse en Render Free con el blueprint de [r
 - `VITE_API_BASE` desde la URL pública de `la-kers-api`
 - `VITE_MINIMAL_MODE=true`
 - `VITE_ENABLE_TENANT_PORTAL=false`
+- `VITE_ENABLE_TENANT_PORTAL_PREMIUM=false`
 - `VITE_ENABLE_DASHBOARD_REALTIME=false`
 - `RENDER_EXTERNAL_URL` la inyecta Render automáticamente
 
@@ -101,6 +105,8 @@ Este repo queda preparado para desplegarse en Render Free con el blueprint de [r
     - `sql/20260327_owner_subscriptions.sql`
     - `sql/20260413_tenant_contract_profiles.sql`
     - `sql/20260327_tenant_portal_access.sql` solo si reactivas el portal tenant
+    - `sql/20260423_tenant_portal_premium.sql` si activas la capa premium del portal tenant
+    - `sql/20260423_tenant_portal_invites.sql` si activas invitaciones personales del portal tenant
     - si la base ya existia antes de abril de 2026, esta migracion incremental es obligatoria aunque el deploy de Render salga en verde
 11. Cuando el deploy termine, valida estas URLs:
     - `https://TU-API.onrender.com/ready`

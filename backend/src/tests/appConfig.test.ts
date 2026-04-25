@@ -21,7 +21,10 @@ test('createAppConfig parses production env overrides', () => {
     CORS_ALLOWED_ORIGINS: 'https://app.example.com, https://admin.example.com/',
     ENABLE_CRON_JOBS: 'false',
     ENABLE_TENANT_PORTAL: 'true',
+    ENABLE_TENANT_PORTAL_PREMIUM: 'true',
     ENABLE_DASHBOARD_REALTIME: 'true',
+    TENANT_CONTRACT_RENEWAL_NOTICE_DAYS: '45',
+    TENANT_PORTAL_INVITE_TTL_DAYS: '10',
     TRUST_PROXY: 'true',
     RATE_LIMIT_WINDOW_MS: '60000',
     RATE_LIMIT_MAX: '120',
@@ -37,7 +40,10 @@ test('createAppConfig parses production env overrides', () => {
   assert.deepEqual(config.allowedOrigins, ['https://app.example.com', 'https://admin.example.com']);
   assert.equal(config.enableCronJobs, false);
   assert.equal(config.enableTenantPortal, true);
+  assert.equal(config.enableTenantPortalPremium, true);
   assert.equal(config.enableDashboardRealtime, true);
+  assert.equal(config.tenantContractRenewalNoticeDays, 45);
+  assert.equal(config.tenantPortalInviteTtlDays, 10);
   assert.equal(config.clerkUserCacheTtlMs, 45000);
   assert.equal(config.trustProxy, true);
   assert.equal(config.globalRateLimitWindowMs, 60000);
@@ -61,6 +67,9 @@ test('createAppConfig enables minimal defaults when no flags are provided', () =
   assert.equal(config.minimalMode, true);
   assert.equal(config.enableCronJobs, false);
   assert.equal(config.enableTenantPortal, false);
+  assert.equal(config.enableTenantPortalPremium, false);
   assert.equal(config.enableDashboardRealtime, false);
+  assert.equal(config.tenantContractRenewalNoticeDays, 30);
+  assert.equal(config.tenantPortalInviteTtlDays, 14);
   assert.equal(config.clerkUserCacheTtlMs, 300000);
 });

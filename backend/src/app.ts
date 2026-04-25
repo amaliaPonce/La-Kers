@@ -55,6 +55,7 @@ app.get('/ready', async (req, res) => {
       features: {
         cronJobs: appConfig.enableCronJobs,
         tenantPortal: appConfig.enableTenantPortal,
+        tenantPortalPremium: appConfig.enableTenantPortalPremium,
         dashboardRealtime: appConfig.enableDashboardRealtime
       }
     });
@@ -66,6 +67,7 @@ app.get('/ready', async (req, res) => {
     features: {
       cronJobs: appConfig.enableCronJobs,
       tenantPortal: appConfig.enableTenantPortal,
+      tenantPortalPremium: appConfig.enableTenantPortalPremium,
       dashboardRealtime: appConfig.enableDashboardRealtime
     }
   });

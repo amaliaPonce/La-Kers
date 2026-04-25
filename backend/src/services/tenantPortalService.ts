@@ -1,6 +1,7 @@
 import { clerkClient } from '@clerk/express';
 import { appConfig } from '../config/appConfig';
 import { supabaseAdmin } from '../config/supabaseClient';
+import { claimTenantPortalInvite } from './tenantPortalInviteService';
 
 type TenantPortalAccessRecord = {
   id: string;
@@ -8,13 +9,40 @@ type TenantPortalAccessRecord = {
   tenant_person_id: string;
   owner_id: string;
   status: 'ACTIVE' | 'REVOKED';
-  linked_via: 'manual' | 'email_match';
+  linked_via: 'manual' | 'email_match' | 'invite_link';
   created_at: string;
   updated_at: string;
   last_login_at?: string | null;
 };
 
-type TenantPortalProfile = {
+type TenantPortalTenantRecord = {
+  id: string;
+  unit_id?: string | null;
+  full_name?: string | null;
+  email?: string | null;
+  identification?: string | null;
+  contract_start?: string | null;
+  contract_end?: string | null;
+  status?: string | null;
+  deposit_amount?: number | string | null;
+  deposit_status?: string | null;
+  units?: TenantPortalUnitRecord | TenantPortalUnitRecord[] | null;
+};
+
+type TenantPortalUnitRecord = {
+  id?: string | null;
+  owner_id?: string | null;
+  name?: string | null;
+  address?: string | null;
+  city?: string | null;
+  postal_code?: string | null;
+  monthly_rent?: number | string | null;
+  contract_landlord_name?: string | null;
+  contract_landlord_identification?: string | null;
+  contract_landlord_address?: string | null;
+};
+
+export type TenantPortalProfile = {
   accessId: string;
   ownerId: string;
   tenantPersonId: string;
@@ -34,6 +62,13 @@ type TenantPortalProfile = {
     city: string | null;
     postalCode: string | null;
   } | null;
+};
+
+export type TenantPortalContext = {
+  access: TenantPortalAccessRecord;
+  tenantRecord: TenantPortalTenantRecord;
+  unitRecord: TenantPortalUnitRecord | null;
+  profile: TenantPortalProfile;
 };
 
 type ClerkEmailAddress = {
@@ -178,33 +213,88 @@ async function autoLinkTenantPortalAccess(clerkUserId: string) {
   return inserted as TenantPortalAccessRecord;
 }
 
-export async function ensureTenantPortalAccess(clerkUserId: string) {
+async function createTenantPortalAccessFromInvite(clerkUserId: string, inviteToken: string) {
+  const invite = await claimTenantPortalInvite(clerkUserId, inviteToken);
+  const now = new Date().toISOString();
+
+  const { data: accessByClerk, error: clerkAccessError } = await supabaseAdmin
+    .from('tenant_portal_access')
+    .select('*')
+    .eq('clerk_user_id', clerkUserId)
+    .maybeSingle();
+  if (clerkAccessError) throw clerkAccessError;
+
+  if (accessByClerk && String((accessByClerk as TenantPortalAccessRecord).tenant_person_id ?? '') !== invite.tenant_person_id) {
+    const error = new Error('Esta cuenta ya está vinculada a otro portal de inquilino');
+    (error as { status?: number }).status = 409;
+    throw error;
+  }
+
+  const { data: accessByTenant, error: tenantAccessError } = await supabaseAdmin
+    .from('tenant_portal_access')
+    .select('*')
+    .eq('tenant_person_id', invite.tenant_person_id)
+    .maybeSingle();
+  if (tenantAccessError) throw tenantAccessError;
+
+  if (
+    accessByTenant &&
+    String((accessByTenant as TenantPortalAccessRecord).status ?? '').toUpperCase() === 'ACTIVE' &&
+    String((accessByTenant as TenantPortalAccessRecord).clerk_user_id ?? '') !== clerkUserId
+  ) {
+    const error = new Error('Este contrato ya está vinculado a otra cuenta de acceso');
+    (error as { status?: number }).status = 409;
+    throw error;
+  }
+
+  const { data: upserted, error: upsertError } = await supabaseAdmin
+    .from('tenant_portal_access')
+    .upsert(
+      {
+        clerk_user_id: clerkUserId,
+        tenant_person_id: invite.tenant_person_id,
+        owner_id: invite.owner_id,
+        status: 'ACTIVE',
+        linked_via: 'invite_link',
+        updated_at: now,
+        last_login_at: now
+      },
+      { onConflict: 'tenant_person_id' }
+    )
+    .select('*')
+    .single();
+  if (upsertError) throw upsertError;
+
+  const { error: claimUpdateError } = await supabaseAdmin
+    .from('tenant_portal_invites')
+    .update({
+      status: 'CLAIMED',
+      claimed_at: now,
+      claimed_by_clerk_user_id: clerkUserId,
+      updated_at: now
+    })
+    .eq('id', invite.id);
+  if (claimUpdateError) throw claimUpdateError;
+
+  return upserted as TenantPortalAccessRecord;
+}
+
+export async function ensureTenantPortalAccess(clerkUserId: string, options: { inviteToken?: string } = {}) {
   assertTenantPortalEnabled();
   let access = await getTenantPortalAccessByClerkUserId(clerkUserId);
   if (!access) {
-    access = await autoLinkTenantPortalAccess(clerkUserId);
+    const inviteToken = String(options.inviteToken ?? '').trim();
+    access = inviteToken
+      ? await createTenantPortalAccessFromInvite(clerkUserId, inviteToken)
+      : await autoLinkTenantPortalAccess(clerkUserId);
   } else {
     await touchLastLogin(access.id);
   }
   return access;
 }
 
-export async function getTenantPortalProfile(clerkUserId: string): Promise<TenantPortalProfile> {
-  assertTenantPortalEnabled();
-  const access = await ensureTenantPortalAccess(clerkUserId);
-  const { data, error } = await supabaseAdmin
-    .from('tenant_persons')
-    .select('id, full_name, email, contract_start, contract_end, status, units(id, name, address, city, postal_code)')
-    .eq('id', access.tenant_person_id)
-    .maybeSingle();
-  if (error) throw error;
-  if (!data) {
-    const notFound = new Error('No se encontró el contrato del inquilino');
-    (notFound as any).status = 404;
-    throw notFound;
-  }
-
-  const unit = Array.isArray((data as any).units) ? (data as any).units[0] : (data as any).units;
+function buildTenantPortalProfile(access: TenantPortalAccessRecord, data: TenantPortalTenantRecord): TenantPortalProfile {
+  const unit = Array.isArray(data.units) ? data.units[0] : data.units;
 
   return {
     accessId: access.id,
@@ -212,12 +302,12 @@ export async function getTenantPortalProfile(clerkUserId: string): Promise<Tenan
     tenantPersonId: access.tenant_person_id,
     clerkUserId: access.clerk_user_id,
     tenant: {
-      id: String((data as any).id),
-      fullName: String((data as any).full_name ?? 'Inquilino'),
-      email: (data as any).email ? String((data as any).email) : null,
-      contractStart: (data as any).contract_start ? String((data as any).contract_start) : null,
-      contractEnd: (data as any).contract_end ? String((data as any).contract_end) : null,
-      status: (data as any).status ? String((data as any).status) : null
+      id: String(data.id),
+      fullName: String(data.full_name ?? 'Inquilino'),
+      email: data.email ? String(data.email) : null,
+      contractStart: data.contract_start ? String(data.contract_start) : null,
+      contractEnd: data.contract_end ? String(data.contract_end) : null,
+      status: data.status ? String(data.status) : null
     },
     unit: unit
       ? {
@@ -229,4 +319,36 @@ export async function getTenantPortalProfile(clerkUserId: string): Promise<Tenan
         }
       : null
   };
+}
+
+export async function getTenantPortalContext(clerkUserId: string): Promise<TenantPortalContext> {
+  assertTenantPortalEnabled();
+  const access = await ensureTenantPortalAccess(clerkUserId);
+  const { data, error } = await supabaseAdmin
+    .from('tenant_persons')
+    .select('id, unit_id, full_name, email, identification, contract_start, contract_end, deposit_amount, deposit_status, status, units(id, owner_id, name, address, city, postal_code, monthly_rent, contract_landlord_name, contract_landlord_identification, contract_landlord_address)')
+    .eq('id', access.tenant_person_id)
+    .maybeSingle();
+  if (error) throw error;
+  if (!data) {
+    const notFound = new Error('No se encontró el contrato del inquilino');
+    (notFound as any).status = 404;
+    throw notFound;
+  }
+
+  const tenantRecord = data as TenantPortalTenantRecord;
+  const unitRelation = tenantRecord.units;
+  const unitRecord = Array.isArray(unitRelation) ? unitRelation[0] ?? null : unitRelation ?? null;
+
+  return {
+    access,
+    tenantRecord,
+    unitRecord,
+    profile: buildTenantPortalProfile(access, tenantRecord)
+  };
+}
+
+export async function getTenantPortalProfile(clerkUserId: string): Promise<TenantPortalProfile> {
+  const context = await getTenantPortalContext(clerkUserId);
+  return context.profile;
 }

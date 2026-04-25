@@ -83,7 +83,7 @@ const getFallbackSummary = (): BillingSummary => ({
     mode: 'manual',
     checkoutAvailable: false,
     portalAvailable: false,
-    manualActivationEmail: 'contacto@la-kers.com',
+    manualActivationEmail: 'alquilio.app@outlook.es',
     current: {
       planId: 'freemium',
       subscriptionStatus: 'inactive',

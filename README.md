@@ -1,6 +1,6 @@
-# LA-KERS
+# Alquilio
 
-SaaS inmobiliario con backend Express/TypeScript y frontend Vue 3. El producto incluye gestión de inmuebles, inquilinos, pagos, incidencias, documentos, billing y portal del inquilino autenticado.
+Alquilio es un SaaS inmobiliario con backend Express/TypeScript y frontend Vue 3. El producto incluye gestión de inmuebles, inquilinos, pagos, incidencias, documentos, billing y portal del inquilino autenticado.
 
 Este repositorio está preparado para handoff técnico. Si vas a compartirlo con otra persona, empieza por aquí y luego revisa [docs/handoff-guide.md](docs/handoff-guide.md).
 
@@ -52,7 +52,10 @@ Configura `backend/.env` con al menos:
 - `TRUST_PROXY`
 - `ENABLE_CRON_JOBS`
 - `ENABLE_TENANT_PORTAL`
+- `ENABLE_TENANT_PORTAL_PREMIUM`
 - `ENABLE_DASHBOARD_REALTIME`
+- `TENANT_CONTRACT_RENEWAL_NOTICE_DAYS`
+- `TENANT_PORTAL_INVITE_TTL_DAYS`
 - `CLERK_USER_CACHE_TTL_MS`
 - `BILLING_MODE`
 - `REQUEST_BODY_LIMIT`
@@ -80,6 +83,7 @@ Configura `frontend/.env` con:
 - `VITE_MINIMAL_MODE=true`
 - `VITE_API_BASE=/api`
 - `VITE_ENABLE_TENANT_PORTAL=false`
+- `VITE_ENABLE_TENANT_PORTAL_PREMIUM=false`
 - `VITE_ENABLE_DASHBOARD_REALTIME=false`
 - `VITE_CLERK_PUBLISHABLE_KEY`
 
@@ -94,6 +98,8 @@ Orden recomendado de ejecución en Supabase:
 3. `sql/20260327_owner_subscriptions.sql`
 4. `sql/20260413_tenant_contract_profiles.sql`
 5. `sql/20260327_tenant_portal_access.sql`
+6. `sql/20260423_tenant_portal_premium.sql`
+7. `sql/20260423_tenant_portal_invites.sql`
 
 Notas:
 
@@ -101,6 +107,8 @@ Notas:
 - `20260327_owner_subscriptions.sql` es recomendable si vas a persistir upgrades o control de plan.
 - `20260413_tenant_contract_profiles.sql` añade la ficha de datos fiscales/contractuales 1:1 para cada inquilino.
 - `20260327_tenant_portal_access.sql` solo es necesaria si activas el portal de inquilino.
+- `20260423_tenant_portal_premium.sql` añade trazabilidad mínima de incidencias para el portal tenant premium.
+- `20260423_tenant_portal_invites.sql` añade invitaciones personales por enlace para acceso tenant.
 - En producción ejecuta solo esas migraciones reproducibles. No ejecutes parches ad hoc, seeds de usuarios ni promociones manuales de plan.
 
 ## Modo mínimo
@@ -110,6 +118,7 @@ El repositorio queda configurado para arrancar en modo mínimo por defecto:
 - `BILLING_MODE=stripe`: activa Stripe como flujo normal de upgrade a Pro.
 - `ENABLE_CRON_JOBS=false`: evita trabajos en segundo plano innecesarios en instancias pequeñas.
 - `ENABLE_TENANT_PORTAL=false`: desactiva el portal tenant y sus consultas extra a Clerk/Supabase.
+- `ENABLE_TENANT_PORTAL_PREMIUM=false`: mantiene el portal tenant en modo básico aunque el owner tenga `Pro`.
 - `ENABLE_DASHBOARD_REALTIME=false`: elimina SSE y refrescos en vivo para reducir conexiones y carga.
 - `MINIMAL_MODE=true`: hace que esos defaults sean conservadores hasta que los habilites explícitamente.
 
@@ -146,14 +155,17 @@ En este modo ya no hace falta `DOCUMENT_STORAGE_PATH`: los PDFs de finalización
 - Incidencias
 - Billing con plan `Freemium` y `Pro`
 - Portal de inquilino autenticado con Clerk, opcional en modo mínimo
+- Portal tenant premium con pagos, documentos, incidencias y aviso de renovación cuando el owner está en `Pro`
 
 ## Flujo tenant portal
 
 El acceso del inquilino funciona así:
 
-1. El usuario se registra o inicia sesión en Clerk por `/tenant/sign-up` o `/tenant/sign-in`.
-2. El backend valida que esa cuenta corresponde a un inquilino activo.
-3. El enlace se resuelve desde `tenant_portal_access` o por coincidencia automática del email con `tenant_persons.email`.
+1. El owner genera un enlace personal desde la ficha del inquilino en `/tenants`.
+2. El inquilino abre `/tenant/sign-up?invite=...` o `/tenant/sign-in?invite=...`.
+3. El frontend guarda ese token y lo envía al backend al cargar `/tenant`.
+4. El backend reclama la invitación y crea `tenant_portal_access` para ese Clerk user.
+5. Si no hay invitación, el flujo legacy por coincidencia de email sigue funcionando.
 
 Para que funcione bien en demo:
 

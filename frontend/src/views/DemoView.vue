@@ -5,7 +5,7 @@
     <header class="relative z-10 border-b border-white/60 bg-[#f8f5ef]/80 backdrop-blur-xl">
       <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
         <router-link to="/" class="landing-brand flex items-center gap-3 text-lg font-semibold tracking-tight text-slate-900">
-          <img :src="brandLogo" alt="La-Kers" class="h-16 w-auto object-contain drop-shadow-[0_10px_24px_rgba(31,79,70,0.12)]" />
+          <BrandMark icon-class="h-11 w-11" label-class="text-2xl font-semibold tracking-tight text-slate-900" />
           <span class="hidden text-sm font-semibold uppercase tracking-[0.24em] text-[#1f4f46] sm:inline">Demo</span>
         </router-link>
 
@@ -43,7 +43,7 @@
           <div class="border-b border-[#e7e0d6] bg-white/80 px-4 py-4 backdrop-blur sm:px-6">
             <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               <div class="flex items-center gap-3">
-                <img :src="brandLogo" alt="La-Kers" class="h-11 w-auto object-contain drop-shadow-[0_8px_18px_rgba(31,79,70,0.08)]" />
+                <BrandMark icon-only icon-class="h-11 w-11" />
                 <div>
                   <p class="text-[11px] font-semibold uppercase tracking-[0.35em] text-slate-400">Zona autenticada</p>
                   <h2 class="mt-1 text-xl font-semibold text-slate-900">{{ landingDemoConfig.title }}</h2>
@@ -284,7 +284,7 @@
 
 <script setup>
 import { computed, onMounted, ref } from 'vue';
-import brandLogo from '../assets/logo.png';
+import BrandMark from '../components/BrandMark.vue';
 import StatusBadge from '../components/StatusBadge.vue';
 import TenantStatusBadge from '../components/TenantStatusBadge.vue';
 import PaymentStatusBadge from '../components/PaymentStatusBadge.vue';

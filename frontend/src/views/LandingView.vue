@@ -10,7 +10,7 @@
     <header class="relative z-50 border-b border-white/60 bg-[#f8f5ef]/80 backdrop-blur-xl">
       <div class="mx-auto flex max-w-[90rem] flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
         <router-link to="/" class="flex items-center gap-3">
-          <img :src="brandLogo" alt="La-Kers" class="h-14 w-auto object-contain drop-shadow-[0_18px_40px_rgba(61,217,180,0.14)] sm:h-16" />
+          <BrandMark icon-class="h-11 w-11" label-class="text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl" />
         </router-link>
 
         <nav class="hidden items-center gap-7 text-sm text-slate-600 lg:flex">
@@ -233,7 +233,7 @@
             <div class="comparison-grid border-b-2 border-[#e7cdbb] bg-[#ffe6d7] px-5 py-4 text-sm font-semibold text-slate-700">
               <div>Operativa</div>
               <div class="text-slate-500">Métodos antiguos</div>
-              <div class="text-[#1f4f46]">Con La-Kers</div>
+              <div class="text-[#1f4f46]">Con {{ APP_NAME }}</div>
             </div>
 
             <div
@@ -326,7 +326,7 @@
 
                 <div class="relative mt-4 rounded-[22px] border-2 border-[#e7cf8c] bg-[#fff7df] px-4 py-4">
                   <p class="text-xs font-extrabold uppercase text-[#8a6518]" style="letter-spacing: 0.18em;">Lanzamiento</p>
-                  <p class="mt-2 text-sm leading-7 text-slate-700">Precio especial para los primeros clientes de La-Kers.</p>
+                  <p class="mt-2 text-sm leading-7 text-slate-700">Precio especial para los primeros clientes de {{ APP_NAME }}.</p>
                 </div>
 
                 <div class="relative mt-6 flex flex-1 flex-col rounded-[24px] border-2 border-[#e7cf8c] bg-[#fff9ea]/92 p-4 shadow-[6px_6px_0_0_rgba(217,152,44,0.1)]">
@@ -372,7 +372,7 @@
                 </div>
 
                 <p class="mt-5 text-sm leading-7 text-slate-600">
-                  Una futura capa para gestionar más usuarios, más coordinación y más reporting dentro de La-Kers.
+                  Una futura capa para gestionar más usuarios, más coordinación y más reporting dentro de {{ APP_NAME }}.
                 </p>
 
                 <div class="mt-5 flex flex-wrap gap-2">
@@ -481,7 +481,7 @@
       <div class="mx-auto max-w-[90rem] overflow-hidden rounded-[34px] px-6 py-6 lg:px-10 lg:py-8">
         <div class="grid gap-4 xl:grid-cols-[minmax(0,1.05fr)_repeat(3,minmax(0,0.65fr))]">
           <div class="rounded-[28px] border-2 border-[#1f4f46] bg-[#dff3ea] p-6 shadow-[8px_8px_0_0_rgba(31,79,70,0.16)] lg:p-7">
-            <img :src="brandLogo" alt="La-Kers" class="h-14 w-auto object-contain" />
+            <BrandMark icon-class="h-11 w-11" label-class="text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl" />
             <p class="mt-5 max-w-xl text-base leading-8 text-slate-700">
               Plataforma para propietarios que quieren centralizar propiedades, pagos, incidencias, contratos y documentos sin trabajar con herramientas dispersas.
             </p>
@@ -526,7 +526,7 @@
             <p class="text-[11px] font-extrabold uppercase text-[#8c4d29]" style="letter-spacing: 0.2em;">Contacto</p>
             <div class="mt-4 space-y-4 text-sm text-slate-700">
               <div>
-                <p class="font-semibold text-slate-900">contacto@la-kers.com</p>
+                <p class="font-semibold text-slate-900">{{ APP_SUPPORT_EMAIL }}</p>
                 <p class="mt-1 leading-7 text-slate-600">Para ventas y dudas comerciales.</p>
               </div>
               <a
@@ -541,7 +541,7 @@
         </div>
 
         <div class="mt-6 flex flex-col gap-3 border-t border-[#e6ddd1] pt-5 text-sm text-slate-600 lg:flex-row lg:items-center lg:justify-between">
-          <p>© {{ currentYear }} La-Kers. Gestión de alquileres para propietarios.</p>
+          <p>© {{ currentYear }} {{ APP_NAME }}. {{ APP_DESCRIPTION }}.</p>
           <div class="flex flex-wrap items-center gap-x-5 gap-y-2">
             <span class="inline-flex items-center gap-2">
               <span class="h-2.5 w-2.5 rounded-full bg-[#1f4f46]"></span>
@@ -564,11 +564,12 @@
 
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref } from 'vue';
+import BrandMark from '../components/BrandMark.vue';
 import SolidIcon from '../components/SolidIcon.vue';
-import brandLogo from '../assets/logo.png';
+import { APP_DESCRIPTION, APP_NAME, APP_SUPPORT_EMAIL } from '../config/brand';
 import { track } from '../lib/analytics';
 
-const contactLink = 'mailto:contacto@la-kers.com?subject=Contacto%20La-Kers';
+const contactLink = `mailto:${APP_SUPPORT_EMAIL}?subject=${encodeURIComponent(`Contacto ${APP_NAME}`)}`;
 const currentYear = new Date().getFullYear();
 
 const buildingImage =
@@ -783,7 +784,7 @@ const testimonials = [
     avatar:
       'https://images.unsplash.com/photo-1758518727888-ffa196002e59?auto=format&fit=crop&fm=jpg&ixlib=rb-4.1.0&q=60&w=400&h=400',
     role: 'Propietaria de 6 inmuebles en Madrid',
-    quote: 'Antes tenía todo repartido entre Excel, Drive y WhatsApp. Ahora entro en La-Kers y sé exactamente qué pagos faltan y qué contratos tengo que revisar.'
+    quote: `Antes tenía todo repartido entre Excel, Drive y WhatsApp. Ahora entro en ${APP_NAME} y sé exactamente qué pagos faltan y qué contratos tengo que revisar.`
   },
   {
     name: 'Javier Costa',
@@ -840,10 +841,10 @@ const handleTestimonialAvatarError = (name: string) => {
 const faqItems = [
   {
     question: '¿Puedo empezar sin tarjeta?',
-    answer: 'Sí. El plan Starter te permite probar la plataforma sin tarjeta, sin límite de tiempo y gestionar hasta 3 inmuebles para validar si La-Kers encaja contigo.'
+    answer: `Sí. El plan Starter te permite probar la plataforma sin tarjeta, sin límite de tiempo y gestionar hasta 3 inmuebles para validar si ${APP_NAME} encaja contigo.`
   },
   {
-    question: '¿Para quién está pensado realmente La-Kers?',
+    question: `¿Para quién está pensado realmente ${APP_NAME}?`,
     answer: 'Para propietarios con varios inmuebles, pequeños inversores y perfiles que quieren abandonar Excel, WhatsApp y procesos administrativos dispersos.'
   },
   {

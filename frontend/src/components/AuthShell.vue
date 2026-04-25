@@ -7,9 +7,7 @@
     <header class="relative z-10 border-b border-white/60 bg-[#f8f5ef]/80 backdrop-blur-xl">
       <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
         <router-link to="/" class="brand-wordmark flex items-center gap-3 text-lg font-semibold tracking-tight text-slate-900">
-          <span class="flex h-14 items-center rounded-[22px] border border-[#e5ddd2] bg-white/90 px-3 shadow-sm shadow-[#1f4f46]/5">
-            <img :src="brandLogo" alt="La-Kers" class="h-9 w-auto object-contain" />
-          </span>
+          <BrandMark compact icon-class="h-9 w-9" />
           <span class="hidden text-sm font-semibold uppercase tracking-[0.24em] text-[#1f4f46] sm:inline">Propiedades</span>
         </router-link>
 
@@ -111,9 +109,7 @@
           <article class="overflow-hidden rounded-[36px] border border-white/70 bg-white/90 shadow-[0_30px_80px_rgba(15,23,42,0.08)] backdrop-blur">
             <div class="border-b border-[#efe5da] bg-[linear-gradient(180deg,_rgba(249,244,237,0.95),_rgba(255,255,255,0.7))] px-6 py-6 sm:px-8">
               <div class="flex items-center gap-4">
-                <div class="flex h-16 items-center justify-center rounded-[24px] border border-[#e5ddd2] bg-white/90 px-4 shadow-sm shadow-[#1f4f46]/5">
-                  <img :src="brandLogo" alt="La-Kers" class="h-10 w-auto object-contain" />
-                </div>
+                <BrandMark compact icon-class="h-10 w-10" />
                 <div>
                   <div class="inline-flex items-center gap-2 rounded-full border border-[#e5d5c7] bg-white/90 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.3em] text-[#8c4d29] shadow-sm">
                     {{ panelBadge }}
@@ -135,7 +131,7 @@
 </template>
 
 <script setup lang="ts">
-import brandLogo from '../assets/logo.png';
+import BrandMark from './BrandMark.vue';
 
 type HeroMetric = {
   label: string;

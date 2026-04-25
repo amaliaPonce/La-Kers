@@ -8,6 +8,7 @@ import {
   type TenantListMode,
   type TenantPayload
 } from '../services/tenantsService';
+import { createTenantPortalInvite } from '../services/tenantPortalInviteService';
 import {
   getTenantContractProfile,
   upsertTenantContractProfile
@@ -113,6 +114,13 @@ function resolveTenantError(error: unknown, fallbackMessage: string) {
     return {
       status: 404,
       message: 'Inquilino no encontrado'
+    };
+  }
+
+  if (code === '42P01' || normalizedMessage.includes('tenant_portal_invites')) {
+    return {
+      status: 500,
+      message: 'Falta aplicar sql/20260423_tenant_portal_invites.sql'
     };
   }
 
@@ -251,6 +259,21 @@ router.put('/:id/contract-profile', async (req: AuthenticatedRequest, res) => {
   } catch (error) {
     console.error(error);
     const resolved = resolveTenantContractProfileError(error, 'No se pudieron guardar los datos de contrato');
+    res.status(resolved.status).json({ message: resolved.message });
+  }
+});
+
+router.post('/:id/portal-invite', async (req: AuthenticatedRequest, res) => {
+  try {
+    const ownerId = req.authUser?.id;
+    if (!ownerId) {
+      return res.status(401).json({ message: 'Autenticación requerida' });
+    }
+    const invite = await createTenantPortalInvite(ownerId, req.params.id);
+    res.status(201).json(invite);
+  } catch (error) {
+    console.error(error);
+    const resolved = resolveTenantError(error, 'No se pudo generar la invitación del portal');
     res.status(resolved.status).json({ message: resolved.message });
   }
 });

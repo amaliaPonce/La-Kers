@@ -6,9 +6,8 @@
 
     <header class="relative z-10 border-b border-white/60 bg-[#f8f5ef]/80 backdrop-blur-xl">
       <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
-        <router-link to="/" class="flex items-center gap-3 text-slate-900">
-          <img :src="brandLogo" alt="La-Kers" class="h-12 w-auto object-contain" />
-          <span class="hidden text-sm font-semibold uppercase tracking-[0.24em] text-[#1f4f46] sm:inline">Propiedades</span>
+        <router-link to="/" class="flex items-center text-slate-900">
+          <BrandMark compact icon-class="h-10 w-10" />
         </router-link>
 
         <div class="flex flex-wrap items-center gap-3 text-sm">
@@ -99,7 +98,7 @@
 import { computed, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import { SignIn } from '@clerk/vue';
-import brandLogo from '../assets/logo.png';
+import BrandMark from '../components/BrandMark.vue';
 import { clerkAuthAppearance } from '../services/clerkAppearance';
 import { setAuthIntent } from '../lib/authTracking';
 

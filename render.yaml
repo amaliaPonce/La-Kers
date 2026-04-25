@@ -20,8 +20,14 @@ services:
         value: false
       - key: ENABLE_TENANT_PORTAL
         value: false
+      - key: ENABLE_TENANT_PORTAL_PREMIUM
+        value: false
       - key: ENABLE_DASHBOARD_REALTIME
         value: false
+      - key: TENANT_CONTRACT_RENEWAL_NOTICE_DAYS
+        value: 30
+      - key: TENANT_PORTAL_INVITE_TTL_DAYS
+        value: 14
       - key: BILLING_MODE
         value: stripe
       - key: REQUEST_BODY_LIMIT
@@ -79,6 +85,8 @@ services:
       - key: VITE_MINIMAL_MODE
         value: true
       - key: VITE_ENABLE_TENANT_PORTAL
+        value: false
+      - key: VITE_ENABLE_TENANT_PORTAL_PREMIUM
         value: false
       - key: VITE_ENABLE_DASHBOARD_REALTIME
         value: false

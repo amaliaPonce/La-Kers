@@ -41,7 +41,7 @@
               <div class="border-b border-[#eadfd2] pb-6">
                 <div class="flex items-center gap-4">
                   <span class="flex h-14 items-center rounded-[22px] border border-[#e5ddd2] bg-white/90 px-3 shadow-sm shadow-[#1f4f46]/5">
-                    <img :src="brandLogo" alt="La-Kers" class="h-8 w-auto object-contain" />
+                    <BrandMark icon-only icon-class="h-8 w-8" />
                   </span>
                   <div>
                     <p class="text-[11px] font-semibold uppercase tracking-[0.28em] text-[#1f4f46]">Panel</p>
@@ -138,7 +138,7 @@
                       to="/dashboard"
                       class="flex items-center rounded-full border border-[#d8cec2] bg-white px-3 py-2 shadow-sm shadow-[#1f4f46]/5 transition hover:border-[#cdbba8]"
                     >
-                      <img :src="brandLogo" alt="La-Kers" class="h-6 w-auto object-contain" />
+                      <BrandMark icon-only icon-class="h-6 w-6" />
                     </router-link>
                     <div>
                       <p class="text-sm font-semibold text-slate-900">{{ currentSectionTitle }}</p>
@@ -246,14 +246,15 @@ import { computed, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { SignedIn, SignedOut, UserButton, useUser } from '@clerk/vue';
 import AppFeedbackHost from './components/AppFeedbackHost.vue';
+import BrandMark from './components/BrandMark.vue';
 import SolidIcon from './components/SolidIcon.vue';
 import { useBilling } from './composables/useBilling';
 import OnboardingChecklist from './components/onboarding/OnboardingChecklist.vue';
 import OnboardingModal from './components/onboarding/OnboardingModal.vue';
 import TooltipGuide from './components/onboarding/TooltipGuide.vue';
+import { APP_DESCRIPTION, APP_NAME } from './config/brand';
 import { runtimeConfig } from './config/runtimeConfig';
 import { clerkUserButtonAppearance } from './services/clerkAppearance';
-import brandLogo from './assets/logo.png';
 import { track } from './lib/analytics';
 import { consumeAuthIntent } from './lib/authTracking';
 import {
@@ -342,6 +343,41 @@ const currentOnboardingRoute = computed(() =>
 );
 let sentryUserContextVersion = 0;
 
+const routeTitleMap: Record<string, string> = {
+  '/': APP_NAME,
+  '/demo': `${APP_NAME} | Demo`,
+  '/sign-in': `${APP_NAME} | Acceso propietarios`,
+  '/sign-up': `${APP_NAME} | Alta propietarios`,
+  '/tenant/sign-in': `${APP_NAME} | Acceso inquilinos`,
+  '/tenant/sign-up': `${APP_NAME} | Alta inquilinos`,
+  '/dashboard': `${APP_NAME} | Dashboard`,
+  '/properties': `${APP_NAME} | Propiedades`,
+  '/tenants': `${APP_NAME} | Inquilinos`,
+  '/payments': `${APP_NAME} | Pagos`,
+  '/incidents': `${APP_NAME} | Incidencias`,
+  '/documents': `${APP_NAME} | Documentos`,
+  '/billing': `${APP_NAME} | Plan y facturación`,
+  '/tenant': `${APP_NAME} | Portal del inquilino`
+};
+
+const resolveDocumentTitle = (path: string) => {
+  if (routeTitleMap[path]) return routeTitleMap[path];
+  if (path.startsWith('/sign-in')) return `${APP_NAME} | Acceso propietarios`;
+  if (path.startsWith('/sign-up')) return `${APP_NAME} | Alta propietarios`;
+  return `${APP_NAME} | Panel`;
+};
+
+const updateMetaDescription = (description: string) => {
+  if (typeof document === 'undefined') return;
+  const existingMeta = document.querySelector('meta[name=\"description\"]');
+  const meta = existingMeta instanceof HTMLMetaElement ? existingMeta : document.createElement('meta');
+  if (!existingMeta) {
+    meta.setAttribute('name', 'description');
+    document.head.appendChild(meta);
+  }
+  meta.setAttribute('content', description);
+};
+
 watch(
   [() => route.meta.public, () => user.value?.id],
   ([isPublic, userId]) => {
@@ -396,6 +432,16 @@ watch(
       plan: planId === 'pro' ? 'pro' : 'free',
       portal: isTenantPortal ? 'tenant' : 'owner'
     });
+  },
+  { immediate: true }
+);
+
+watch(
+  () => route.path,
+  (path) => {
+    if (typeof document === 'undefined') return;
+    document.title = resolveDocumentTitle(path);
+    updateMetaDescription(APP_DESCRIPTION);
   },
   { immediate: true }
 );

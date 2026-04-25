@@ -11,7 +11,7 @@
           Onboarding
         </p>
         <h2 class="mt-4 text-2xl font-semibold tracking-tight text-slate-900">
-          Bienvenido a LA-KERS
+          Bienvenido a {{ APP_NAME }}
         </h2>
         <p class="mt-3 text-sm leading-7 text-slate-600">
           Configura tu espacio en pocos pasos y empieza a gestionar tus propiedades.
@@ -40,6 +40,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
+import { APP_NAME } from '../../config/brand';
 import { useOnboarding } from '../../composables/useOnboarding';
 
 const { shouldShowWelcomeModal, dismissOnboarding, startOnboarding } = useOnboarding();

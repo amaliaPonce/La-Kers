@@ -34,6 +34,7 @@ export async function authMiddleware(req: AuthenticatedRequest, res: Response, n
 
   const requestedPortalHeader = String(req.headers['x-la-kers-portal'] ?? '').trim().toLowerCase();
   const requestedPortal = req.path.startsWith('/tenant-portal') || requestedPortalHeader === 'tenant' ? 'tenant' : 'owner';
+  const tenantInviteToken = String(req.headers['x-la-kers-tenant-invite'] ?? '').trim();
 
   try {
     if (requestedPortal === 'tenant') {
@@ -41,7 +42,9 @@ export async function authMiddleware(req: AuthenticatedRequest, res: Response, n
         return res.status(404).json({ message: 'El portal del inquilino está desactivado en este entorno' });
       }
 
-      const access = await ensureTenantPortalAccess(userId);
+      const access = await ensureTenantPortalAccess(userId, {
+        inviteToken: tenantInviteToken
+      });
       req.authActor = {
         authUserId: userId,
         actorType: 'TENANT',

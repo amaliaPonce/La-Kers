@@ -14,6 +14,29 @@ type PaymentPayload = {
 
 export type PaymentMethod = 'CASH' | 'BANK';
 
+export type TenantPaymentRecord = {
+  id: string;
+  unit_id?: string | null;
+  tenant_person_id?: string | null;
+  amount?: number | string | null;
+  due_date?: string | null;
+  paid_date?: string | null;
+  payment_method?: PaymentMethod | null;
+  status?: 'PENDING' | 'PAID' | 'LATE' | null;
+  month?: number | null;
+  year?: number | null;
+  created_at?: string | null;
+  units?: {
+    id?: string | null;
+    owner_id?: string | null;
+    name?: string | null;
+  } | null;
+  tenant_persons?: {
+    id?: string | null;
+    full_name?: string | null;
+  } | null;
+};
+
 export type TenantPaymentSummaryOptions = {
   untilDate?: string;
 };
@@ -38,6 +61,7 @@ export type PaymentTenantContract = {
 };
 
 const PAYMENT_SELECT = '*, units!inner(id, owner_id, name, status), tenant_persons(id, full_name)';
+const TENANT_PAYMENT_SELECT = '*, units!inner(id, owner_id, name), tenant_persons(id, full_name)';
 
 const padDatePart = (value: number) => String(value).padStart(2, '0');
 const createMonthKey = (year: number, month: number) => `${year}-${padDatePart(month)}`;
@@ -121,6 +145,16 @@ export async function getPaymentById(id: string, ownerId?: string) {
   const { data, error } = await query.maybeSingle();
   if (error) throw error;
   return data;
+}
+
+export async function listTenantPayments(tenantPersonId: string) {
+  const { data, error } = await supabaseAdmin
+    .from('payments')
+    .select(TENANT_PAYMENT_SELECT)
+    .eq('tenant_person_id', tenantPersonId)
+    .order('due_date', { ascending: false });
+  if (error) throw error;
+  return (data ?? []) as TenantPaymentRecord[];
 }
 
 export async function createPayment(payload: PaymentPayload, ownerId?: string) {
@@ -236,6 +270,20 @@ export async function markPendingPaymentsAsLate(date: string, ownerId?: string) 
   }
 
   const { error } = await query;
+  if (error) throw error;
+}
+
+export async function markPendingPaymentsAsLateForTenant(tenantPersonId: string, date: string) {
+  const targetDate = toDateKey(date);
+  if (!targetDate) return;
+
+  const { error } = await supabaseAdmin
+    .from('payments')
+    .update({ status: 'LATE' })
+    .eq('tenant_person_id', tenantPersonId)
+    .lt('due_date', targetDate)
+    .eq('status', 'PENDING');
+
   if (error) throw error;
 }
 

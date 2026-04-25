@@ -2,7 +2,7 @@
 
 ## Objetivo
 
-Esta guía está pensada para que otra persona pueda clonar LA-KERS, levantarlo en local y entender qué partes están listas y qué dependencias externas necesita.
+Esta guía está pensada para que otra persona pueda clonar Alquilio, levantarlo en local y entender qué partes están listas y qué dependencias externas necesita.
 
 ## Estado actual del proyecto
 

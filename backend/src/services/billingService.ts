@@ -1,4 +1,5 @@
 import crypto from 'node:crypto';
+import { APP_NAME } from '../config/brand';
 import { stripeConfig } from '../config/stripeConfig';
 import { appConfig, isOriginAllowed } from '../config/appConfig';
 import { FREEMIUM_PLAN_ID, PRO_PLAN_ID, getPlanDefinition } from '../config/plans';
@@ -69,7 +70,7 @@ type StripeSubscription = {
   } | null;
 };
 
-const MANUAL_ACTIVATION_EMAIL = process.env.BILLING_CONTACT_EMAIL?.trim() || 'contacto@la-kers.com';
+const MANUAL_ACTIVATION_EMAIL = process.env.BILLING_CONTACT_EMAIL?.trim() || 'alquilio.app@outlook.es';
 const BILLING_ENABLED_STATUSES = new Set<SubscriptionStatus>(['active', 'trialing', 'past_due']);
 const BILLING_STATUSES: SubscriptionStatus[] = [
   'inactive',
@@ -244,6 +245,11 @@ export async function getOwnerSubscription(ownerId: string) {
   return (data as OwnerSubscriptionRecord | null) ?? null;
 }
 
+export async function hasOwnerProPlan(ownerId: string) {
+  const subscription = await getOwnerSubscription(ownerId);
+  return getEffectivePlanId(subscription) === PRO_PLAN_ID;
+}
+
 export async function getOwnerBillingSummary(ownerId: string) {
   const [subscription, unitCount] = await Promise.all([
     getOwnerSubscription(ownerId),
@@ -299,7 +305,7 @@ async function ensureStripeCustomer(ownerId: string, subscription?: OwnerSubscri
 
   const body = new URLSearchParams();
   body.set('metadata[owner_id]', ownerId);
-  body.set('description', `La-Kers owner ${ownerId}`);
+  body.set('description', `${APP_NAME} owner ${ownerId}`);
 
   const customer = await stripeRequest<StripeCustomer>('/v1/customers', { body });
   const stripeCustomerId = String(customer.id ?? '').trim();

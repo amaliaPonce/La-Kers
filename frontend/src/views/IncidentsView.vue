@@ -405,6 +405,7 @@
 
 <script setup lang="ts">
 import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import apiClient from '../services/apiClient';
 import { track } from '../lib/analytics';
 import { captureAppException } from '../lib/sentry';
@@ -544,6 +545,8 @@ const selectedIncidentId = ref<string | null>(null);
 const detailPanelRef = ref<HTMLElement | null>(null);
 const detailUploadInput = ref<HTMLInputElement | null>(null);
 const isSaving = ref(false);
+const route = useRoute();
+const router = useRouter();
 
 const dateFormatter = new Intl.DateTimeFormat('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
 const shortDateFormatter = new Intl.DateTimeFormat('es-ES', { day: 'numeric', month: 'short' });
@@ -731,6 +734,18 @@ watch(
       selectedIncidentId.value = null;
       return;
     }
+
+    if (route.query.id) {
+      const queryId = String(route.query.id);
+      if (list.some(i => i.id === queryId)) {
+        selectedIncidentId.value = queryId;
+        const newQuery = { ...route.query };
+        delete newQuery.id;
+        router.replace({ ...route, query: newQuery });
+        return;
+      }
+    }
+
     if (!selectedIncidentId.value || !list.some((incident) => incident.id === selectedIncidentId.value)) {
       selectedIncidentId.value = list[0].id;
     }

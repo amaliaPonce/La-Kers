@@ -1,3 +1,4 @@
+import { APP_NAME } from './brand';
 import 'dotenv/config';
 
 export type LandlordConfig = {
@@ -20,7 +21,7 @@ function resolveLandlordValue(envKey: string, fallback: string) {
 }
 
 export const landlordConfig: LandlordConfig = {
-  name: resolveLandlordValue('LANDLORD_NAME', 'Apartamentos La Kers, S.L.'),
+  name: resolveLandlordValue('LANDLORD_NAME', `Apartamentos ${APP_NAME}, S.L.`),
   identification: resolveLandlordValue('LANDLORD_IDENTIFICATION', 'B12345678'),
   address: resolveLandlordValue('LANDLORD_ADDRESS', 'C/ Mayor 1, 28013 Madrid, España')
 };

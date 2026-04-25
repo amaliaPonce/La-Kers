@@ -8,7 +8,7 @@ const baseEnv = {
   SUPABASE_SERVICE_ROLE_KEY: 'service-role',
   CLERK_PUBLISHABLE_KEY: 'pk_test_example',
   CLERK_SECRET_KEY: 'clerk-secret',
-  LANDLORD_NAME: 'La Kers',
+  LANDLORD_NAME: 'Alquilio',
   LANDLORD_IDENTIFICATION: 'B12345678',
   LANDLORD_ADDRESS: 'Madrid'
 };

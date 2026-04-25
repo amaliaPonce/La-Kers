@@ -63,7 +63,10 @@ export type AppConfig = {
   trustProxy: boolean;
   enableCronJobs: boolean;
   enableTenantPortal: boolean;
+  enableTenantPortalPremium: boolean;
   enableDashboardRealtime: boolean;
+  tenantContractRenewalNoticeDays: number;
+  tenantPortalInviteTtlDays: number;
   clerkUserCacheTtlMs: number;
   requestBodyLimit: string;
   allowedOrigins: string[];
@@ -87,6 +90,7 @@ export function createAppConfig(env: NodeJS.ProcessEnv): AppConfig {
   const allowedOrigins = parseOriginList(env.CORS_ALLOWED_ORIGINS);
   const platformOrigins = derivePlatformOrigins(env);
   const effectiveAllowedOrigins = allowedOrigins.length ? allowedOrigins : platformOrigins;
+  const enableTenantPortal = parseBoolean(env.ENABLE_TENANT_PORTAL, !minimalMode);
 
   if (isProduction && !effectiveAllowedOrigins.length) {
     throw new Error('Missing required environment variable: CORS_ALLOWED_ORIGINS');
@@ -100,8 +104,11 @@ export function createAppConfig(env: NodeJS.ProcessEnv): AppConfig {
     minimalMode,
     trustProxy: parseBoolean(env.TRUST_PROXY, isProduction),
     enableCronJobs: parseBoolean(env.ENABLE_CRON_JOBS, !minimalMode),
-    enableTenantPortal: parseBoolean(env.ENABLE_TENANT_PORTAL, !minimalMode),
+    enableTenantPortal,
+    enableTenantPortalPremium: enableTenantPortal && parseBoolean(env.ENABLE_TENANT_PORTAL_PREMIUM, !minimalMode),
     enableDashboardRealtime: parseBoolean(env.ENABLE_DASHBOARD_REALTIME, !minimalMode),
+    tenantContractRenewalNoticeDays: parseNonNegativeNumber(env.TENANT_CONTRACT_RENEWAL_NOTICE_DAYS, 30),
+    tenantPortalInviteTtlDays: parseNonNegativeNumber(env.TENANT_PORTAL_INVITE_TTL_DAYS, 14),
     clerkUserCacheTtlMs: parseNonNegativeNumber(
       env.CLERK_USER_CACHE_TTL_MS,
       minimalMode ? 300_000 : 60_000

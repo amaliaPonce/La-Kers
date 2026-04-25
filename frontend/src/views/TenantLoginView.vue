@@ -13,7 +13,7 @@
             <div class="space-y-4">
               <h1 class="text-5xl font-semibold leading-[0.95] text-slate-900">Accede al seguimiento de tu alquiler.</h1>
               <p class="max-w-lg text-base leading-8 text-slate-600">
-                Consulta tus comunicaciones y el estado de tu contrato desde un acceso seguro.
+                Entra con el enlace personal que te haya enviado el propietario para vincular tu expediente de forma segura.
               </p>
             </div>
           </div>
@@ -26,16 +26,27 @@
           <div v-else-if="!hasClerkConfig" class="mx-auto max-w-[520px] rounded-2xl border border-amber-200 bg-amber-50 px-4 py-4 text-sm text-amber-900">
             Falta configurar `VITE_CLERK_PUBLISHABLE_KEY` en `frontend/.env`.
           </div>
-          <div v-else class="clerk-shell">
+          <div v-else class="space-y-4">
+            <div
+              v-if="hasInviteToken"
+              class="mx-auto max-w-[520px] rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-4 text-sm text-emerald-900"
+            >
+              Invitación personal detectada. Inicia sesión con tu cuenta de inquilino y el portal quedará vinculado a ese enlace.
+            </div>
+            <div v-else class="mx-auto max-w-[520px] rounded-2xl border border-[#eadfd2] bg-[#fbf8f2] px-4 py-4 text-sm text-slate-700">
+              Si tu propietario te ha enviado una invitación, abre ese enlace para completar el acceso al portal.
+            </div>
+            <div class="clerk-shell">
             <SignIn
               path="/tenant/sign-in"
               routing="path"
               oauth-flow="popup"
               :appearance="clerkAuthAppearance"
               fallback-redirect-url="/tenant"
-              sign-up-url="/tenant/sign-up"
+              :sign-up-url="tenantSignUpUrl"
               sign-up-fallback-redirect-url="/tenant"
             />
+            </div>
           </div>
         </section>
       </div>
@@ -45,11 +56,22 @@
 
 <script setup lang="ts">
 import { SignIn } from '@clerk/vue';
+import { computed, onMounted } from 'vue';
+import { useRoute } from 'vue-router';
 import { runtimeConfig } from '../config/runtimeConfig';
 import { clerkAuthAppearance } from '../services/clerkAppearance';
+import { rememberTenantPortalInviteToken } from '../services/tenantPortalInvite';
 
 const hasClerkConfig = runtimeConfig.hasClerkConfig;
 const tenantPortalEnabled = runtimeConfig.enableTenantPortal;
+const route = useRoute();
+const inviteToken = computed(() => String(route.query.invite ?? '').trim());
+const hasInviteToken = computed(() => Boolean(inviteToken.value));
+const tenantSignUpUrl = computed(() => (inviteToken.value ? `/tenant/sign-up?invite=${encodeURIComponent(inviteToken.value)}` : '/tenant/sign-up'));
+
+onMounted(() => {
+  rememberTenantPortalInviteToken(inviteToken.value);
+});
 </script>
 
 <style scoped>

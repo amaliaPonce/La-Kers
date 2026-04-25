@@ -4,6 +4,7 @@
 - Run `npm run build`.
 - Run `npm test`.
 - Validate owner login, tenant login, apartment CRUD, tenant CRUD, payment marking, receipt download and contract finalization end to end.
+- If tenant portal premium is enabled, validate tenant pending payments, paid receipt download, incident creation, incident status visibility and contract renewal banner.
 - Validate that generated contract PDFs download through `GET /contracts/:contractId/pdf`.
 
 ## Runtime
@@ -14,6 +15,8 @@
 - Set `VITE_CLERK_PUBLISHABLE_KEY` in the frontend runtime.
 - Set `LANDLORD_NAME`, `LANDLORD_IDENTIFICATION` and `LANDLORD_ADDRESS`.
 - If you enable automatic billing, set `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_ID_PRO_MONTHLY` and `STRIPE_PRICE_ID_PRO_YEARLY`.
+- If tenant portal premium is enabled, set `ENABLE_TENANT_PORTAL_PREMIUM=true` and tune `TENANT_CONTRACT_RENEWAL_NOTICE_DAYS`.
+- If tenant portal invite links are enabled, set `TENANT_PORTAL_INVITE_TTL_DAYS` to the validity window you want.
 - Review `TRUST_PROXY=true` when running behind Nginx, Render, Railway, Fly.io, or another reverse proxy.
 - Keep `REQUEST_BODY_LIMIT` small unless a larger payload is strictly required.
 
@@ -23,6 +26,9 @@
   - `sql/20260327_clerk_owner_ids.sql`
   - `sql/20260327_owner_subscriptions.sql`
   - `sql/20260327_tenant_portal_access.sql` only if tenant portal is enabled
+  - `sql/20260413_tenant_contract_profiles.sql`
+  - `sql/20260423_tenant_portal_premium.sql` if tenant portal premium is enabled
+  - `sql/20260423_tenant_portal_invites.sql` if tenant portal access should work through personal invite links
 - Do not run ad hoc SQL to promote users, toggle plans, or link accounts in production.
 - Do not store generated PDFs or logs in Git.
 - Rotate Supabase keys if any secret was ever committed or shared insecurely.

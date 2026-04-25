@@ -12,6 +12,7 @@ export const runtimeConfig = {
   minimalMode,
   hasClerkConfig: Boolean(import.meta.env.VITE_CLERK_PUBLISHABLE_KEY),
   enableTenantPortal: parseBoolean(import.meta.env.VITE_ENABLE_TENANT_PORTAL, !minimalMode),
+  enableTenantPortalPremium: parseBoolean(import.meta.env.VITE_ENABLE_TENANT_PORTAL_PREMIUM, !minimalMode),
   enableDashboardRealtime: parseBoolean(
     import.meta.env.VITE_ENABLE_DASHBOARD_REALTIME,
     !minimalMode

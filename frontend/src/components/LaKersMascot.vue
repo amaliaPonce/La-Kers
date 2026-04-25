@@ -10,7 +10,7 @@
       viewBox="0 0 320 340"
       xmlns="http://www.w3.org/2000/svg"
       role="img"
-      aria-label="Mascota La-Kers"
+      aria-label="Mascota de Alquilio"
     >
       <defs>
         <!-- Ambient glow -->
