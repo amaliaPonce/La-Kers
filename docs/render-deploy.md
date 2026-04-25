@@ -4,12 +4,12 @@ Este repo queda preparado para desplegarse en Render Free con el blueprint de [r
 
 ## Servicios que debes crear
 
-- `la-kers-api`: `Web Service` con runtime `node`
-- `la-kers-web`: `Static Site` definido en el blueprint como `type: web` + `runtime: static`
+- `alquilio-api`: `Web Service` con runtime `node`
+- `alquilio-web`: `Static Site` definido en el blueprint como `type: web` + `runtime: static`
 
 ## Configuración que ya queda definida
 
-### Backend `la-kers-api`
+### Backend `alquilio-api`
 
 - Build command: `npm ci && npm --workspace backend run build`
 - Start command: `npm --workspace backend run start`
@@ -20,7 +20,7 @@ Este repo queda preparado para desplegarse en Render Free con el blueprint de [r
 - Sin disco persistente montado
 - Sin cron obligatorio en runtime
 
-### Frontend `la-kers-web`
+### Frontend `alquilio-web`
 
 - Build command: `npm ci && npm --workspace frontend run build`
 - Publish path: `frontend/dist`
@@ -69,8 +69,8 @@ Este repo queda preparado para desplegarse en Render Free con el blueprint de [r
 - `RATE_LIMIT_MAX=300`
 - `AUTH_RATE_LIMIT_WINDOW_MS=900000`
 - `AUTH_RATE_LIMIT_MAX=20`
-- `CORS_ALLOWED_ORIGINS` desde la URL pública de `la-kers-web`
-- `VITE_API_BASE` desde la URL pública de `la-kers-api`
+- `CORS_ALLOWED_ORIGINS` desde la URL pública de `alquilio-web`
+- `VITE_API_BASE` desde la URL pública de `alquilio-api`
 - `VITE_MINIMAL_MODE=true`
 - `VITE_ENABLE_TENANT_PORTAL=false`
 - `VITE_ENABLE_TENANT_PORTAL_PREMIUM=false`
@@ -85,8 +85,8 @@ Este repo queda preparado para desplegarse en Render Free con el blueprint de [r
 2. En Render, entra en `New` > `Blueprint`.
 3. Conecta el repositorio y selecciona la rama que vas a desplegar.
 4. Render detectará dos servicios:
-   - `la-kers-api` como `Web Service`
-   - `la-kers-web` como `Static Site`
+   - `alquilio-api` como `Web Service`
+   - `alquilio-web` como `Static Site`
 5. Revisa que el backend quede con estos valores:
    - Build Command: `npm ci --include=dev && npm --workspace backend run build`
    - Start Command: `npm --workspace backend run start`

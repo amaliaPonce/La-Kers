@@ -29,8 +29,8 @@ Usa el blueprint definido en [render.yaml](/Users/Amalia/Desktop/La-Kers/render.
 
 Se crean dos servicios:
 
-- `la-kers-api`: backend Express
-- `la-kers-web`: frontend estático
+- `alquilio-api`: backend Express
+- `alquilio-web`: frontend estático
 
 ## 3. Carga secretos y variables
 
