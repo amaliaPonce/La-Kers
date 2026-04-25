@@ -35,6 +35,8 @@ Sentry.init({
         delete event.request.headers.authorization;
         delete event.request.headers.cookie;
         delete event.request.headers['x-clerk-auth-token'];
+        delete event.request.headers['x-la-kers-tenant-invite'];
+        delete event.request.headers['stripe-signature'];
       }
     }
 

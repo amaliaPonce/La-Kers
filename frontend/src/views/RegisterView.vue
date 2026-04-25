@@ -83,7 +83,6 @@
               routing="path"
               oauth-flow="popup"
               :appearance="clerkAuthAppearance"
-              :unsafe-metadata="{ portalRole: 'owner' }"
               :fallback-redirect-url="returnPath"
               sign-in-url="/sign-in"
               :sign-in-fallback-redirect-url="returnPath"

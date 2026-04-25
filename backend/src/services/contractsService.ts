@@ -140,7 +140,10 @@ export async function finalizeContract(
   const propertyCity = record.units?.city ?? '—';
   const propertyPostal = record.units?.postal_code ?? '—';
 
-  const paymentSummary = await getTenantPaymentSummary(record.id, { untilDate: finalizationDate });
+  const paymentSummary = await getTenantPaymentSummary(record.id, {
+    untilDate: finalizationDate,
+    ownerId
+  });
 
   const documentPayload: ContractTerminationDocumentData = {
     landlord: resolveContractLandlordProfile(record.units),

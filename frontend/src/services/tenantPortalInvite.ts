@@ -1,27 +1,35 @@
 const TENANT_PORTAL_INVITE_STORAGE_KEY = 'la-kers.tenant-portal.invite-token';
 
 function isBrowser() {
-  return typeof window !== 'undefined' && Boolean(window.localStorage);
+  return typeof window !== 'undefined' && Boolean(window.sessionStorage);
+}
+
+function getInviteStorage() {
+  if (!isBrowser()) return null;
+  return window.sessionStorage;
 }
 
 export function getTenantPortalInviteToken() {
-  if (!isBrowser()) return '';
-  return String(window.localStorage.getItem(TENANT_PORTAL_INVITE_STORAGE_KEY) ?? '').trim();
+  const storage = getInviteStorage();
+  if (!storage) return '';
+  return String(storage.getItem(TENANT_PORTAL_INVITE_STORAGE_KEY) ?? '').trim();
 }
 
 export function setTenantPortalInviteToken(token: string) {
-  if (!isBrowser()) return;
+  const storage = getInviteStorage();
+  if (!storage) return;
   const normalizedToken = String(token ?? '').trim();
   if (!normalizedToken) {
-    window.localStorage.removeItem(TENANT_PORTAL_INVITE_STORAGE_KEY);
+    storage.removeItem(TENANT_PORTAL_INVITE_STORAGE_KEY);
     return;
   }
-  window.localStorage.setItem(TENANT_PORTAL_INVITE_STORAGE_KEY, normalizedToken);
+  storage.setItem(TENANT_PORTAL_INVITE_STORAGE_KEY, normalizedToken);
 }
 
 export function clearTenantPortalInviteToken() {
-  if (!isBrowser()) return;
-  window.localStorage.removeItem(TENANT_PORTAL_INVITE_STORAGE_KEY);
+  const storage = getInviteStorage();
+  if (!storage) return;
+  storage.removeItem(TENANT_PORTAL_INVITE_STORAGE_KEY);
 }
 
 export function rememberTenantPortalInviteToken(token?: string | null) {

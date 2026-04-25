@@ -20,6 +20,8 @@ services:
         value: false
       - key: ENABLE_TENANT_PORTAL
         value: false
+      - key: ENABLE_TENANT_EMAIL_MATCH
+        value: false
       - key: ENABLE_TENANT_PORTAL_PREMIUM
         value: false
       - key: ENABLE_DASHBOARD_REALTIME

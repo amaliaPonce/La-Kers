@@ -1,5 +1,5 @@
 import { supabaseAdmin } from '../config/supabaseClient';
-import { ensureOwnerOwnsUnit } from './ownersService';
+import { ensureOwnerOwnsTenant, ensureOwnerOwnsUnit } from './ownersService';
 
 type IncidentPayload = {
   unit_id: string;
@@ -39,6 +39,11 @@ export async function getIncidentById(id: string, ownerId?: string) {
 
 export async function createIncident(ownerId: string, payload: IncidentPayload) {
   await ensureOwnerOwnsUnit(ownerId, payload.unit_id);
+  if (payload.tenant_person_id) {
+    await ensureOwnerOwnsTenant(ownerId, payload.tenant_person_id, {
+      unitId: payload.unit_id
+    });
+  }
   const now = new Date().toISOString();
   const { data, error } = await supabaseAdmin
     .from('incidents')

@@ -1,7 +1,11 @@
 import { clerkClient } from '@clerk/express';
 import { appConfig } from '../config/appConfig';
 import { supabaseAdmin } from '../config/supabaseClient';
-import { claimTenantPortalInvite } from './tenantPortalInviteService';
+import {
+  claimTenantPortalInvite,
+  markTenantPortalInviteClaimed,
+  releaseTenantPortalInviteClaim
+} from './tenantPortalInviteService';
 
 type TenantPortalAccessRecord = {
   id: string;
@@ -79,7 +83,6 @@ type ClerkEmailAddress = {
 type ClerkUserRecord = {
   primaryEmailAddressId?: string | null;
   emailAddresses?: ClerkEmailAddress[] | null;
-  unsafeMetadata?: Record<string, unknown> | null;
 };
 
 type CachedClerkUser = {
@@ -116,7 +119,7 @@ async function getCachedClerkUser(clerkUserId: string) {
   return user;
 }
 
-async function getTenantPortalAccessByClerkUserId(clerkUserId: string) {
+export async function getTenantPortalAccessByClerkUserId(clerkUserId: string) {
   assertTenantPortalEnabled();
   const { data, error } = await supabaseAdmin
     .from('tenant_portal_access')
@@ -155,10 +158,10 @@ async function getClerkPrimaryEmail(clerkUserId: string) {
   return normalizeEmail(primary?.emailAddress);
 }
 
-export async function getClerkPortalRole(clerkUserId: string) {
+export async function hasTenantPortalAccess(clerkUserId: string) {
   assertTenantPortalEnabled();
-  const user = await getCachedClerkUser(clerkUserId);
-  return String(user.unsafeMetadata?.portalRole ?? '').trim().toLowerCase();
+  const access = await getTenantPortalAccessByClerkUserId(clerkUserId);
+  return Boolean(access);
 }
 
 async function autoLinkTenantPortalAccess(clerkUserId: string) {
@@ -247,36 +250,32 @@ async function createTenantPortalAccessFromInvite(clerkUserId: string, inviteTok
     throw error;
   }
 
-  const { data: upserted, error: upsertError } = await supabaseAdmin
-    .from('tenant_portal_access')
-    .upsert(
-      {
-        clerk_user_id: clerkUserId,
-        tenant_person_id: invite.tenant_person_id,
-        owner_id: invite.owner_id,
-        status: 'ACTIVE',
-        linked_via: 'invite_link',
-        updated_at: now,
-        last_login_at: now
-      },
-      { onConflict: 'tenant_person_id' }
-    )
-    .select('*')
-    .single();
-  if (upsertError) throw upsertError;
+  await markTenantPortalInviteClaimed(invite.id, clerkUserId);
 
-  const { error: claimUpdateError } = await supabaseAdmin
-    .from('tenant_portal_invites')
-    .update({
-      status: 'CLAIMED',
-      claimed_at: now,
-      claimed_by_clerk_user_id: clerkUserId,
-      updated_at: now
-    })
-    .eq('id', invite.id);
-  if (claimUpdateError) throw claimUpdateError;
+  try {
+    const { data: upserted, error: upsertError } = await supabaseAdmin
+      .from('tenant_portal_access')
+      .upsert(
+        {
+          clerk_user_id: clerkUserId,
+          tenant_person_id: invite.tenant_person_id,
+          owner_id: invite.owner_id,
+          status: 'ACTIVE',
+          linked_via: 'invite_link',
+          updated_at: now,
+          last_login_at: now
+        },
+        { onConflict: 'tenant_person_id' }
+      )
+      .select('*')
+      .single();
+    if (upsertError) throw upsertError;
 
-  return upserted as TenantPortalAccessRecord;
+    return upserted as TenantPortalAccessRecord;
+  } catch (error) {
+    await releaseTenantPortalInviteClaim(invite.id, clerkUserId).catch(() => undefined);
+    throw error;
+  }
 }
 
 export async function ensureTenantPortalAccess(clerkUserId: string, options: { inviteToken?: string } = {}) {
@@ -284,9 +283,15 @@ export async function ensureTenantPortalAccess(clerkUserId: string, options: { i
   let access = await getTenantPortalAccessByClerkUserId(clerkUserId);
   if (!access) {
     const inviteToken = String(options.inviteToken ?? '').trim();
-    access = inviteToken
-      ? await createTenantPortalAccessFromInvite(clerkUserId, inviteToken)
-      : await autoLinkTenantPortalAccess(clerkUserId);
+    if (inviteToken) {
+      access = await createTenantPortalAccessFromInvite(clerkUserId, inviteToken);
+    } else if (appConfig.enableTenantEmailMatch) {
+      access = await autoLinkTenantPortalAccess(clerkUserId);
+    } else {
+      const error = new Error('Necesitas una invitación válida del propietario para acceder al portal del inquilino');
+      (error as any).status = 403;
+      throw error;
+    }
   } else {
     await touchLastLogin(access.id);
   }

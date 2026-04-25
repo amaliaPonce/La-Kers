@@ -6,7 +6,7 @@ import { generatePaymentReceiptPdf, generateRentalContractPdf } from './document
 import { createIncident } from './incidentsService';
 import {
   ensurePendingPaymentsForTenant,
-  listTenantPayments,
+  listTenantPaymentsByOwner,
   markPendingPaymentsAsLateForTenant,
   TenantPaymentRecord
 } from './paymentsService';
@@ -224,10 +224,14 @@ export async function getTenantPortalOverview(clerkUserId: string): Promise<Tena
         }
       : null
   }, { untilDate });
-  await markPendingPaymentsAsLateForTenant(context.profile.tenant.id, untilDate);
+  await markPendingPaymentsAsLateForTenant(
+    context.profile.tenant.id,
+    untilDate,
+    context.access.owner_id
+  );
 
   const [payments, incidents] = await Promise.all([
-    listTenantPayments(context.profile.tenant.id),
+    listTenantPaymentsByOwner(context.profile.tenant.id, context.access.owner_id),
     listTenantVisibleIncidents(context)
   ]);
 

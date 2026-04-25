@@ -44,3 +44,44 @@ export async function ensureOwnerOwnsUnit(ownerId: string, unitId: string) {
   }
   return data;
 }
+
+export async function ensureOwnerOwnsTenant(
+  ownerId: string,
+  tenantPersonId: string,
+  options: { unitId?: string } = {}
+) {
+  if (!ownerId) {
+    const err = new Error('Propietario no autenticado');
+    (err as any).status = 401;
+    throw err;
+  }
+  if (!tenantPersonId) {
+    const err = new Error('Inquilino inválido');
+    (err as any).status = 400;
+    throw err;
+  }
+
+  let query = supabaseAdmin
+    .from('tenant_persons')
+    .select('id, unit_id, units!inner(owner_id)')
+    .eq('id', tenantPersonId)
+    .eq('units.owner_id', ownerId);
+
+  if (options.unitId) {
+    query = query.eq('unit_id', options.unitId);
+  }
+
+  const { data, error } = await query.maybeSingle();
+  if (error) throw error;
+  if (!data) {
+    const err = new Error(
+      options.unitId
+        ? 'El inquilino no pertenece a la unidad indicada'
+        : 'El inquilino no pertenece al propietario'
+    );
+    (err as any).status = 403;
+    throw err;
+  }
+
+  return data;
+}

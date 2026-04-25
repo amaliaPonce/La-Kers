@@ -63,6 +63,7 @@ export type AppConfig = {
   trustProxy: boolean;
   enableCronJobs: boolean;
   enableTenantPortal: boolean;
+  enableTenantEmailMatch: boolean;
   enableTenantPortalPremium: boolean;
   enableDashboardRealtime: boolean;
   tenantContractRenewalNoticeDays: number;
@@ -105,6 +106,7 @@ export function createAppConfig(env: NodeJS.ProcessEnv): AppConfig {
     trustProxy: parseBoolean(env.TRUST_PROXY, isProduction),
     enableCronJobs: parseBoolean(env.ENABLE_CRON_JOBS, !minimalMode),
     enableTenantPortal,
+    enableTenantEmailMatch: enableTenantPortal && parseBoolean(env.ENABLE_TENANT_EMAIL_MATCH, false),
     enableTenantPortalPremium: enableTenantPortal && parseBoolean(env.ENABLE_TENANT_PORTAL_PREMIUM, !minimalMode),
     enableDashboardRealtime: parseBoolean(env.ENABLE_DASHBOARD_REALTIME, !minimalMode),
     tenantContractRenewalNoticeDays: parseNonNegativeNumber(env.TENANT_CONTRACT_RENEWAL_NOTICE_DAYS, 30),

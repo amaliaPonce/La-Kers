@@ -1,5 +1,5 @@
 import { supabaseAdmin } from '../config/supabaseClient';
-import { ensureOwnerOwnsUnit } from './ownersService';
+import { ensureOwnerOwnsTenant, ensureOwnerOwnsUnit } from './ownersService';
 
 type PaymentPayload = {
   unit_id: string;
@@ -148,11 +148,21 @@ export async function getPaymentById(id: string, ownerId?: string) {
 }
 
 export async function listTenantPayments(tenantPersonId: string) {
-  const { data, error } = await supabaseAdmin
+  return listTenantPaymentsByOwner(tenantPersonId);
+}
+
+export async function listTenantPaymentsByOwner(tenantPersonId: string, ownerId?: string) {
+  let query = supabaseAdmin
     .from('payments')
     .select(TENANT_PAYMENT_SELECT)
     .eq('tenant_person_id', tenantPersonId)
     .order('due_date', { ascending: false });
+
+  if (ownerId) {
+    query = query.eq('units.owner_id', ownerId);
+  }
+
+  const { data, error } = await query;
   if (error) throw error;
   return (data ?? []) as TenantPaymentRecord[];
 }
@@ -160,6 +170,9 @@ export async function listTenantPayments(tenantPersonId: string) {
 export async function createPayment(payload: PaymentPayload, ownerId?: string) {
   if (ownerId) {
     await ensureOwnerOwnsUnit(ownerId, payload.unit_id);
+    await ensureOwnerOwnsTenant(ownerId, payload.tenant_person_id, {
+      unitId: payload.unit_id
+    });
   }
   const { data, error } = await supabaseAdmin.from('payments').insert({
     ...payload,
@@ -273,17 +286,39 @@ export async function markPendingPaymentsAsLate(date: string, ownerId?: string) 
   if (error) throw error;
 }
 
-export async function markPendingPaymentsAsLateForTenant(tenantPersonId: string, date: string) {
+export async function markPendingPaymentsAsLateForTenant(tenantPersonId: string, date: string, ownerId?: string) {
   const targetDate = toDateKey(date);
   if (!targetDate) return;
 
-  const { error } = await supabaseAdmin
+  let paymentIds: string[] | null = null;
+
+  if (ownerId) {
+    const { data, error } = await supabaseAdmin
+      .from('payments')
+      .select('id, units!inner(owner_id)')
+      .eq('tenant_person_id', tenantPersonId)
+      .eq('units.owner_id', ownerId)
+      .lt('due_date', targetDate)
+      .eq('status', 'PENDING');
+
+    if (error) throw error;
+
+    paymentIds = (data ?? []).map((payment) => String(payment.id ?? '')).filter(Boolean);
+    if (!paymentIds.length) return;
+  }
+
+  let query = supabaseAdmin
     .from('payments')
     .update({ status: 'LATE' })
     .eq('tenant_person_id', tenantPersonId)
     .lt('due_date', targetDate)
     .eq('status', 'PENDING');
 
+  if (paymentIds) {
+    query = query.in('id', paymentIds);
+  }
+
+  const { error } = await query;
   if (error) throw error;
 }
 
@@ -355,8 +390,9 @@ export async function reconcileUnpaidPaymentsForTenant(
 
   const { data, error } = await supabaseAdmin
     .from('payments')
-    .select('id, unit_id, amount, due_date, month, year')
+    .select('id, unit_id, amount, due_date, month, year, units!inner(owner_id)')
     .eq('tenant_person_id', tenant.id)
+    .eq('units.owner_id', ownerId)
     .in('status', ['PENDING', 'LATE']);
   if (error) throw error;
 
@@ -418,12 +454,16 @@ export async function reconcileUnpaidPaymentsForTenant(
 
 export async function getTenantPaymentSummary(
   tenantPersonId: string,
-  options?: TenantPaymentSummaryOptions
+  options?: TenantPaymentSummaryOptions & { ownerId?: string }
 ): Promise<TenantPaymentSummary> {
   let builder = supabaseAdmin
     .from('payments')
-    .select('amount,status,paid_date,month,year,due_date')
+    .select('amount,status,paid_date,month,year,due_date,units!inner(owner_id)')
     .eq('tenant_person_id', tenantPersonId);
+
+  if (options?.ownerId) {
+    builder = builder.eq('units.owner_id', options.ownerId);
+  }
 
   if (options?.untilDate) {
     builder = builder.lte('due_date', options.untilDate);

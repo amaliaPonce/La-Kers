@@ -56,8 +56,8 @@
 
 <script setup lang="ts">
 import { SignIn } from '@clerk/vue';
-import { computed, onMounted } from 'vue';
-import { useRoute } from 'vue-router';
+import { computed, onMounted, ref } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import { runtimeConfig } from '../config/runtimeConfig';
 import { clerkAuthAppearance } from '../services/clerkAppearance';
 import { rememberTenantPortalInviteToken } from '../services/tenantPortalInvite';
@@ -65,12 +65,18 @@ import { rememberTenantPortalInviteToken } from '../services/tenantPortalInvite'
 const hasClerkConfig = runtimeConfig.hasClerkConfig;
 const tenantPortalEnabled = runtimeConfig.enableTenantPortal;
 const route = useRoute();
-const inviteToken = computed(() => String(route.query.invite ?? '').trim());
+const router = useRouter();
+const inviteToken = ref(String(route.query.invite ?? '').trim());
 const hasInviteToken = computed(() => Boolean(inviteToken.value));
 const tenantSignUpUrl = computed(() => (inviteToken.value ? `/tenant/sign-up?invite=${encodeURIComponent(inviteToken.value)}` : '/tenant/sign-up'));
 
 onMounted(() => {
   rememberTenantPortalInviteToken(inviteToken.value);
+  if (inviteToken.value) {
+    const nextQuery = { ...route.query };
+    delete nextQuery.invite;
+    void router.replace({ query: nextQuery });
+  }
 });
 </script>
 

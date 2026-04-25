@@ -419,7 +419,7 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue';
 import { UserButton } from '@clerk/vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import SolidIcon from '../components/SolidIcon.vue';
 import { runtimeConfig } from '../config/runtimeConfig';
 import { clerkUserButtonAppearance } from '../services/clerkAppearance';
@@ -435,6 +435,7 @@ const downloadingKey = ref('');
 const tenantPortalEnabled = runtimeConfig.enableTenantPortal;
 const tenantPortalPremiumEnabled = runtimeConfig.enableTenantPortalPremium;
 const route = useRoute();
+const router = useRouter();
 const incidentForm = reactive({
   title: '',
   description: ''
@@ -693,7 +694,13 @@ onMounted(() => {
     return;
   }
 
-  rememberTenantPortalInviteToken(String(route.query.invite ?? '').trim());
+  const inviteToken = String(route.query.invite ?? '').trim();
+  rememberTenantPortalInviteToken(inviteToken);
+  if (inviteToken) {
+    const nextQuery = { ...route.query };
+    delete nextQuery.invite;
+    void router.replace({ query: nextQuery });
+  }
   void refreshData();
 });
 </script>

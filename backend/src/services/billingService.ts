@@ -72,6 +72,7 @@ type StripeSubscription = {
 
 const MANUAL_ACTIVATION_EMAIL = process.env.BILLING_CONTACT_EMAIL?.trim() || 'alquilio.app@outlook.es';
 const BILLING_ENABLED_STATUSES = new Set<SubscriptionStatus>(['active', 'trialing', 'past_due']);
+const STRIPE_WEBHOOK_TOLERANCE_SECONDS = 300;
 const BILLING_STATUSES: SubscriptionStatus[] = [
   'inactive',
   'trialing',
@@ -430,7 +431,11 @@ export async function upsertOwnerSubscription(ownerId: string, payload: Partial<
   return data;
 }
 
-export function verifyStripeWebhookSignature(payload: Buffer, signatureHeader?: string | string[]) {
+export function verifyStripeWebhookSignature(
+  payload: Buffer,
+  signatureHeader?: string | string[],
+  toleranceSeconds = STRIPE_WEBHOOK_TOLERANCE_SECONDS
+) {
   const header = Array.isArray(signatureHeader) ? signatureHeader[0] : signatureHeader;
   if (!stripeConfig.webhookSecret || !header) return false;
 
@@ -442,6 +447,13 @@ export function verifyStripeWebhookSignature(payload: Buffer, signatureHeader?: 
     .filter(Boolean);
 
   if (!timestamp || !signatures.length) return false;
+  const timestampSeconds = Number(timestamp);
+  if (!Number.isFinite(timestampSeconds)) return false;
+
+  const ageSeconds = Math.abs(Math.floor(Date.now() / 1000) - timestampSeconds);
+  if (ageSeconds > toleranceSeconds) {
+    return false;
+  }
 
   const expected = buildStripeSignature(payload, timestamp);
   return signatures.some((signature) => {

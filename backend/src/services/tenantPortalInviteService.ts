@@ -168,3 +168,72 @@ export async function claimTenantPortalInvite(clerkUserId: string, token: string
 
   return invite;
 }
+
+export async function markTenantPortalInviteClaimed(inviteId: string, clerkUserId: string) {
+  const now = new Date().toISOString();
+  const { data, error } = await supabaseAdmin
+    .from('tenant_portal_invites')
+    .update({
+      status: 'CLAIMED',
+      claimed_at: now,
+      claimed_by_clerk_user_id: clerkUserId,
+      updated_at: now
+    })
+    .eq('id', inviteId)
+    .eq('status', 'PENDING')
+    .select('*')
+    .maybeSingle();
+
+  if (error) {
+    if (isMissingInviteTable(error)) {
+      throw buildMissingInviteTableError();
+    }
+    throw error;
+  }
+
+  if (data) {
+    return data as TenantPortalInviteRecord;
+  }
+
+  const currentInvite = await supabaseAdmin
+    .from('tenant_portal_invites')
+    .select('*')
+    .eq('id', inviteId)
+    .maybeSingle();
+  if (currentInvite.error) {
+    if (isMissingInviteTable(currentInvite.error)) {
+      throw buildMissingInviteTableError();
+    }
+    throw currentInvite.error;
+  }
+
+  const current = (currentInvite.data as TenantPortalInviteRecord | null) ?? null;
+  if (current?.status === 'CLAIMED' && current.claimed_by_clerk_user_id === clerkUserId) {
+    return current;
+  }
+
+  const conflict = new Error('Esta invitación ya fue utilizada');
+  (conflict as { status?: number }).status = 409;
+  throw conflict;
+}
+
+export async function releaseTenantPortalInviteClaim(inviteId: string, clerkUserId: string) {
+  const { error } = await supabaseAdmin
+    .from('tenant_portal_invites')
+    .update({
+      status: 'PENDING',
+      claimed_at: null,
+      claimed_by_clerk_user_id: null,
+      updated_at: new Date().toISOString()
+    })
+    .eq('id', inviteId)
+    .eq('status', 'CLAIMED')
+    .eq('claimed_by_clerk_user_id', clerkUserId);
+
+  if (error) {
+    if (isMissingInviteTable(error)) {
+      throw buildMissingInviteTableError();
+    }
+    throw error;
+  }
+}

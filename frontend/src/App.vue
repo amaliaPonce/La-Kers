@@ -28,7 +28,8 @@
     </template>
 
     <template v-else>
-      <SignedIn>
+      <ClerkLoaded>
+      <Show when="signed-in">
         <template v-if="route.meta.tenantPortal">
           <router-view />
         </template>
@@ -189,9 +190,9 @@
           <OnboardingChecklist />
           <TooltipGuide :route-name="currentOnboardingRoute" />
         </template>
-      </SignedIn>
+      </Show>
 
-      <SignedOut>
+      <Show when="signed-out">
         <template v-if="route.meta.tenantPortal">
           <div class="pointer-events-none fixed inset-x-0 top-0 z-0 h-[320px] bg-[radial-gradient(circle_at_top_left,_rgba(31,79,70,0.12),_transparent_28%),radial-gradient(circle_at_85%_8%,_rgba(201,106,55,0.12),_transparent_24%),linear-gradient(180deg,_rgba(255,255,255,0.85),_rgba(246,243,238,0))]"></div>
           <main class="relative z-10 flex min-h-screen items-center justify-center px-4 py-10 sm:px-6 lg:px-8">
@@ -199,7 +200,7 @@
               <p class="text-[11px] font-semibold uppercase tracking-[0.3em] text-[#1f4f46]">Portal del inquilino</p>
               <h1 class="mt-4 text-3xl font-semibold text-slate-900">Inicia sesión para acceder a tu alquiler</h1>
               <p class="mt-3 text-sm leading-7 text-slate-600">
-                Usa el mismo correo que figura en tu contrato para enlazar tu expediente automáticamente.
+                Accede con la invitación personal que te haya compartido el propietario para enlazar tu expediente.
               </p>
               <router-link
                 v-if="enableTenantPortal"
@@ -235,7 +236,8 @@
             </div>
           </main>
         </template>
-      </SignedOut>
+      </Show>
+      </ClerkLoaded>
     </template>
     <AppFeedbackHost />
   </div>
@@ -244,7 +246,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
-import { SignedIn, SignedOut, UserButton, useUser } from '@clerk/vue';
+import { ClerkLoaded, Show, UserButton, useUser } from '@clerk/vue';
 import AppFeedbackHost from './components/AppFeedbackHost.vue';
 import BrandMark from './components/BrandMark.vue';
 import SolidIcon from './components/SolidIcon.vue';

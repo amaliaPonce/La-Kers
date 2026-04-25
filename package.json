@@ -10,6 +10,10 @@
     "build": "npm --workspace backend run build && npm --workspace frontend run build",
     "test": "npm --workspace backend run test"
   },
+  "overrides": {
+    "path-to-regexp": "0.1.13",
+    "follow-redirects": "1.16.0"
+  },
   "devDependencies": {
     "concurrently": "^9.2.1"
   }

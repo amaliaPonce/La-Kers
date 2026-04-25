@@ -42,7 +42,6 @@
               routing="path"
               oauth-flow="popup"
               :appearance="clerkAuthAppearance"
-              :unsafe-metadata="{ portalRole: 'tenant' }"
               fallback-redirect-url="/tenant"
               :sign-in-url="tenantSignInUrl"
               sign-in-fallback-redirect-url="/tenant"
@@ -57,8 +56,8 @@
 
 <script setup lang="ts">
 import { SignUp } from '@clerk/vue';
-import { computed, onMounted } from 'vue';
-import { useRoute } from 'vue-router';
+import { computed, onMounted, ref } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import { runtimeConfig } from '../config/runtimeConfig';
 import { clerkAuthAppearance } from '../services/clerkAppearance';
 import { rememberTenantPortalInviteToken } from '../services/tenantPortalInvite';
@@ -66,12 +65,18 @@ import { rememberTenantPortalInviteToken } from '../services/tenantPortalInvite'
 const hasClerkConfig = runtimeConfig.hasClerkConfig;
 const tenantPortalEnabled = runtimeConfig.enableTenantPortal;
 const route = useRoute();
-const inviteToken = computed(() => String(route.query.invite ?? '').trim());
+const router = useRouter();
+const inviteToken = ref(String(route.query.invite ?? '').trim());
 const hasInviteToken = computed(() => Boolean(inviteToken.value));
 const tenantSignInUrl = computed(() => (inviteToken.value ? `/tenant/sign-in?invite=${encodeURIComponent(inviteToken.value)}` : '/tenant/sign-in'));
 
 onMounted(() => {
   rememberTenantPortalInviteToken(inviteToken.value);
+  if (inviteToken.value) {
+    const nextQuery = { ...route.query };
+    delete nextQuery.invite;
+    void router.replace({ query: nextQuery });
+  }
 });
 </script>
 
