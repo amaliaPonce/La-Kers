@@ -10,7 +10,7 @@
     <header class="relative z-50 border-b border-white/60 bg-[#f8f5ef]/80 backdrop-blur-xl">
       <div class="mx-auto flex max-w-[90rem] flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
         <router-link to="/" class="flex items-center gap-3">
-          <BrandMark icon-class="h-11 w-11" label-class="text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl" />
+          <BrandMark icon-only icon-class="h-11 w-11" />
         </router-link>
 
         <nav class="hidden items-center gap-7 text-sm text-slate-600 lg:flex">
@@ -481,7 +481,7 @@
       <div class="mx-auto max-w-[90rem] overflow-hidden rounded-[34px] px-6 py-6 lg:px-10 lg:py-8">
         <div class="grid gap-4 xl:grid-cols-[minmax(0,1.05fr)_repeat(3,minmax(0,0.65fr))]">
           <div class="rounded-[28px] border-2 border-[#1f4f46] bg-[#dff3ea] p-6 shadow-[8px_8px_0_0_rgba(31,79,70,0.16)] lg:p-7">
-            <BrandMark icon-class="h-11 w-11" label-class="text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl" />
+            <BrandMark hide-icon use-wordmark-image wordmark-class="h-12 sm:h-14" label-class="text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl" />
             <p class="mt-5 max-w-xl text-base leading-8 text-slate-700">
               Plataforma para propietarios que quieren centralizar propiedades, pagos, incidencias, contratos y documentos sin trabajar con herramientas dispersas.
             </p>

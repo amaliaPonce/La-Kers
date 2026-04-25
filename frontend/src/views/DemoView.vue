@@ -5,7 +5,7 @@
     <header class="relative z-10 border-b border-white/60 bg-[#f8f5ef]/80 backdrop-blur-xl">
       <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
         <router-link to="/" class="landing-brand flex items-center gap-3 text-lg font-semibold tracking-tight text-slate-900">
-          <BrandMark icon-class="h-11 w-11" label-class="text-2xl font-semibold tracking-tight text-slate-900" />
+          <BrandMark icon-only icon-class="h-11 w-11" />
           <span class="hidden text-sm font-semibold uppercase tracking-[0.24em] text-[#1f4f46] sm:inline">Demo</span>
         </router-link>
 

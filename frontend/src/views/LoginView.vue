@@ -7,7 +7,7 @@
     <header class="relative z-10 border-b border-white/60 bg-[#f8f5ef]/80 backdrop-blur-xl">
       <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
         <router-link to="/" class="flex items-center text-slate-900">
-          <BrandMark compact icon-class="h-10 w-10" />
+          <BrandMark icon-only icon-class="h-10 w-10" />
         </router-link>
 
         <div class="flex flex-wrap items-center gap-3 text-sm">
