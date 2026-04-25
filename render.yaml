@@ -43,7 +43,7 @@ services:
       - key: CORS_ALLOWED_ORIGINS
         fromService:
           type: web
-          name: alquilio-web
+          name: alquilio
           envVarKey: RENDER_EXTERNAL_URL
       - key: SUPABASE_URL
         sync: false
@@ -71,7 +71,7 @@ services:
         sync: false
 
   - type: web
-    name: alquilio-web
+    name: alquilio
     runtime: static
     buildCommand: npm ci && npm --workspace frontend run build
     staticPublishPath: frontend/dist

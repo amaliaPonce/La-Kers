@@ -30,7 +30,7 @@ Usa el blueprint definido en [render.yaml](/Users/Amalia/Desktop/La-Kers/render.
 Se crean dos servicios:
 
 - `alquilio-api`: backend Express
-- `alquilio-web`: frontend estático
+- `alquilio`: frontend estático
 
 ## 3. Carga secretos y variables
 
