@@ -42,6 +42,8 @@ services:
         value: 900000
       - key: AUTH_RATE_LIMIT_MAX
         value: 20
+      - key: CEO_ADMIN_EMAILS
+        value: amaliaponcetoledo@gmail.com
       - key: CORS_ALLOWED_ORIGINS
         fromService:
           type: web
