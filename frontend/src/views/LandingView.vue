@@ -8,9 +8,9 @@
     </div>
 
     <header class="relative z-50 border-b border-white/60 bg-[#f8f5ef]/80 backdrop-blur-xl">
-      <div class="mx-auto flex max-w-[90rem] flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
-        <router-link to="/" class="flex items-center gap-3">
-          <BrandMark icon-only icon-class="h-11 w-11" />
+      <div class="mx-auto flex max-w-[90rem] items-center justify-between gap-3 px-4 py-3 sm:px-6 sm:py-4 lg:px-8">
+        <router-link to="/" class="flex shrink-0 items-center">
+          <BrandMark icon-only icon-class="h-10 w-10 sm:h-11 sm:w-11" />
         </router-link>
 
         <nav class="hidden items-center gap-7 text-sm text-slate-600 lg:flex">
@@ -19,27 +19,28 @@
           <a href="#faq" class="transition hover:text-[#1f4f46]">FAQ</a>
         </nav>
 
-        <div class="flex flex-wrap items-center gap-3">
+        <div class="flex shrink-0 items-center gap-2 sm:gap-3">
           <router-link
             to="/sign-in"
-            class="rounded-full border border-slate-200/80 bg-white/70 px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:text-slate-900"
+            class="rounded-full border border-slate-200/80 bg-white/70 px-3 py-2 text-xs font-medium text-slate-700 transition hover:border-slate-300 hover:text-slate-900 sm:px-4 sm:text-sm"
             @click="handleLoginClick('header')"
           >
             Iniciar sesión
           </router-link>
           <router-link
             to="/demo"
-            class="rounded-full border border-[#d5e4dd] bg-white/80 px-4 py-2 text-sm font-medium text-[#1f4f46] transition hover:border-[#bfd6cd] hover:bg-[#edf6f2]"
+            class="hidden rounded-full border border-[#d5e4dd] bg-white/80 px-4 py-2 text-sm font-medium text-[#1f4f46] transition hover:border-[#bfd6cd] hover:bg-[#edf6f2] sm:inline-flex"
             @click="handleDemoClick('header')"
           >
             Ver demo
           </router-link>
           <router-link
             to="/sign-up"
-            class="rounded-full bg-[#c96a37] px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-orange-950/10 transition hover:-translate-y-0.5 hover:bg-[#b85d2d]"
+            class="rounded-full bg-[#c96a37] px-4 py-2 text-xs font-semibold text-white shadow-lg shadow-orange-950/10 transition hover:-translate-y-0.5 hover:bg-[#b85d2d] sm:px-5 sm:py-2.5 sm:text-sm"
             @click="handleRegisterClick('header')"
           >
-            Empieza gratis
+            <span class="sm:hidden">Gratis</span>
+            <span class="hidden sm:inline">Empieza gratis</span>
           </router-link>
         </div>
       </div>
@@ -49,7 +50,7 @@
       <section class="section-frame overflow-hidden rounded-[34px] px-6 py-6 lg:px-8 lg:py-8">
         <div class="grid gap-10 lg:grid-cols-[minmax(0,1.02fr)_minmax(0,0.98fr)] lg:items-center">
           <div class="space-y-8">
-            <div class="inline-flex items-center gap-3 rounded-full border border-[#d6c7bb] bg-white/80 px-4 py-2 text-[11px] font-semibold uppercase text-[#1f4f46] shadow-sm" style="letter-spacing: 0.26em;">
+            <div class="hero-pill inline-flex items-center rounded-full border border-[#d6c7bb] bg-white/80 font-semibold uppercase text-[#1f4f46] shadow-sm">
               <span class="h-2.5 w-2.5 rounded-full bg-[#c96a37] shadow-[0_0_0_6px_rgba(201,106,55,0.14)]"></span>
               Para propietarios cansados de Excel
             </div>
@@ -63,24 +64,24 @@
               </p>
             </div>
 
-            <div class="flex flex-wrap gap-3">
+            <div class="grid grid-cols-2 gap-3 sm:flex sm:flex-wrap">
               <router-link
                 to="/sign-up"
-                class="rounded-full bg-[#c96a37] px-6 py-3.5 text-sm font-semibold text-white shadow-lg shadow-orange-950/10 transition hover:-translate-y-0.5 hover:bg-[#b85d2d]"
+                class="col-span-2 inline-flex items-center justify-center rounded-full bg-[#c96a37] px-6 py-3.5 text-sm font-semibold text-white shadow-lg shadow-orange-950/10 transition hover:-translate-y-0.5 hover:bg-[#b85d2d] sm:col-span-1"
                 @click="handleRegisterClick('hero_primary')"
               >
                 Crear cuenta gratis
               </router-link>
               <router-link
                 to="/demo"
-                class="rounded-full border border-[#d5e4dd] bg-white/85 px-6 py-3.5 text-sm font-semibold text-[#1f4f46] transition hover:-translate-y-0.5 hover:border-[#bfd6cd] hover:bg-[#edf6f2]"
+                class="inline-flex items-center justify-center rounded-full border border-[#d5e4dd] bg-white/85 px-5 py-3.5 text-center text-sm font-semibold text-[#1f4f46] transition hover:-translate-y-0.5 hover:border-[#bfd6cd] hover:bg-[#edf6f2] sm:px-6"
                 @click="handleDemoClick('hero_secondary')"
               >
                 Ver demo
               </router-link>
               <a
                 href="#precios"
-                class="rounded-full border border-[#ead8ca] bg-[#fff4ea] px-6 py-3.5 text-sm font-semibold text-[#8c4d29] transition hover:-translate-y-0.5 hover:bg-[#fff0e2]"
+                class="inline-flex items-center justify-center rounded-full border border-[#ead8ca] bg-[#fff4ea] px-5 py-3.5 text-center text-sm font-semibold text-[#8c4d29] transition hover:-translate-y-0.5 hover:bg-[#fff0e2] sm:px-6"
                 @click="handlePricingClick('hero_secondary')"
               >
                 Ver precios
@@ -229,21 +230,112 @@
             </div>
           </div>
 
-          <div class="overflow-hidden rounded-[28px] border-2 border-[#8c4d29] bg-[#fffaf5] shadow-[8px_8px_0_0_rgba(140,77,41,0.1)]">
-            <div class="comparison-grid border-b-2 border-[#e7cdbb] bg-[#ffe6d7] px-5 py-4 text-sm font-semibold text-slate-700">
-              <div>Operativa</div>
-              <div class="text-slate-500">Métodos antiguos</div>
-              <div class="text-[#1f4f46]">Con {{ APP_NAME }}</div>
+          <div class="mx-auto w-full max-w-[46rem]">
+            <div class="mx-auto mb-4 flex w-full max-w-[22rem] flex-col items-center gap-3 text-center lg:hidden">
+              <p class="text-xs font-extrabold uppercase text-[#8c4d29]" style="letter-spacing: 0.14em;">Comparativa</p>
             </div>
 
-            <div
-              v-for="row in comparisonRows"
-              :key="row.label"
-              class="comparison-grid border-b-2 border-[#f0dfd3] px-5 py-4 last:border-b-0"
-            >
-              <div class="font-semibold text-slate-900">{{ row.label }}</div>
-              <div class="text-sm leading-7 text-slate-500">{{ row.legacy }}</div>
-              <div class="text-sm leading-7 font-medium text-[#1f4f46]">{{ row.modern }}</div>
+            <div class="mx-auto w-full max-w-[22rem] lg:hidden">
+              <div
+                class="comparison-carousel overflow-hidden"
+                @pointerdown="handleComparisonPointerDown"
+                @pointerup="handleComparisonPointerUp"
+                @pointercancel="resetComparisonPointer"
+              >
+                <div class="comparison-carousel__track" :style="{ transform: `translateX(-${comparisonSlideIndex * 100}%)` }">
+                  <article
+                    v-for="(row, index) in comparisonRows"
+                    :key="`mobile-${row.label}`"
+                    class="comparison-carousel__slide"
+                  >
+                    <div class="flex h-full flex-col rounded-[24px] border-2 border-[#efd9ca] bg-white/78 p-4 shadow-[5px_5px_0_0_rgba(140,77,41,0.08)]">
+                      <div class="flex items-start gap-3">
+                        <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border-2 border-[#c96a37] bg-[#fff0e4] text-sm font-extrabold text-[#8c4d29]">
+                          {{ index + 1 }}
+                        </span>
+                        <div>
+                          <p class="text-[11px] font-extrabold uppercase text-[#8c4d29]" style="letter-spacing: 0.16em;">Operativa</p>
+                          <h3 class="mt-1 text-xl font-semibold leading-tight text-slate-900">{{ row.label }}</h3>
+                        </div>
+                      </div>
+
+                      <div class="mt-4 grid gap-3">
+                        <div class="rounded-[20px] border-2 border-[#efd9ca] bg-[#fff7f1] p-4">
+                          <div class="flex items-center gap-2">
+                            <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-[#ffe0d1] text-[#c96a37]">
+                              <SolidIcon name="warning" class="h-4 w-4" />
+                            </span>
+                            <p class="text-xs font-extrabold uppercase text-[#8c4d29]" style="letter-spacing: 0.12em;">Métodos antiguos</p>
+                          </div>
+                          <p class="mt-3 text-sm font-medium leading-7 text-slate-600">{{ row.legacy }}</p>
+                        </div>
+
+                        <div class="rounded-[20px] border-2 border-[#b9ddd1] bg-[#edf8f3] p-4 shadow-[4px_4px_0_0_rgba(31,79,70,0.08)]">
+                          <div class="flex items-center gap-2">
+                            <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-[#dff3ea] text-[#1f4f46]">
+                              <SolidIcon name="check" class="h-4 w-4" />
+                            </span>
+                            <p class="text-xs font-extrabold uppercase text-[#1f4f46]" style="letter-spacing: 0.12em;">Con {{ APP_NAME }}</p>
+                          </div>
+                          <p class="mt-3 text-sm font-semibold leading-7 text-[#1f4f46]">{{ row.modern }}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </article>
+                </div>
+              </div>
+
+              <div class="mt-4 flex items-center justify-center gap-2">
+                <button
+                  v-for="(_, index) in comparisonRows"
+                  :key="`dot-${index}`"
+                  type="button"
+                  class="h-2.5 rounded-full transition-all"
+                  :class="comparisonSlideIndex === index ? 'w-8 bg-[#1f4f46]' : 'w-2.5 bg-[#d9c6b8]'"
+                  :aria-label="`Ir a la comparativa ${index + 1}`"
+                  @click="comparisonSlideIndex = index"
+                />
+              </div>
+            </div>
+
+            <div class="hidden gap-4 lg:grid lg:grid-cols-2">
+              <article
+                v-for="(row, index) in comparisonRows"
+                :key="row.label"
+                class="flex h-full flex-col rounded-[24px] border-2 border-[#efd9ca] bg-white/78 p-4 shadow-[5px_5px_0_0_rgba(140,77,41,0.08)]"
+              >
+                <div class="flex items-start gap-3">
+                  <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border-2 border-[#c96a37] bg-[#fff0e4] text-sm font-extrabold text-[#8c4d29]">
+                    {{ index + 1 }}
+                  </span>
+                  <div>
+                    <p class="text-[11px] font-extrabold uppercase text-[#8c4d29]" style="letter-spacing: 0.16em;">Operativa</p>
+                    <h3 class="mt-1 text-xl font-semibold leading-tight text-slate-900">{{ row.label }}</h3>
+                  </div>
+                </div>
+
+                <div class="mt-4 grid gap-3">
+                  <div class="rounded-[20px] border-2 border-[#efd9ca] bg-[#fff7f1] p-4">
+                    <div class="flex items-center gap-2">
+                      <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-[#ffe0d1] text-[#c96a37]">
+                        <SolidIcon name="warning" class="h-4 w-4" />
+                      </span>
+                      <p class="text-xs font-extrabold uppercase text-[#8c4d29]" style="letter-spacing: 0.12em;">Métodos antiguos</p>
+                    </div>
+                    <p class="mt-3 text-sm font-medium leading-7 text-slate-600">{{ row.legacy }}</p>
+                  </div>
+
+                  <div class="rounded-[20px] border-2 border-[#b9ddd1] bg-[#edf8f3] p-4 shadow-[4px_4px_0_0_rgba(31,79,70,0.08)]">
+                    <div class="flex items-center gap-2">
+                      <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-[#dff3ea] text-[#1f4f46]">
+                        <SolidIcon name="check" class="h-4 w-4" />
+                      </span>
+                      <p class="text-xs font-extrabold uppercase text-[#1f4f46]" style="letter-spacing: 0.12em;">Con {{ APP_NAME }}</p>
+                    </div>
+                    <p class="mt-3 text-sm font-semibold leading-7 text-[#1f4f46]">{{ row.modern }}</p>
+                  </div>
+                </div>
+              </article>
             </div>
           </div>
         </div>
@@ -251,8 +343,171 @@
 
       <section id="precios" ref="pricingSectionRef" class="space-y-6">
         <div class="pricing-shell section-frame overflow-hidden rounded-[34px] px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
-          <div class="grid gap-5 xl:grid-cols-[minmax(0,0.94fr)_minmax(0,1.06fr)] xl:items-stretch 2xl:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)_minmax(0,0.88fr)]">
-              <article class="flex h-full flex-col rounded-[30px] border-2 border-[#1f4f46] bg-[linear-gradient(180deg,#eef8f3_0%,#dff3ea_100%)] p-6 shadow-[10px_10px_0_0_rgba(31,79,70,0.14)]">
+          <div class="mx-auto mb-5 flex w-full max-w-[23rem] flex-col items-center gap-3 text-center lg:hidden">
+            <p class="text-xs font-extrabold uppercase text-[#8c4d29]" style="letter-spacing: 0.16em;">Planes</p>
+          </div>
+
+          <div class="lg:hidden">
+            <div
+              class="comparison-carousel overflow-hidden"
+              @pointerdown="handlePricingPointerDown"
+              @pointerup="handlePricingPointerUp"
+              @pointercancel="resetPricingPointer"
+            >
+              <div class="comparison-carousel__track" :style="{ transform: `translateX(-${pricingSlideIndex * 100}%)` }">
+                <article class="comparison-carousel__slide">
+                  <div class="flex h-full flex-col rounded-[28px] border-2 border-[#1f4f46] bg-[linear-gradient(180deg,#f8fcfa_0%,#e8f7f0_100%)] p-5 shadow-[0_20px_44px_rgba(31,79,70,0.12)]">
+                    <div>
+                      <p class="inline-flex rounded-full border-2 border-[#1f4f46] bg-white/90 px-3 py-1 text-[11px] font-extrabold uppercase text-[#1f4f46]" style="letter-spacing: 0.18em;">Starter</p>
+                      <h3 class="mt-4 text-[2rem] font-semibold leading-[0.95] text-slate-900">Empieza gratis.</h3>
+                      <div class="mt-4 flex items-center justify-between rounded-[22px] border border-[#9fcdbd] bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(239,249,244,0.98))] px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.95),0_12px_24px_rgba(31,79,70,0.08)]">
+                        <div>
+                          <p class="text-[10px] font-extrabold uppercase text-[#1f4f46]" style="letter-spacing: 0.18em;">Plan base</p>
+                          <p class="mt-1 text-xs font-medium text-[#4f6f68]">Sin coste mensual</p>
+                        </div>
+                        <p class="text-4xl font-semibold leading-none text-slate-900">0 €</p>
+                      </div>
+                    </div>
+
+                    <p class="mt-4 text-sm leading-7 text-slate-700">Para ordenar tus primeros alquileres sin compromiso.</p>
+
+                    <div class="mt-4 flex flex-wrap gap-2">
+                      <span class="rounded-full border-2 border-[#b9ddd1] bg-white/80 px-3 py-2 text-xs font-semibold text-[#1f4f46]">Hasta 3 inmuebles</span>
+                      <span class="rounded-full border-2 border-[#b9ddd1] bg-white/80 px-3 py-2 text-xs font-semibold text-[#1f4f46]">Sin tarjeta</span>
+                      <span class="rounded-full border-2 border-[#b9ddd1] bg-white/80 px-3 py-2 text-xs font-semibold text-[#1f4f46]">Sin límite</span>
+                    </div>
+
+                    <div class="mt-5 flex flex-1 flex-col border-t border-[#b9ddd1] pt-4">
+                      <ul class="space-y-3">
+                        <li v-for="item in freePlanFeatures" :key="item" class="flex items-center gap-3 rounded-[16px] bg-white/78 px-4 py-3 text-sm font-medium text-slate-700">
+                          <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#dff3ea]">
+                            <SolidIcon name="check" class="h-4 w-4 text-[#1f4f46]" />
+                          </span>
+                          <span>{{ item }}</span>
+                        </li>
+                      </ul>
+
+                      <router-link
+                        to="/sign-up"
+                        class="mt-5 inline-flex w-full items-center justify-center rounded-full bg-[#1f4f46] px-5 py-4 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-[#173c36]"
+                        @click="handleRegisterClick('pricing_free_mobile')"
+                      >
+                        Crear cuenta gratis
+                      </router-link>
+                    </div>
+                  </div>
+                </article>
+
+                <article class="comparison-carousel__slide">
+                  <div class="relative flex h-full flex-col overflow-hidden rounded-[28px] border-2 border-[#d9982c] bg-[linear-gradient(180deg,#fffaf0_0%,#ffe8b8_100%)] p-5 shadow-[0_22px_46px_rgba(217,152,44,0.16)]">
+                    <div class="pointer-events-none absolute inset-x-0 top-0 h-20 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.68),transparent_72%)]"></div>
+
+                    <div class="relative">
+                      <div class="flex flex-wrap items-center gap-2">
+                        <p class="inline-flex rounded-full border-2 border-[#d9982c] bg-[#fff8e5] px-3 py-1 text-[11px] font-extrabold uppercase text-[#8a6518]" style="letter-spacing: 0.18em;">Plan Pro</p>
+                        <span class="inline-flex rounded-full border-2 border-[#8c4d29] bg-[#fff1e7] px-3 py-1 text-[11px] font-extrabold uppercase text-[#8c4d29]" style="letter-spacing: 0.16em;">Más popular</span>
+                      </div>
+                      <h3 class="mt-4 text-[2rem] font-semibold leading-[0.95] text-slate-900">Sin límites.</h3>
+                      <div class="mt-4 flex items-center justify-between gap-3 rounded-[22px] border border-[#e7cf8c] bg-[linear-gradient(180deg,rgba(255,255,255,0.99),rgba(255,247,223,0.98))] px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.95),0_14px_28px_rgba(217,152,44,0.12)]">
+                        <div>
+                          <p class="text-[10px] font-extrabold uppercase text-[#8a6518]" style="letter-spacing: 0.18em;">Mejor valor</p>
+                          <p class="mt-1 text-xs font-medium text-slate-600">o 99 €/año</p>
+                          <p class="mt-1 text-[11px] font-semibold text-[#8c4d29]">Precio bloqueado</p>
+                        </div>
+                        <p class="whitespace-nowrap text-[2.3rem] font-semibold leading-none text-slate-900">9,90 €</p>
+                      </div>
+                    </div>
+
+                    <div class="relative mt-4 flex flex-wrap gap-2">
+                      <span class="rounded-full border-2 border-[#e7cf8c] bg-[#fff7df] px-3 py-2 text-xs font-semibold text-[#8a6518]">Inmuebles ilimitados</span>
+                      <span class="rounded-full border-2 border-[#e7cf8c] bg-[#fff7df] px-3 py-2 text-xs font-semibold text-[#8a6518]">Sin permanencia</span>
+                    </div>
+
+                    <div class="relative mt-4 rounded-[18px] bg-white/62 px-4 py-3">
+                      <p class="text-sm font-medium leading-6 text-slate-700">Precio especial para los primeros clientes de {{ APP_NAME }}.</p>
+                    </div>
+
+                    <div class="relative mt-5 flex flex-1 flex-col border-t border-[#e7cf8c] pt-4">
+                      <ul class="space-y-3">
+                        <li v-for="item in proPlanFeatures" :key="item" class="flex items-center gap-3 rounded-[16px] bg-white/82 px-4 py-3 text-sm font-medium text-slate-700">
+                          <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#fff3cd]">
+                            <SolidIcon name="check" class="h-4 w-4 text-[#8a6518]" />
+                          </span>
+                          <span>{{ item }}</span>
+                        </li>
+                      </ul>
+
+                      <div class="mt-5 grid gap-3">
+                        <router-link
+                          to="/sign-up"
+                          class="inline-flex items-center justify-center rounded-full bg-[#d9982c] px-5 py-4 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-[#c58a22]"
+                          @click="handleProUpgradeClick('pricing_pro_mobile')"
+                        >
+                          Quiero Pro
+                        </router-link>
+                        <router-link
+                          to="/demo"
+                          class="inline-flex items-center justify-center rounded-full border-2 border-[#d9982c] bg-white px-5 py-4 text-sm font-semibold text-[#8a6518] transition hover:-translate-y-0.5 hover:bg-[#fff7df]"
+                          @click="handleDemoClick('pricing_pro_mobile')"
+                        >
+                          Ver demo
+                        </router-link>
+                      </div>
+                    </div>
+                  </div>
+                </article>
+
+                <article class="comparison-carousel__slide">
+                  <div class="flex h-full flex-col rounded-[28px] border-2 border-dashed border-slate-300 bg-[linear-gradient(180deg,#fcfcfb_0%,#f4f5f7_100%)] p-5 shadow-[0_18px_38px_rgba(148,163,184,0.12)]">
+                    <div>
+                      <div class="flex flex-wrap items-center gap-2">
+                        <p class="inline-flex rounded-full border-2 border-slate-300 bg-white/90 px-3 py-1 text-[11px] font-extrabold uppercase text-slate-700" style="letter-spacing: 0.18em;">Empresa</p>
+                        <span class="inline-flex rounded-full border-2 border-slate-300 bg-slate-100 px-3 py-1 text-[11px] font-extrabold uppercase text-slate-600" style="letter-spacing: 0.16em;">Próximamente</span>
+                      </div>
+                      <h3 class="mt-4 text-[2rem] font-semibold leading-[0.95] text-slate-900">Para equipos.</h3>
+                    </div>
+
+                    <p class="mt-4 text-sm leading-7 text-slate-600">Una futura capa para gestionar más usuarios, más coordinación y más reporting dentro de {{ APP_NAME }}.</p>
+
+                    <div class="mt-4 flex flex-wrap gap-2">
+                      <span class="rounded-full border-2 border-slate-300 bg-white/80 px-3 py-2 text-xs font-semibold text-slate-700">Escalabilidad futura</span>
+                      <span class="rounded-full border-2 border-slate-300 bg-white/80 px-3 py-2 text-xs font-semibold text-slate-700">Sin fecha aún</span>
+                    </div>
+
+                    <div class="mt-5 flex flex-1 flex-col border-t border-slate-300 pt-4">
+                      <ul class="space-y-3">
+                        <li v-for="item in teamPlanFeatures" :key="item" class="flex items-center gap-3 rounded-[16px] bg-white/82 px-4 py-3 text-sm font-medium text-slate-600">
+                          <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100">
+                            <SolidIcon name="check" class="h-4 w-4 text-slate-500" />
+                          </span>
+                          <span>{{ item }}</span>
+                        </li>
+                      </ul>
+
+                      <div class="mt-5 inline-flex w-full items-center justify-center rounded-full border-2 border-dashed border-slate-300 px-5 py-4 text-sm font-semibold text-slate-500">
+                        Próximamente
+                      </div>
+                    </div>
+                  </div>
+                </article>
+              </div>
+            </div>
+
+            <div class="mt-4 flex items-center justify-center gap-2">
+              <button
+                v-for="(_, index) in pricingPlanTabs"
+                :key="`pricing-dot-${index}`"
+                type="button"
+                class="h-2.5 rounded-full transition-all"
+                :class="pricingSlideIndex === index ? 'w-8 bg-[#1f4f46]' : 'w-2.5 bg-[#d9c6b8]'"
+                :aria-label="`Ir al plan ${index + 1}`"
+                @click="pricingSlideIndex = index"
+              />
+            </div>
+          </div>
+
+          <div class="hidden gap-5 xl:grid-cols-[minmax(0,0.94fr)_minmax(0,1.06fr)] xl:items-stretch 2xl:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)_minmax(0,0.88fr)] lg:grid">
+              <article class="flex h-full flex-col rounded-[30px] border-2 border-[#1f4f46] bg-[linear-gradient(180deg,#f8fcfa_0%,#e8f7f0_100%)] p-6 shadow-[0_24px_52px_rgba(31,79,70,0.12)]">
                 <div class="flex flex-wrap items-start justify-between gap-4">
                   <div class="max-w-[19rem]">
                     <p class="inline-flex rounded-full border-2 border-[#1f4f46] bg-white/85 px-3 py-1 text-[11px] font-extrabold uppercase text-[#1f4f46]" style="letter-spacing: 0.22em;">Starter</p>
@@ -260,9 +515,10 @@
                       Empieza gratis.
                     </h3>
                   </div>
-                  <div class="rounded-[22px] border-2 border-[#1f4f46] bg-white px-5 py-4 text-right shadow-[6px_6px_0_0_rgba(31,79,70,0.12)]">
-                    <p class="text-[11px] font-extrabold uppercase text-[#1f4f46]" style="letter-spacing: 0.18em;">Precio</p>
+                  <div class="rounded-[24px] border border-[#9fcdbd] bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(239,249,244,0.98))] px-5 py-4 text-right shadow-[inset_0_1px_0_rgba(255,255,255,0.95),0_16px_30px_rgba(31,79,70,0.08)]">
+                    <p class="text-[10px] font-extrabold uppercase text-[#1f4f46]" style="letter-spacing: 0.2em;">Plan base</p>
                     <p class="mt-2 text-5xl font-semibold leading-none text-slate-900">0 €</p>
+                    <p class="mt-2 text-xs font-medium text-[#4f6f68]">Sin coste mensual</p>
                   </div>
                 </div>
 
@@ -276,10 +532,10 @@
                   <span class="rounded-full border-2 border-[#b9ddd1] bg-white/75 px-3 py-2 text-xs font-semibold text-[#1f4f46]">Sin límite de tiempo</span>
                 </div>
 
-                <div class="mt-6 flex flex-1 flex-col rounded-[24px] border-2 border-[#b9ddd1] bg-white/60 p-4 shadow-[6px_6px_0_0_rgba(31,79,70,0.08)]">
+                <div class="mt-6 flex flex-1 flex-col border-t border-[#b9ddd1] pt-4">
                   <ul class="space-y-3">
-                    <li v-for="item in freePlanFeatures" :key="item" class="flex items-center gap-3 rounded-[18px] border-2 border-[#c6e5d8] bg-white px-4 py-3 text-sm font-medium text-slate-700">
-                      <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl border-2 border-[#1f4f46] bg-[#dff3ea]">
+                    <li v-for="item in freePlanFeatures" :key="item" class="flex items-center gap-3 rounded-[18px] bg-white/78 px-4 py-3 text-sm font-medium text-slate-700">
+                      <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#dff3ea]">
                         <SolidIcon name="check" class="h-4 w-4 text-[#1f4f46]" />
                       </span>
                       <span>{{ item }}</span>
@@ -296,7 +552,7 @@
                 </div>
               </article>
 
-              <article class="relative flex h-full flex-col overflow-hidden rounded-[32px] border-2 border-[#d9982c] bg-[linear-gradient(180deg,#fff4d1_0%,#ffe3a6_100%)] p-6 shadow-[14px_14px_0_0_rgba(217,152,44,0.18)] 2xl:-translate-y-3">
+              <article class="relative flex h-full flex-col overflow-hidden rounded-[32px] border-2 border-[#d9982c] bg-[linear-gradient(180deg,#fffaf0_0%,#ffe8b8_100%)] p-6 shadow-[0_26px_56px_rgba(217,152,44,0.16)] 2xl:-translate-y-2">
                 <div class="pointer-events-none absolute inset-x-0 top-0 h-28 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.65),transparent_70%)]"></div>
 
                 <div class="relative flex flex-wrap items-start justify-between gap-4">
@@ -310,8 +566,8 @@
                     </h3>
                   </div>
 
-                  <div class="rounded-[22px] border-2 border-[#d9982c] bg-white px-5 py-4 text-right shadow-[6px_6px_0_0_rgba(217,152,44,0.14)]">
-                    <p class="text-[11px] font-extrabold uppercase text-[#8a6518]" style="letter-spacing: 0.18em;">Precio</p>
+                  <div class="rounded-[24px] border border-[#e7cf8c] bg-[linear-gradient(180deg,rgba(255,255,255,0.99),rgba(255,247,223,0.98))] px-5 py-4 text-right shadow-[inset_0_1px_0_rgba(255,255,255,0.95),0_18px_34px_rgba(217,152,44,0.12)]">
+                    <p class="text-[10px] font-extrabold uppercase text-[#8a6518]" style="letter-spacing: 0.2em;">Mejor valor</p>
                     <p class="mt-2 text-4xl font-semibold leading-none text-slate-900">9,90 €<span class="text-lg text-slate-500">/mes</span></p>
                     <p class="mt-2 text-sm font-medium text-slate-600">o 99 €/año</p>
                     <p class="mt-2 text-xs font-semibold text-[#8c4d29]">Precio bloqueado mientras seas cliente</p>
@@ -324,15 +580,14 @@
                   <span class="rounded-full border-2 border-[#c96a37] bg-white/80 px-3 py-2 text-xs font-semibold text-[#8c4d29]">Precio bloqueado mientras seas cliente</span>
                 </div>
 
-                <div class="relative mt-4 rounded-[22px] border-2 border-[#e7cf8c] bg-[#fff7df] px-4 py-4">
-                  <p class="text-xs font-extrabold uppercase text-[#8a6518]" style="letter-spacing: 0.18em;">Lanzamiento</p>
-                  <p class="mt-2 text-sm leading-7 text-slate-700">Precio especial para los primeros clientes de {{ APP_NAME }}.</p>
+                <div class="relative mt-4 rounded-[18px] bg-white/62 px-4 py-3">
+                  <p class="text-sm font-medium leading-6 text-slate-700">Precio especial para los primeros clientes de {{ APP_NAME }}.</p>
                 </div>
 
-                <div class="relative mt-6 flex flex-1 flex-col rounded-[24px] border-2 border-[#e7cf8c] bg-[#fff9ea]/92 p-4 shadow-[6px_6px_0_0_rgba(217,152,44,0.1)]">
+                <div class="relative mt-6 flex flex-1 flex-col border-t border-[#e7cf8c] pt-4">
                   <ul class="space-y-3">
-                    <li v-for="item in proPlanFeatures" :key="item" class="flex items-center gap-3 rounded-[18px] border-2 border-[#edd698] bg-white px-4 py-3 text-sm font-medium text-slate-700">
-                      <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl border-2 border-[#d9982c] bg-[#fff3cd]">
+                    <li v-for="item in proPlanFeatures" :key="item" class="flex items-center gap-3 rounded-[18px] bg-white/82 px-4 py-3 text-sm font-medium text-slate-700">
+                      <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#fff3cd]">
                         <SolidIcon name="check" class="h-4 w-4 text-[#8a6518]" />
                       </span>
                       <span>{{ item }}</span>
@@ -358,7 +613,7 @@
                 </div>
               </article>
 
-              <article class="flex h-full flex-col rounded-[30px] border-2 border-dashed border-slate-300 bg-[linear-gradient(180deg,#fafaf9_0%,#f3f4f6_100%)] p-6 shadow-[10px_10px_0_0_rgba(148,163,184,0.12)] xl:col-span-2 2xl:col-span-1">
+              <article class="flex h-full flex-col rounded-[30px] border-2 border-dashed border-slate-300 bg-[linear-gradient(180deg,#fcfcfb_0%,#f4f5f7_100%)] p-6 shadow-[0_22px_48px_rgba(148,163,184,0.12)] xl:col-span-2 2xl:col-span-1">
                 <div class="flex flex-wrap items-start justify-between gap-4">
                   <div class="max-w-[20rem]">
                     <div class="flex flex-wrap items-center gap-2">
@@ -380,10 +635,10 @@
                   <span class="rounded-full border-2 border-slate-300 bg-white/80 px-3 py-2 text-xs font-semibold text-slate-700">Sin fecha aún</span>
                 </div>
 
-                <div class="mt-6 flex flex-1 flex-col rounded-[24px] border-2 border-slate-300 bg-white/70 p-4 shadow-[6px_6px_0_0_rgba(148,163,184,0.08)]">
+                <div class="mt-6 flex flex-1 flex-col border-t border-slate-300 pt-4">
                   <ul class="space-y-3">
-                    <li v-for="item in teamPlanFeatures" :key="item" class="flex items-center gap-3 rounded-[18px] border-2 border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-600">
-                      <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl border-2 border-slate-300 bg-slate-100">
+                    <li v-for="item in teamPlanFeatures" :key="item" class="flex items-center gap-3 rounded-[18px] bg-white/82 px-4 py-3 text-sm font-medium text-slate-600">
+                      <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100">
                         <SolidIcon name="check" class="h-4 w-4 text-slate-500" />
                       </span>
                       <span>{{ item }}</span>
@@ -402,7 +657,7 @@
       <section class="space-y-6">
         <div class="max-w-3xl rounded-[28px] border-2 border-[#8c4d29] bg-[#fff0e4] p-6 shadow-[8px_8px_0_0_rgba(140,77,41,0.12)]">
           <p class="inline-flex rounded-full border-2 border-[#c96a37] bg-[#ffd9c7] px-3 py-1 text-[11px] font-extrabold uppercase text-[#8c4d29]" style="letter-spacing: 0.24em;">Testimonios</p>
-          <h2 class="mt-4 text-3xl font-semibold text-slate-900 sm:text-4xl">Comentarios que encajan con el tipo de cliente al que quieres convencer.</h2>
+          <h2 class="mt-4 text-3xl font-semibold text-slate-900 sm:text-4xl">Propietarios que ya entienden el valor de gestionar con más orden.</h2>
         </div>
 
         <div class="grid gap-4 xl:grid-cols-3">
@@ -868,7 +1123,12 @@ const faqCardClasses = [
   'border-[#8c4d29] bg-[#f6dfcf]'
 ];
 
+const pricingPlanTabs = ['starter', 'pro', 'team'];
 const pricingSectionRef = ref<HTMLElement | null>(null);
+const comparisonSlideIndex = ref(0);
+const comparisonPointerStartX = ref<number | null>(null);
+const pricingSlideIndex = ref(0);
+const pricingPointerStartX = ref<number | null>(null);
 let pricingObserver: IntersectionObserver | null = null;
 let pricingViewedTracked = false;
 
@@ -908,6 +1168,62 @@ const handleFaqToggle = (question: string, event: Event) => {
   if (details?.open) {
     track('faq_opened', { question, location: 'landing' });
   }
+};
+
+const changeComparisonSlide = (direction: 'prev' | 'next') => {
+  const lastIndex = comparisonRows.length - 1;
+  if (direction === 'next') {
+    comparisonSlideIndex.value = comparisonSlideIndex.value >= lastIndex ? 0 : comparisonSlideIndex.value + 1;
+    return;
+  }
+
+  comparisonSlideIndex.value = comparisonSlideIndex.value <= 0 ? lastIndex : comparisonSlideIndex.value - 1;
+};
+
+const handleComparisonPointerDown = (event: PointerEvent) => {
+  comparisonPointerStartX.value = event.clientX;
+};
+
+const handleComparisonPointerUp = (event: PointerEvent) => {
+  if (comparisonPointerStartX.value === null) return;
+
+  const deltaX = event.clientX - comparisonPointerStartX.value;
+  comparisonPointerStartX.value = null;
+
+  if (Math.abs(deltaX) < 40) return;
+  changeComparisonSlide(deltaX < 0 ? 'next' : 'prev');
+};
+
+const resetComparisonPointer = () => {
+  comparisonPointerStartX.value = null;
+};
+
+const changePricingSlide = (direction: 'prev' | 'next') => {
+  const lastIndex = pricingPlanTabs.length - 1;
+  if (direction === 'next') {
+    pricingSlideIndex.value = pricingSlideIndex.value >= lastIndex ? 0 : pricingSlideIndex.value + 1;
+    return;
+  }
+
+  pricingSlideIndex.value = pricingSlideIndex.value <= 0 ? lastIndex : pricingSlideIndex.value - 1;
+};
+
+const handlePricingPointerDown = (event: PointerEvent) => {
+  pricingPointerStartX.value = event.clientX;
+};
+
+const handlePricingPointerUp = (event: PointerEvent) => {
+  if (pricingPointerStartX.value === null) return;
+
+  const deltaX = event.clientX - pricingPointerStartX.value;
+  pricingPointerStartX.value = null;
+
+  if (Math.abs(deltaX) < 40) return;
+  changePricingSlide(deltaX < 0 ? 'next' : 'prev');
+};
+
+const resetPricingPointer = () => {
+  pricingPointerStartX.value = null;
 };
 
 onMounted(() => {
@@ -985,12 +1301,6 @@ onBeforeUnmount(() => {
     linear-gradient(155deg, rgba(22, 61, 55, 0.98), rgba(31, 79, 70, 0.98) 52%, rgba(17, 46, 42, 0.98));
 }
 
-.comparison-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 0.34fr) minmax(0, 0.33fr) minmax(0, 0.33fr);
-  gap: 1rem;
-}
-
 .cta-frame {
   box-shadow: 0 34px 90px rgba(15, 23, 42, 0.12);
 }
@@ -1002,6 +1312,36 @@ onBeforeUnmount(() => {
   font-weight: 900;
   line-height: 1.06;
   letter-spacing: -0.02em;
+}
+
+.hero-pill {
+  max-width: 100%;
+  gap: 0.5rem;
+  padding: 0.7rem 0.85rem;
+  white-space: nowrap;
+  font-size: 0.53rem;
+  letter-spacing: 0.1em;
+}
+
+.hero-pill span {
+  flex: 0 0 auto;
+}
+
+.comparison-carousel {
+  overflow: hidden;
+  touch-action: pan-y;
+  user-select: none;
+}
+
+.comparison-carousel__track {
+  display: flex;
+  transition: transform 260ms ease;
+  will-change: transform;
+}
+
+.comparison-carousel__slide {
+  width: 100%;
+  flex: 0 0 100%;
 }
 
 .faq-item summary::-webkit-details-marker {
@@ -1027,15 +1367,16 @@ onBeforeUnmount(() => {
   content: '−';
 }
 
-@media (max-width: 1023px) {
-  .comparison-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
 @media (min-width: 640px) {
   .trust-claim {
     font-size: 1.2rem;
+  }
+
+  .hero-pill {
+    gap: 0.75rem;
+    padding: 0.5rem 1rem;
+    font-size: 0.6875rem;
+    letter-spacing: 0.26em;
   }
 }
 </style>
