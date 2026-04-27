@@ -5,6 +5,7 @@ import { appConfig, isOriginAllowed } from '../config/appConfig';
 import { FREEMIUM_PLAN_ID, PRO_PLAN_ID, buildPlanPayload, getPlanDefinition } from '../config/plans';
 import { supabaseAdmin } from '../config/supabaseClient';
 import { countOwnerUnits } from './ownersService';
+import { recordProductEvent } from './analyticsEventsService';
 
 export type BillingCycle = 'monthly' | 'yearly';
 export type SubscriptionStatus =
@@ -68,6 +69,33 @@ type StripeSubscription = {
   items?: {
     data?: StripeSubscriptionItem[] | null;
   } | null;
+};
+
+type StripeInvoice = {
+  id?: string | null;
+  customer?: string | StripeCustomer | null;
+  subscription?: string | StripeSubscription | null;
+  amount_paid?: number | null;
+  amount_due?: number | null;
+  amount_refunded?: number | null;
+  currency?: string | null;
+  status?: string | null;
+};
+
+type StripeCharge = {
+  id?: string | null;
+  customer?: string | StripeCustomer | null;
+  invoice?: string | StripeInvoice | null;
+  amount_refunded?: number | null;
+  currency?: string | null;
+};
+
+type StripeWebhookEvent = {
+  id?: string | null;
+  type?: string;
+  livemode?: boolean | null;
+  created?: number | null;
+  data?: { object?: any };
 };
 
 const MANUAL_ACTIVATION_EMAIL = process.env.BILLING_CONTACT_EMAIL?.trim() || 'alquilio.app@outlook.es';
@@ -191,6 +219,16 @@ function buildStripeSignature(payload: Buffer, timestamp: string) {
 function normalizeCurrentPeriodEnd(unixSeconds?: number | null) {
   if (!unixSeconds || !Number.isFinite(unixSeconds)) return null;
   return new Date(unixSeconds * 1000).toISOString();
+}
+
+function normalizeStripeEventTime(unixSeconds?: number | null) {
+  if (!unixSeconds || !Number.isFinite(unixSeconds)) return new Date().toISOString();
+  return new Date(unixSeconds * 1000).toISOString();
+}
+
+export function shouldProcessStripeWebhookStatus(status?: string | null) {
+  const normalized = String(status ?? '').trim();
+  return normalized !== 'processed' && normalized !== 'duplicate';
 }
 
 async function findSubscriptionByStripeIds(options: {
@@ -383,6 +421,17 @@ export async function createCheckoutSession(ownerId: string, billingCycle: Billi
     stripe_checkout_session_id: session.id ?? null
   });
 
+  await recordProductEvent({
+    ownerId,
+    actorId: ownerId,
+    actorType: 'OWNER',
+    eventName: 'checkout_started',
+    metadata: {
+      billingCycle,
+      stripeCheckoutSessionId: session.id ?? null
+    }
+  }).catch(() => undefined);
+
   return session;
 }
 
@@ -463,6 +512,118 @@ export function verifyStripeWebhookSignature(
       return false;
     }
   });
+}
+
+async function beginStripeWebhookEvent(event: StripeWebhookEvent) {
+  const stripeEventId = String(event.id ?? '').trim();
+  const eventType = String(event.type ?? 'unknown').trim() || 'unknown';
+  if (!stripeEventId) {
+    return { shouldProcess: true, stripeEventId: null };
+  }
+
+  const now = new Date().toISOString();
+  const insert = await supabaseAdmin
+    .from('stripe_webhook_events')
+    .insert({
+      stripe_event_id: stripeEventId,
+      event_type: eventType,
+      livemode: event.livemode ?? null,
+      status: 'received',
+      attempts: 1,
+      first_received_at: now,
+      last_received_at: now
+    });
+
+  if (!insert.error) {
+    return { shouldProcess: true, stripeEventId };
+  }
+
+  if (insert.error.code !== '23505') {
+    const message = String(insert.error.message ?? '').toLowerCase();
+    if (insert.error.code === '42P01' || message.includes('stripe_webhook_events')) {
+      return { shouldProcess: true, stripeEventId: null };
+    }
+    throw insert.error;
+  }
+
+  const current = await supabaseAdmin
+    .from('stripe_webhook_events')
+    .select('status, attempts')
+    .eq('stripe_event_id', stripeEventId)
+    .maybeSingle();
+  if (current.error) throw current.error;
+
+  const status = String((current.data as any)?.status ?? '');
+  const attempts = Number((current.data as any)?.attempts ?? 1);
+  const shouldProcess = shouldProcessStripeWebhookStatus(status);
+
+  await supabaseAdmin
+    .from('stripe_webhook_events')
+    .update({
+      attempts: attempts + 1,
+      last_received_at: now,
+      status: shouldProcess ? 'received' : 'duplicate'
+    })
+    .eq('stripe_event_id', stripeEventId);
+
+  return { shouldProcess, stripeEventId };
+}
+
+async function markStripeWebhookProcessed(stripeEventId?: string | null) {
+  if (!stripeEventId) return;
+  await supabaseAdmin
+    .from('stripe_webhook_events')
+    .update({
+      status: 'processed',
+      processed_at: new Date().toISOString(),
+      error_message: null
+    })
+    .eq('stripe_event_id', stripeEventId)
+    .then(() => null, () => null);
+}
+
+async function markStripeWebhookFailed(stripeEventId: string | null | undefined, error: unknown) {
+  if (!stripeEventId) return;
+  await supabaseAdmin
+    .from('stripe_webhook_events')
+    .update({
+      status: 'failed',
+      error_message: String((error as Error)?.message ?? 'webhook_failed').slice(0, 500),
+      last_received_at: new Date().toISOString()
+    })
+    .eq('stripe_event_id', stripeEventId)
+    .then(() => null, () => null);
+}
+
+async function recordStripeBillingEvent(options: {
+  event: StripeWebhookEvent;
+  ownerId?: string | null;
+  object?: any;
+  amountCents?: number | null;
+  currency?: string | null;
+  billingCycle?: BillingCycle | null;
+  subscriptionStatus?: string | null;
+}) {
+  const object = options.object ?? {};
+  await supabaseAdmin
+    .from('stripe_billing_events')
+    .insert({
+      stripe_event_id: options.event.id ?? null,
+      event_type: String(options.event.type ?? 'unknown'),
+      owner_id: options.ownerId ?? null,
+      stripe_customer_id: getStripeResourceId(object.customer) ?? null,
+      stripe_subscription_id: getStripeResourceId(object.subscription) ?? object.id ?? null,
+      stripe_invoice_id: object.id && String(options.event.type ?? '').startsWith('invoice.') ? object.id : null,
+      amount_cents: options.amountCents ?? null,
+      currency: options.currency ?? object.currency ?? null,
+      billing_cycle: options.billingCycle ?? null,
+      subscription_status: options.subscriptionStatus ?? object.status ?? null,
+      metadata: {
+        livemode: options.event.livemode ?? null
+      },
+      occurred_at: normalizeStripeEventTime(options.event.created)
+    })
+    .then(() => null, () => null);
 }
 
 async function fetchStripeSubscription(stripeSubscriptionId: string) {
@@ -587,56 +748,179 @@ export async function confirmCheckoutSession(ownerId: string, stripeCheckoutSess
   return getOwnerBillingSummary(ownerId);
 }
 
-export async function handleStripeWebhookEvent(event: { type?: string; data?: { object?: any } }) {
-  const type = String(event.type ?? '');
-  const object = event.data?.object;
-
-  if (!object) return;
-
-  if (type === 'checkout.session.completed') {
-    const session = object as StripeCheckoutSession;
-    const ownerId = String(session.client_reference_id ?? session.metadata?.owner_id ?? '').trim();
-    if (!ownerId) return;
-
-    await syncOwnerSubscriptionWithStripeCheckoutSession(ownerId, session);
+export async function handleStripeWebhookEvent(event: StripeWebhookEvent) {
+  const webhookState = await beginStripeWebhookEvent(event);
+  if (!webhookState.shouldProcess) {
     return;
   }
 
-  if (
-    type === 'customer.subscription.created' ||
-    type === 'customer.subscription.updated' ||
-    type === 'customer.subscription.deleted'
-  ) {
-    const subscription = object as StripeSubscription;
-    const firstItem = subscription.items?.data?.[0];
-    const stripePriceId = firstItem?.price?.id ?? null;
-    const ownerIdFromMetadata = String(subscription.metadata?.owner_id ?? '').trim();
-    const existingRecord = await findSubscriptionByStripeIds({
-      stripeCustomerId: getStripeResourceId(subscription.customer),
-      stripeSubscriptionId: subscription.id ?? null
-    });
-    const ownerId = ownerIdFromMetadata || existingRecord?.owner_id || '';
-    if (!ownerId) return;
+  const type = String(event.type ?? '');
+  const object = event.data?.object;
 
-    const planId = resolvePlanIdFromPriceId(stripePriceId);
-    const billingCycle =
-      resolveBillingCycleFromPriceId(stripePriceId) ??
-      existingRecord?.billing_cycle ??
-      null;
-    const status =
+  if (!object) {
+    await markStripeWebhookProcessed(webhookState.stripeEventId);
+    return;
+  }
+
+  try {
+    if (type === 'checkout.session.completed') {
+      const session = object as StripeCheckoutSession;
+      const ownerId = String(session.client_reference_id ?? session.metadata?.owner_id ?? '').trim();
+      if (!ownerId) {
+        await markStripeWebhookProcessed(webhookState.stripeEventId);
+        return;
+      }
+
+      await syncOwnerSubscriptionWithStripeCheckoutSession(ownerId, session);
+      await recordStripeBillingEvent({
+        event,
+        ownerId,
+        object: session,
+        billingCycle: session.metadata?.billing_cycle === 'yearly' ? 'yearly' : 'monthly',
+        subscriptionStatus: 'active'
+      });
+      await recordProductEvent({
+        ownerId,
+        actorId: ownerId,
+        actorType: 'SYSTEM',
+        eventName: 'subscription_checkout_completed',
+        metadata: {
+          stripeEventId: event.id ?? null
+        }
+      }).catch(() => undefined);
+      await recordProductEvent({
+        ownerId,
+        actorId: ownerId,
+        actorType: 'SYSTEM',
+        eventName: 'stripe_webhook_processed',
+        metadata: {
+          stripeEventId: event.id ?? null,
+          type
+        }
+      }).catch(() => undefined);
+      await markStripeWebhookProcessed(webhookState.stripeEventId);
+      return;
+    }
+
+    if (
+      type === 'customer.subscription.created' ||
+      type === 'customer.subscription.updated' ||
       type === 'customer.subscription.deleted'
-        ? 'canceled'
-        : normalizeSubscriptionStatus(subscription.status);
+    ) {
+      const subscription = object as StripeSubscription;
+      const firstItem = subscription.items?.data?.[0];
+      const stripePriceId = firstItem?.price?.id ?? null;
+      const ownerIdFromMetadata = String(subscription.metadata?.owner_id ?? '').trim();
+      const existingRecord = await findSubscriptionByStripeIds({
+        stripeCustomerId: getStripeResourceId(subscription.customer),
+        stripeSubscriptionId: subscription.id ?? null
+      });
+      const ownerId = ownerIdFromMetadata || existingRecord?.owner_id || '';
+      if (!ownerId) {
+        await markStripeWebhookProcessed(webhookState.stripeEventId);
+        return;
+      }
 
-    await upsertOwnerSubscription(ownerId, {
-      plan_id: planId,
-      billing_cycle: billingCycle,
-      subscription_status: status,
-      stripe_customer_id:
-        getStripeResourceId(subscription.customer) ?? existingRecord?.stripe_customer_id ?? null,
-      stripe_subscription_id: subscription.id ?? existingRecord?.stripe_subscription_id ?? null,
-      stripe_price_id: stripePriceId,
-      current_period_end: normalizeCurrentPeriodEnd(subscription.current_period_end)
-    });
+      const planId = resolvePlanIdFromPriceId(stripePriceId);
+      const billingCycle =
+        resolveBillingCycleFromPriceId(stripePriceId) ??
+        existingRecord?.billing_cycle ??
+        null;
+      const status =
+        type === 'customer.subscription.deleted'
+          ? 'canceled'
+          : normalizeSubscriptionStatus(subscription.status);
+
+      await upsertOwnerSubscription(ownerId, {
+        plan_id: planId,
+        billing_cycle: billingCycle,
+        subscription_status: status,
+        stripe_customer_id:
+          getStripeResourceId(subscription.customer) ?? existingRecord?.stripe_customer_id ?? null,
+        stripe_subscription_id: subscription.id ?? existingRecord?.stripe_subscription_id ?? null,
+        stripe_price_id: stripePriceId,
+        current_period_end: normalizeCurrentPeriodEnd(subscription.current_period_end)
+      });
+      await recordStripeBillingEvent({
+        event,
+        ownerId,
+        object: subscription,
+        billingCycle,
+        subscriptionStatus: status
+      });
+      await recordProductEvent({
+        ownerId,
+        actorId: ownerId,
+        actorType: 'SYSTEM',
+        eventName: type === 'customer.subscription.deleted' ? 'subscription_canceled' : 'subscription_active',
+        metadata: {
+          stripeEventId: event.id ?? null,
+          subscriptionStatus: status
+        }
+      }).catch(() => undefined);
+      await recordProductEvent({
+        ownerId,
+        actorId: ownerId,
+        actorType: 'SYSTEM',
+        eventName: 'stripe_webhook_processed',
+        metadata: {
+          stripeEventId: event.id ?? null,
+          type
+        }
+      }).catch(() => undefined);
+      await markStripeWebhookProcessed(webhookState.stripeEventId);
+      return;
+    }
+
+    if (type === 'invoice.payment_succeeded' || type === 'invoice.payment_failed') {
+      const invoice = object as StripeInvoice;
+      const existingRecord = await findSubscriptionByStripeIds({
+        stripeCustomerId: getStripeResourceId(invoice.customer),
+        stripeSubscriptionId: getStripeResourceId(invoice.subscription)
+      });
+      await recordStripeBillingEvent({
+        event,
+        ownerId: existingRecord?.owner_id ?? null,
+        object: invoice,
+        amountCents: type === 'invoice.payment_succeeded' ? Number(invoice.amount_paid ?? 0) : 0,
+        currency: invoice.currency ?? null,
+        billingCycle: existingRecord?.billing_cycle ?? null,
+        subscriptionStatus: existingRecord?.subscription_status ?? invoice.status ?? null
+      });
+      await markStripeWebhookProcessed(webhookState.stripeEventId);
+      return;
+    }
+
+    if (type === 'charge.refunded') {
+      const charge = object as StripeCharge;
+      const existingRecord = await findSubscriptionByStripeIds({
+        stripeCustomerId: getStripeResourceId(charge.customer)
+      });
+      await recordStripeBillingEvent({
+        event,
+        ownerId: existingRecord?.owner_id ?? null,
+        object: charge,
+        amountCents: -Math.abs(Number(charge.amount_refunded ?? 0)),
+        currency: charge.currency ?? null,
+        billingCycle: existingRecord?.billing_cycle ?? null,
+        subscriptionStatus: existingRecord?.subscription_status ?? null
+      });
+      await markStripeWebhookProcessed(webhookState.stripeEventId);
+      return;
+    }
+
+    await markStripeWebhookProcessed(webhookState.stripeEventId);
+  } catch (error) {
+    await markStripeWebhookFailed(webhookState.stripeEventId, error);
+    await recordProductEvent({
+      actorType: 'SYSTEM',
+      eventName: 'stripe_webhook_failed',
+      severity: 'danger',
+      metadata: {
+        stripeEventId: event.id ?? null,
+        type
+      }
+    }).catch(() => undefined);
+    throw error;
   }
 }

@@ -20,6 +20,7 @@ import {
   type TenantContractProfilePayload
 } from '../utils/tenantContractProfile';
 import { captureServerException } from '../monitoring/sentry';
+import { maybeMarkOwnerActivated, recordProductEvent } from '../services/analyticsEventsService';
 
 const router = Router();
 
@@ -180,6 +181,17 @@ router.post('/', async (req: AuthenticatedRequest, res) => {
     }
     const tenant = await createTenant(ownerId, payload as TenantPayload);
     notifyDashboardUpdated(ownerId, 'tenants.created');
+    await recordProductEvent({
+      ownerId,
+      actorId: ownerId,
+      actorType: 'OWNER',
+      eventName: 'tenant_created',
+      metadata: {
+        tenantPersonId: (tenant as any)?.id ?? null,
+        unitId: payload.unit_id ?? null
+      }
+    }).catch(() => undefined);
+    void maybeMarkOwnerActivated(ownerId);
     res.status(201).json(tenant);
   } catch (error) {
     console.error(error);
@@ -270,6 +282,16 @@ router.post('/:id/portal-invite', async (req: AuthenticatedRequest, res) => {
       return res.status(401).json({ message: 'Autenticación requerida' });
     }
     const invite = await createTenantPortalInvite(ownerId, req.params.id);
+    await recordProductEvent({
+      ownerId,
+      actorId: ownerId,
+      actorType: 'OWNER',
+      eventName: 'tenant_invite_sent',
+      metadata: {
+        tenantPersonId: req.params.id,
+        inviteId: invite.inviteId
+      }
+    }).catch(() => undefined);
     res.status(201).json(invite);
   } catch (error) {
     console.error(error);
@@ -287,6 +309,15 @@ router.patch('/:id/finalize', async (req: AuthenticatedRequest, res) => {
     }
     const tenant = await finalizeTenantContract(ownerId, req.params.id, today);
     notifyDashboardUpdated(ownerId, 'tenants.finalized');
+    await recordProductEvent({
+      ownerId,
+      actorId: ownerId,
+      actorType: 'OWNER',
+      eventName: 'tenant_contract_finalized',
+      metadata: {
+        tenantPersonId: req.params.id
+      }
+    }).catch(() => undefined);
     res.json(tenant);
   } catch (error) {
     console.error(error);

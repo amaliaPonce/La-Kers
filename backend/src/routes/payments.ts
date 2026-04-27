@@ -10,6 +10,7 @@ import {
 } from '../services/paymentsService';
 import { notifyDashboardUpdated } from '../services/dashboardRealtime';
 import { captureServerException } from '../monitoring/sentry';
+import { maybeMarkOwnerActivated, recordProductEvent } from '../services/analyticsEventsService';
 
 const router = Router();
 
@@ -75,6 +76,18 @@ router.post('/', async (req: AuthenticatedRequest, res) => {
     }
     const payment = await createPayment({ ...payload, status: 'PENDING' }, ownerId);
     notifyDashboardUpdated(ownerId, 'payments.created');
+    await recordProductEvent({
+      ownerId,
+      actorId: ownerId,
+      actorType: 'OWNER',
+      eventName: 'payment_created',
+      metadata: {
+        paymentId: (payment as any)?.id ?? null,
+        unitId: payload.unit_id,
+        tenantPersonId: payload.tenant_person_id
+      }
+    }).catch(() => undefined);
+    void maybeMarkOwnerActivated(ownerId);
     res.status(201).json(payment);
   } catch (error) {
     console.error(error);
@@ -111,6 +124,17 @@ router.patch('/:id/pay', async (req: AuthenticatedRequest, res) => {
     }
     const payment = await markPaymentPaid(req.params.id, paymentMethod as PaymentMethod, ownerId);
     notifyDashboardUpdated(ownerId, 'payments.marked_paid');
+    await recordProductEvent({
+      ownerId,
+      actorId: ownerId,
+      actorType: 'OWNER',
+      eventName: 'payment_marked_paid',
+      metadata: {
+        paymentId: req.params.id,
+        paymentMethod
+      }
+    }).catch(() => undefined);
+    void maybeMarkOwnerActivated(ownerId);
     res.json(payment);
   } catch (error) {
     console.error(error);

@@ -65,3 +65,16 @@ test('verifyStripeWebhookSignature rejects stale signed payloads', () => {
     restore();
   }
 });
+
+test('shouldProcessStripeWebhookStatus skips already processed webhook events', () => {
+  const { billingService, restore } = loadBillingServiceForTest('whsec_test_secret');
+
+  try {
+    assert.equal(billingService.shouldProcessStripeWebhookStatus('processed'), false);
+    assert.equal(billingService.shouldProcessStripeWebhookStatus('duplicate'), false);
+    assert.equal(billingService.shouldProcessStripeWebhookStatus('failed'), true);
+    assert.equal(billingService.shouldProcessStripeWebhookStatus('received'), true);
+  } finally {
+    restore();
+  }
+});

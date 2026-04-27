@@ -10,6 +10,8 @@ import dashboardRouter from './routes/dashboard';
 import contractsRouter from './routes/contracts';
 import tenantPortalRouter from './routes/tenantPortal';
 import billingRouter, { billingWebhookHandler, billingWebhookMiddleware } from './routes/billing';
+import ceoAnalyticsRouter from './routes/ceoAnalytics';
+import analyticsRouter from './routes/analytics';
 import { AuthenticatedRequest, authMiddleware } from './middleware/authMiddleware';
 import { appConfig, isOriginAllowed } from './config/appConfig';
 import { createRateLimiter } from './middleware/rateLimit';
@@ -18,6 +20,7 @@ import { logError } from './utils/errorLogger';
 import { getReadinessStatus } from './utils/readiness';
 import * as Sentry from '@sentry/node';
 import { applySentryRequestContext } from './monitoring/sentry';
+import { trackApiRequest } from './services/analyticsEventsService';
 
 const app = express();
 
@@ -83,6 +86,10 @@ app.use((req, res, next) => {
   applySentryRequestContext(req as AuthenticatedRequest);
   next();
 });
+app.use((req, res, next) => {
+  trackApiRequest(req as AuthenticatedRequest, res);
+  next();
+});
 
 app.use('/apartments', apartmentsRouter);
 app.use('/tenants', tenantsRouter);
@@ -93,6 +100,8 @@ app.use('/contracts', contractsRouter);
 app.use('/documents', documentsRouter);
 app.use('/tenant-portal', tenantPortalRouter);
 app.use('/billing', billingRouter);
+app.use('/ceo-analytics', ceoAnalyticsRouter);
+app.use('/analytics', analyticsRouter);
 Sentry.setupExpressErrorHandler(app);
 app.use((err: unknown, req: express.Request, res: express.Response, next: express.NextFunction) => {
   logError(err, {

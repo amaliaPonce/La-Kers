@@ -13,6 +13,7 @@
 - Set `CORS_ALLOWED_ORIGINS` to the exact frontend origins allowed to call the API.
 - Set `CLERK_SECRET_KEY` in the backend runtime.
 - Set `VITE_CLERK_PUBLISHABLE_KEY` in the frontend runtime.
+- Set `CEO_ADMIN_EMAILS` to the exact Clerk email allowed to access `/ceo` if the CEO dashboard is enabled.
 - Set `LANDLORD_NAME`, `LANDLORD_IDENTIFICATION` and `LANDLORD_ADDRESS`.
 - If you enable automatic billing, set `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_ID_PRO_MONTHLY` and `STRIPE_PRICE_ID_PRO_YEARLY`.
 - If tenant portal premium is enabled, set `ENABLE_TENANT_PORTAL_PREMIUM=true` and tune `TENANT_CONTRACT_RENEWAL_NOTICE_DAYS`.
@@ -29,6 +30,7 @@
   - `sql/20260413_tenant_contract_profiles.sql`
   - `sql/20260423_tenant_portal_premium.sql` if tenant portal premium is enabled
   - `sql/20260423_tenant_portal_invites.sql` if tenant portal access should work through personal invite links
+  - `sql/20260426_ceo_analytics.sql` if the CEO dashboard is enabled
 - Do not run ad hoc SQL to promote users, toggle plans, or link accounts in production.
 - Do not store generated PDFs or logs in Git.
 - Rotate Supabase keys if any secret was ever committed or shared insecurely.

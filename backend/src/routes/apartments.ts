@@ -3,6 +3,7 @@ import { AuthenticatedRequest } from '../middleware/authMiddleware';
 import { createApartment, deleteApartment, listApartments, updateApartment } from '../services/apartmentsService';
 import { notifyDashboardUpdated } from '../services/dashboardRealtime';
 import { captureServerException } from '../monitoring/sentry';
+import { maybeMarkOwnerActivated, recordProductEvent } from '../services/analyticsEventsService';
 
 const router = Router();
 
@@ -163,6 +164,16 @@ router.post('/', async (req: AuthenticatedRequest, res) => {
     }
     const apartment = await createApartment(ownerId, payload as any);
     notifyDashboardUpdated(ownerId, 'apartments.created');
+    await recordProductEvent({
+      ownerId,
+      actorId: ownerId,
+      actorType: 'OWNER',
+      eventName: 'property_created',
+      metadata: {
+        apartmentId: (apartment as any)?.id ?? null
+      }
+    }).catch(() => undefined);
+    void maybeMarkOwnerActivated(ownerId);
     res.status(201).json(apartment);
   } catch (error) {
     console.error(error);

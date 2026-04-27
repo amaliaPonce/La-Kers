@@ -258,6 +258,7 @@ import { APP_DESCRIPTION, APP_NAME } from './config/brand';
 import { runtimeConfig } from './config/runtimeConfig';
 import { clerkUserButtonAppearance } from './services/clerkAppearance';
 import { track } from './lib/analytics';
+import apiClient from './services/apiClient';
 import { consumeAuthIntent } from './lib/authTracking';
 import {
   clearSentryUserContext,
@@ -307,6 +308,7 @@ const sidebarSections = computed(() => {
 
 const currentSectionTitle = computed(() => {
   if (route.path === '/billing') return 'Plan y facturación';
+  if (route.path === '/ceo') return 'CEO/Admin';
   const found = quickNavItems.value.find((item) => item.path === route.path);
   return found?.label ?? 'Panel de gestión';
 });
@@ -336,6 +338,7 @@ const currentSectionDescription = computed(() => {
   if (route.path === '/incidents') return 'Incidencias y seguimiento operativo.';
   if (route.path === '/documents') return 'Contratos y recibos en un solo lugar.';
   if (route.path === '/billing') return 'Plan activo, uso y facturación.';
+  if (route.path === '/ceo') return 'Analíticas SaaS y operación global.';
   return 'Resumen general de la operación.';
 });
 
@@ -359,6 +362,7 @@ const routeTitleMap: Record<string, string> = {
   '/incidents': `${APP_NAME} | Incidencias`,
   '/documents': `${APP_NAME} | Documentos`,
   '/billing': `${APP_NAME} | Plan y facturación`,
+  '/ceo': `${APP_NAME} | CEO/Admin`,
   '/tenant': `${APP_NAME} | Portal del inquilino`
 };
 
@@ -401,9 +405,11 @@ watch(
     const authIntent = consumeAuthIntent();
     if (authIntent === 'signup') {
       track('signup_completed');
+      apiClient.post('/analytics/events', { eventName: 'signup_completed' }).catch(() => undefined);
     }
     if (authIntent === 'login') {
       track('login_completed');
+      apiClient.post('/analytics/events', { eventName: 'login_completed' }).catch(() => undefined);
     }
   }
 );

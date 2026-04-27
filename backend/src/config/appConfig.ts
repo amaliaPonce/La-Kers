@@ -36,6 +36,12 @@ const parseOriginList = (value: string | undefined) =>
     .filter(Boolean)
     .map(trimTrailingSlash);
 
+const parseEmailList = (value: string | undefined) =>
+  (value ?? '')
+    .split(',')
+    .map((entry) => entry.trim().toLowerCase())
+    .filter(Boolean);
+
 const derivePlatformOrigins = (env: NodeJS.ProcessEnv) => {
   const origins = new Set<string>();
   const vercelCandidates = [
@@ -75,6 +81,7 @@ export type AppConfig = {
   globalRateLimitMax: number;
   authRateLimitWindowMs: number;
   authRateLimitMax: number;
+  ceoAdminEmails: string[];
 };
 
 export function createAppConfig(env: NodeJS.ProcessEnv): AppConfig {
@@ -120,7 +127,8 @@ export function createAppConfig(env: NodeJS.ProcessEnv): AppConfig {
     globalRateLimitWindowMs: parseNumber(env.RATE_LIMIT_WINDOW_MS, 15 * 60 * 1000),
     globalRateLimitMax: parseNumber(env.RATE_LIMIT_MAX, 300),
     authRateLimitWindowMs: parseNumber(env.AUTH_RATE_LIMIT_WINDOW_MS, 15 * 60 * 1000),
-    authRateLimitMax: parseNumber(env.AUTH_RATE_LIMIT_MAX, 20)
+    authRateLimitMax: parseNumber(env.AUTH_RATE_LIMIT_MAX, 20),
+    ceoAdminEmails: parseEmailList(env.CEO_ADMIN_EMAILS)
   };
 }
 

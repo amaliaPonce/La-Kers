@@ -6,6 +6,7 @@ import {
   markTenantPortalInviteClaimed,
   releaseTenantPortalInviteClaim
 } from './tenantPortalInviteService';
+import { recordProductEvent } from './analyticsEventsService';
 
 type TenantPortalAccessRecord = {
   id: string;
@@ -270,6 +271,17 @@ async function createTenantPortalAccessFromInvite(clerkUserId: string, inviteTok
       .select('*')
       .single();
     if (upsertError) throw upsertError;
+
+    await recordProductEvent({
+      ownerId: invite.owner_id,
+      actorId: invite.tenant_person_id,
+      actorType: 'TENANT',
+      eventName: 'tenant_invite_accepted',
+      metadata: {
+        tenantPersonId: invite.tenant_person_id,
+        inviteId: invite.id
+      }
+    }).catch(() => undefined);
 
     return upserted as TenantPortalAccessRecord;
   } catch (error) {

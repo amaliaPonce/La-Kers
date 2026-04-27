@@ -6,6 +6,7 @@ import {
   getTenantPortalOverview,
   getTenantPortalReceiptPdf
 } from '../services/tenantPortalPremiumService';
+import { recordProductEvent } from '../services/analyticsEventsService';
 
 const router = Router();
 
@@ -46,6 +47,15 @@ router.get('/me', async (req: AuthenticatedRequest, res) => {
   try {
     const actor = ensureTenantActor(req);
     const profile = await getTenantPortalOverview(actor.authUserId);
+    await recordProductEvent({
+      ownerId: actor.ownerId,
+      actorId: actor.tenantPersonId ?? actor.actorRef,
+      actorType: 'TENANT',
+      eventName: 'tenant_portal_accessed',
+      metadata: {
+        tenantPersonId: actor.tenantPersonId ?? null
+      }
+    }).catch(() => undefined);
     res.json(profile);
   } catch (error) {
     console.error(error);
@@ -63,6 +73,16 @@ router.post('/incidents', async (req: AuthenticatedRequest, res) => {
   try {
     const actor = ensureTenantActor(req);
     const incident = await createTenantPortalIncident(actor.authUserId, payload);
+    await recordProductEvent({
+      ownerId: actor.ownerId,
+      actorId: actor.tenantPersonId ?? actor.actorRef,
+      actorType: 'TENANT',
+      eventName: 'tenant_portal_incident_created',
+      metadata: {
+        tenantPersonId: actor.tenantPersonId ?? null,
+        incidentId: (incident as any)?.id ?? null
+      }
+    }).catch(() => undefined);
     res.status(201).json(incident);
   } catch (error) {
     console.error(error);

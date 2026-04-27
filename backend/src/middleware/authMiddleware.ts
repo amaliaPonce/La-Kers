@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import { getAuth } from '@clerk/express';
 import { appConfig } from '../config/appConfig';
 import { ensureTenantPortalAccess, hasTenantPortalAccess } from '../services/tenantPortalService';
+import { isCeoAdminClerkUser } from './ceoAdminMiddleware';
 
 type ClerkAuthState = {
   userId?: string | null;
@@ -89,7 +90,8 @@ export async function authMiddleware(req: AuthenticatedRequest, res: Response, n
 
     if (appConfig.enableTenantPortal) {
       const isTenantAccount = await hasTenantPortalAccess(userId).catch(() => false);
-      if (isTenantAccount) {
+      const isCeoAdmin = await isCeoAdminClerkUser(userId).catch(() => false);
+      if (isTenantAccount && !isCeoAdmin) {
         return res.status(403).json({ message: 'Esta cuenta solo tiene acceso al portal del inquilino' });
       }
     }

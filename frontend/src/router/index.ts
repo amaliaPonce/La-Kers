@@ -11,6 +11,7 @@ const PaymentsView = () => import('../views/PaymentsView.vue');
 const IncidentsView = () => import('../views/IncidentsView.vue');
 const DocumentsView = () => import('../views/DocumentsView.vue');
 const BillingView = () => import('../views/BillingView.vue');
+const CeoDashboardView = () => import('../views/CeoDashboardView.vue');
 const TenantPortalView = () => import('../views/TenantPortalView.vue');
 const TenantLoginView = () => import('../views/TenantLoginView.vue');
 const TenantRegisterView = () => import('../views/TenantRegisterView.vue');
@@ -31,6 +32,7 @@ const router = createRouter({
     { path: '/tenant/sign-in', name: 'TenantSignIn', component: TenantLoginView, meta: { public: true, hideNavbar: true, tenantPortal: true } },
     { path: '/tenant/sign-up', name: 'TenantSignUp', component: TenantRegisterView, meta: { public: true, hideNavbar: true, tenantPortal: true } },
     { path: '/billing', name: 'Billing', component: BillingView },
+    { path: '/ceo', name: 'CeoDashboard', component: CeoDashboardView },
     { path: '/founder-dashboard', redirect: '/dashboard' },
     { path: '/dashboard', name: 'Dashboard', component: DashboardView, meta: { onboardingRoute: 'dashboard' } },
     { path: '/apartments', redirect: '/properties' },

@@ -37,6 +37,7 @@ Este repo queda preparado para desplegarse en Render Free con el blueprint de [r
 - `LANDLORD_NAME`
 - `LANDLORD_IDENTIFICATION`
 - `LANDLORD_ADDRESS`
+- `CEO_ADMIN_EMAILS` si quieres activar el Panel CEO/Admin
 
 ### Frontend obligatorias
 
@@ -95,7 +96,7 @@ Este repo queda preparado para desplegarse en Render Free con el blueprint de [r
    - Build Command: `npm ci && npm --workspace frontend run build`
    - Publish Directory: `frontend/dist`
 7. Introduce los secretos obligatorios:
-   - backend: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`, `LANDLORD_NAME`, `LANDLORD_IDENTIFICATION`, `LANDLORD_ADDRESS`
+   - backend: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`, `LANDLORD_NAME`, `LANDLORD_IDENTIFICATION`, `LANDLORD_ADDRESS`, `CEO_ADMIN_EMAILS`
    - frontend: `VITE_CLERK_PUBLISHABLE_KEY`
 8. Introduce también las variables de Stripe: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_ID_PRO_MONTHLY`, `STRIPE_PRICE_ID_PRO_YEARLY`, `BILLING_CONTACT_EMAIL`
 9. Lanza el deploy del blueprint.
@@ -107,6 +108,7 @@ Este repo queda preparado para desplegarse en Render Free con el blueprint de [r
     - `sql/20260327_tenant_portal_access.sql` solo si reactivas el portal tenant
     - `sql/20260423_tenant_portal_premium.sql` si activas la capa premium del portal tenant
     - `sql/20260423_tenant_portal_invites.sql` si activas invitaciones personales del portal tenant
+    - `sql/20260426_ceo_analytics.sql` si activas el Panel CEO/Admin
     - si la base ya existia antes de abril de 2026, esta migracion incremental es obligatoria aunque el deploy de Render salga en verde
 11. Cuando el deploy termine, valida estas URLs:
     - `https://TU-API.onrender.com/ready`
