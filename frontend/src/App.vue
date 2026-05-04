@@ -41,7 +41,7 @@
             <div class="sticky top-0 flex h-screen flex-col overflow-hidden px-6 py-8">
               <div class="border-b border-[#eadfd2] pb-6">
                 <div class="flex items-center gap-4">
-                  <span class="flex h-14 items-center rounded-[22px] border border-[#e5ddd2] bg-white/90 px-3 shadow-sm shadow-[#1f4f46]/5">
+                  <span class="flex h-14 w-14 items-center justify-center">
                     <BrandMark icon-only icon-class="h-8 w-8" />
                   </span>
                   <div>
@@ -135,12 +135,6 @@
               <div class="flex flex-col gap-4 px-4 py-4 sm:px-6 lg:px-8">
                 <div class="flex items-center justify-between gap-4">
                   <div class="flex items-center gap-3">
-                    <router-link
-                      to="/dashboard"
-                      class="flex items-center rounded-full border border-[#d8cec2] bg-white px-3 py-2 shadow-sm shadow-[#1f4f46]/5 transition hover:border-[#cdbba8]"
-                    >
-                      <BrandMark icon-only icon-class="h-6 w-6" />
-                    </router-link>
                     <div>
                       <p class="text-sm font-semibold text-slate-900">{{ currentSectionTitle }}</p>
                       <p class="text-sm text-slate-500">{{ currentSectionDescription }}</p>

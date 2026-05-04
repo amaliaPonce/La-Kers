@@ -146,6 +146,10 @@ onMounted(() => {
   letter-spacing: -0.04em;
 }
 
+.clerk-shell :deep(.cl-dividerText) {
+  background: transparent !important;
+}
+
 .clerk-shell :deep(.cl-formFieldInput::placeholder),
 .clerk-shell :deep(input::placeholder) {
   font-size: 0.875rem;

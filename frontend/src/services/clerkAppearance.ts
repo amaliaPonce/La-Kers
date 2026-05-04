@@ -35,7 +35,7 @@ export const clerkAuthAppearance: Appearance = {
     socialButtonsProviderIcon: 'text-slate-700',
     dividerRow: 'my-5',
     dividerLine: 'bg-[#eadfd2]',
-    dividerText: 'bg-white px-3 text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400',
+    dividerText: 'bg-transparent px-3 text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400',
     formFieldLabel: 'text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500',
     formFieldInput:
       'h-12 rounded-2xl border border-[#e7ddd1] bg-[#f8f5ef] px-4 text-sm text-slate-900 shadow-none transition placeholder:text-sm placeholder:text-slate-400 focus:border-[#1f4f46] focus:bg-white focus:ring-4 focus:ring-[#1f4f46]/10',

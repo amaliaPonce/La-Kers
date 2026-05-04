@@ -92,4 +92,8 @@ onMounted(() => {
   width: 100%;
   max-width: 520px;
 }
+
+.clerk-shell :deep(.cl-dividerText) {
+  background: transparent !important;
+}
 </style>
